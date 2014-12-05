@@ -25,12 +25,17 @@ iframe 是很早就存在的一种 HTML 标记， 通过在 HTML 页面里嵌入
 * 每次数据传送不会关闭连接，连接只会在通信出现错误时，或是连接重建时关闭（一些防火墙常被设置为丢弃过长的连接， 服务器端可以设置一个超时时间， 超时后通知客户端重新建立连接，并关闭原来的连接）。
 * 使用 iframe 请求一个长连接有一个很明显的不足之处：IE、Morzilla Firefox 下端的进度栏都会显示加载没有完成，而且 IE 上方的图标会不停的转动，表示加载正在进行。Google 的天才们使用一个称为“htmlfile”的 ActiveX 解决了在 IE 中的加载显示问题，并将这种方法用到了 gmail+gtalk 产品中。Alex Russell 在 “What else is burried down in the depth's of Google's amazing JavaScript?”文章中介绍了这种方法。Zeitoun 网站提供的 comet-iframe.tar.gz，封装了一个基于 iframe 和 htmlfile 的 JavaScript comet 对象，支持 IE、Mozilla Firefox 浏览器，可以作为参考。
 
-####2、Nodejs事件机制
+####3、Nodejs事件机制
 > 只需关注在需要的事件点上即可
 
-####3、BOSH [Strophe.js](http://strophe.im/)
-> BOSH技术能够同时减小网络带宽和减小客户端响应的时间。其方案是对客户端的请求连接管理器不给于返回直到数据已经就绪，当客户端收取连接管理器返回的数据会向连接管理器发送下一个请求，于是连接管理器总是保持着一个客户端的请求，当服务器端数据就绪的时候，可以将数据封装在请求的响应包中，“推送”给客户端。
-
-> 如果双向连接长时间没有数据，连接管理器负责给客户端发送一个空包，空包触发客户端发送新的请求，连接管理器通过这种机制判断连接是否已经中断，由于BOSH不是轮询的机制，带宽消耗比标准的TCP连接大不了多少。
+####4、WebSocket
+> WebSocket protocol 是HTML5一种新的协议。它实现了浏览器与服务器全双工通信(full-duplex)。
+Chrome    Supported in version 4+
+Firefox   Supported in version 4+
+IE        Supported in version 10+
+Opera     Supported in version 10+
+Safari    Supported in version 5+
+Spring Framework4
 
 ### JPush到IM后台的连接
+??
