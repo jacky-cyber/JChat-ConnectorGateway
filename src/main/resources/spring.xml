@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:p="http://www.springframework.org/schema/p" xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xmlns:websocket="http://www.springframework.org/schema/websocket"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/websocket
+    http://www.springframework.org/schema/websocket/spring-websocket.xsd
+    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+    http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.0.xsd
+    http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-3.0.xsd
+    http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+    http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd
+    http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+	 http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd"
+	 default-autowire="byType">
+	
+	 <mvc:resources location="/res/css/" mapping="/res/css/**" />
+    <mvc:resources location="/res/fonts/" mapping="/res/fonts/**" />
+    <mvc:resources location="/res/js/" mapping="/res/js/**" />
+    <mvc:resources location="/res/images/" mapping="/res/images/**" />
+	
+  	<context:component-scan base-package="com.jpush.* " />
+  	<mvc:annotation-driven />
+  	
+  	<!-- <websocket:handlers>
+        <websocket:mapping path="/im" handler="imHandler"/>
+   </websocket:handlers>
+
+   <bean id="imHandler" class="com.jpush.webim.service.ImServer"/> -->
+   
+   <websocket:handlers>
+        <websocket:mapping path="/im" handler="imHandlerWithSock"/>
+        <websocket:sockjs/>  
+   </websocket:handlers>
+
+   <bean id="imHandlerWithSock" class="com.jpush.webim.service.ImServerWithSock"/>
+   
+  	<bean id="RedisClient" name="RedisClient" class="com.jpush.webim.common.RedisClient" />
+</beans>
