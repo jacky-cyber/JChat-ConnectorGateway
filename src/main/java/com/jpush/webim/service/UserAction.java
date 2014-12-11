@@ -22,12 +22,13 @@ import com.jpush.webim.common.RedisClient;
 
 
 @Controller
-@RequestMapping(value="/im")
+@RequestMapping(value="/uc")
 public class UserAction {
 	
 	@Autowired
 	private RedisClient redisClient;
 	private static Logger log = (Logger) LoggerFactory.getLogger(UserAction.class);
+	
 	@RequestMapping(value="login", method=RequestMethod.GET)
 	public void login(HttpServletRequest req, HttpServletResponse res) throws UnsupportedEncodingException{
 		String user_name = req.getParameter("user_name");
@@ -37,7 +38,8 @@ public class UserAction {
 	   try {
 	           jedis = redisClient.getJeids();
 	           jedis.sadd("im_users", user_name);
-	           res.sendRedirect("../page/im.jsp?user_name="+user_name);
+	           //res.sendRedirect("../page/demo.jsp?user_name="+user_name);
+	           res.sendRedirect("../page/socketio/index.jsp?user_name="+user_name);
 	       } catch (JedisConnectionException e) {
 	           redisClient.returnBrokenResource(jedis);
 	           throw new JedisConnectionException(e);
@@ -47,5 +49,4 @@ public class UserAction {
 	           redisClient.returnResource(jedis);
 	    }
 	}
-	
 }

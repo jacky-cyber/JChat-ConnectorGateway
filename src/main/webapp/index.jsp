@@ -55,7 +55,7 @@
   <body>
     
      <div class="container">
-      <form class="form-signin" role="form" action="im/login">
+      <form class="form-signin" role="form" action="uc/login">
         <h3 class="form-signin-heading">JPush IM</h3>
         <input type="text" name="user_name" id="user_name" class="form-control" placeholder="用户名" required autofocus>
         <button class="btn btn-lg btn-primary btn-block" type="submit">进入聊天</button>
