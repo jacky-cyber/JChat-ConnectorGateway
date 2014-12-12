@@ -42,4 +42,5 @@ Spring Framework4
 
 ### 目前实现
 > 1、Sockejs + spring4  (websocket + ajax long polling)
-  2、socket.io.js + netty (webscoket + ajax long polling)
+
+>  2、socket.io.js + netty (webscoket + ajax long polling)
