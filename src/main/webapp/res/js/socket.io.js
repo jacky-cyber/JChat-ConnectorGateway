@@ -1492,7 +1492,7 @@ function Socket(uri, opts){
   this.onlyBinaryUpgrades = opts.onlyBinaryUpgrades;
 }
 
-Socket.priorWebsocketSuccess = false;
+Socket.priorWebsocketSuccess = false;  
 
 /**
  * Mix in `Emitter`.
@@ -1574,7 +1574,7 @@ function clone (obj) {
  *
  * @api private
  */
-Socket.prototype.open = function () {
+Socket.prototype.open = function () {      
   var transport;
   if (this.rememberUpgrade && Socket.priorWebsocketSuccess && this.transports.indexOf('websocket') != -1) {
     transport = 'websocket';

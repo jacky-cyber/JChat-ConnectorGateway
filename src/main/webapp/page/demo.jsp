@@ -6,7 +6,7 @@
 <script type='text/javascript' src='../res/js/json2.js'></script>
 <script type="text/javascript" src="../res/js/bootstrap.js"></script>
 <script type="text/javascript" src="../res/js/jquery.js"></script>
- <script type="text/javascript" src="../res/js/sockjs-0.3.4.min.js"></script>
+ <script type="text/javascript" src="../res/js/sockjs-0.3.4.js"></script>
 <link rel="stylesheet" type="text/css" href="../res/css/webim.css" />
 <link rel="stylesheet" type="text/css" href="../res/css/bootstrap.css" />
 <script type="text/javascript">

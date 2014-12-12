@@ -11,6 +11,7 @@ import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
+import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 
@@ -21,6 +22,7 @@ public class SocketIOHandlerServer {
 		 Configuration config = new Configuration();
 		 config.setHostname("127.0.0.1");
 		 config.setPort(9092);
+		 config.setTransports(Transport.WEBSOCKET);
 		 final SocketIOServer server = new SocketIOServer(config);
 		 
 		 //用户连接

@@ -13,7 +13,8 @@
 <script type="text/javascript">
 	var userName = '<%=request.getParameter("user_name")%>';
 	
-	var socket = io.connect("http://127.0.0.1:9092");
+	//var socket = io.connect("http://127.0.0.1:9092", {'reconnect':true,'upgrade':true});
+	var socket = io.connect("http://127.0.0.1:9092",{'transports':['websocket']});
 	socket.on('connect', function(){
 		var message = 'user:'+userName+'login';
 		socket.emit('loginevent', {userName: userName, message: message});
