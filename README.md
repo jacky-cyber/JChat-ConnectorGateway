@@ -39,3 +39,7 @@ Spring Framework4
 
 ### JPush到IM后台的连接
 ??
+
+### 目前实现
+> 1、Sockejs + spring4  (websocket + ajax long polling)
+  2、socket.io.js + netty (webscoket + ajax long polling)
