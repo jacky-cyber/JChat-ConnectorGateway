@@ -1,4 +1,4 @@
-##web im的分析
+##web im 分析与实现
 ***
 ###知识预览
 
@@ -37,11 +37,12 @@ Opera     Supported in version 10+
 Safari    Supported in version 5+
 Spring Framework4
 
+***
 ### 目前实现
 
 思路： 前端到 web im 后台连接过程中先探测浏览器是否支持 websocket，若支持则采用 websocket 来完成前端到后台的连接；若不支持则采用传统的 ajax polling 的方式来完成连接。
 以下两种方式均已实现采用这两种方式来来完成连接，从而完成后台到前端的消息推送。
-
+***
 #### 1、SockJS + Spring-4
 > 该方案前端框架采用 SockJS，后台采用 Spring-4（该版本支持 websocket 协议）。
 
@@ -50,7 +51,7 @@ Spring Framework4
 
 
 
-
+***
 
 ### JPush到IM后台的连接
 ??
