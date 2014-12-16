@@ -1,4 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<%@ page language="java"  pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" %>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -11,8 +12,13 @@
 <link rel="stylesheet" type="text/css" href="../../res/css/webim.css" />
 <link rel="stylesheet" type="text/css" href="../../res/css/bootstrap.css" />
 <script type="text/javascript">
+	var curUserId = null;
+	var curChatUserId = null;  //  data user_name
+	var curChatUserSessionId  = null;  // data session_id
+	var msgCardDivId = "chat01";
+	var talkToDivId = "talkTo";
 	var userName = '<%=request.getParameter("user_name")%>';
-	
+	curUserId = userName;
 	//var socket = io.connect("http://127.0.0.1:9092", {'reconnect':true,'upgrade':true});
 	//var socket = io.connect("http://127.0.0.1:9092",{'transports':['websocket']});
 	var socket = io.connect("http://127.0.0.1:9092");
@@ -20,41 +26,296 @@
 		var message = 'user:'+userName+'login';
 		socket.emit('loginevent', {userName: userName, message: message});
 		console.log('connect success.');
+		// 获取联系人列表
+		socket.emit('getContracterList', {user_name: userName}); 
 	});
+	
+	// 获取联系人列表
+	socket.on('getContracterList', function(data){
+		createContactlistUL();  // 创建联系人列表UI
+		var uielem = document.getElementById("contactlistUL");
+		for (i = 0; i < data.length; i++) {
+			var lielem = document.createElement("li");
+			$(lielem).attr({
+				'id' : data[i].user_name,
+				'sessionId' : data[i].session_id,
+				'class' : 'online',
+				'className' : 'online',
+				'chat' : 'chat',
+				'displayName' : data[i].user_name
+			});
+			lielem.onclick = function() {
+				chooseContactDivClick(this);
+			};
+			var imgelem = document.createElement("img");
+			imgelem.setAttribute("src", "../../res/img/head/contact_normal.png");
+			lielem.appendChild(imgelem);
+
+			var spanelem = document.createElement("span");
+			spanelem.innerHTML = data[i].user_name;
+			lielem.appendChild(spanelem);
+
+			uielem.appendChild(lielem);
+		}
+		var contactlist = document.getElementById('contractlist');
+		var children = contactlist.children;
+		if (children.length > 0) {
+			contactlist.removeChild(children[0]);
+		}
+		contactlist.appendChild(uielem);
+		//  默认选择与第一个联系人聊天
+		if(data.length>0){
+			setCurrentContact(data[0].user_name);
+		}
+	});
+	
 	socket.on('chatevent',function(data){
-		appendMsg('other',data.message);
+		console.log(data.userName+', '+data.message+', '+data.toUserName);
+		appendMsgSendByOthers(data.userName, data.message, data.toUserName, '');
 	});
 	socket.on('disconnect',function(){
 		console.log('disconnect to the server.');
 	});
 	
-	function sendDisconnect(){
-		socket.disconnect();
-	};
+	// 发送消息
 	function sendText(){
 		 var content = document.getElementById('talkInputId').value;
-	 	 appendMsg('me',content);
+	 	 //appendMsg('me',content);
+	 	 appendMsgSendByMe(content);
 	    document.getElementById('talkInputId').value = '';
-		 socket.emit('chatevent', {userName: userName, message: content});
+		 socket.emit('chatevent', {userName: userName, toUserName: curChatUserId, message: content});
 	};
 	 
 	//构造当前聊天记录的窗口div
 	var getContactChatDiv = function(chatUserId) {
-		return document.getElementById("me-" + chatUserId);
+		return document.getElementById(curUserId + "-" + chatUserId);
 	};
+	
 	//如果当前没有某一个联系人的聊天窗口div就新建一个
 	var createContactChatDiv = function(chatUserId) {
-		var msgContentDivId = "me-" + chatUserId;
+		var msgContentDivId = curUserId + "-" + chatUserId;
 		var newContent = document.createElement("div");
 		newContent.setAttribute("id", msgContentDivId);
 		newContent.setAttribute("class", "chat01_content");
 		newContent.setAttribute("className", "chat01_content");
-		newContent.setAttribute("style", "display:block");
+		newContent.setAttribute("style", "display:none");
 		return newContent;
 	};
-	var msgCardDivId = "chat01";
-	//显示聊天记录的处理方法
-	var appendMsg = function(who, message, contact, chattype) {
+	
+	// 创建联系人列表UI
+	var createContactlistUL = function() {
+		var uielem = document.createElement("ul");
+		$(uielem).attr({
+			"id" : "contactlistUL",
+			"class" : "chat03_content_ul"
+		});
+		var contactlist = document.getElementById("contractlist");
+		contactlist.appendChild(uielem);
+	};
+	
+	// 设置当前联系人界面
+	var setCurrentContact = function(defaultUserId) {
+		showContactChatDiv(defaultUserId);
+		if (curChatUserId != null) {
+			hiddenContactChatDiv(curChatUserId);
+		} else {
+			$('#null-nouser').css({
+				"display" : "none"
+			});
+		}
+		curChatUserId = defaultUserId;
+	};
+	
+	//显示当前选中联系人的聊天窗口div，并将该联系人在联系人列表中背景色置为蓝色
+	var showContactChatDiv = function(chatUserId) {
+		var contentDiv = getContactChatDiv(chatUserId);
+		if (contentDiv == null) {
+			contentDiv = createContactChatDiv(chatUserId);
+			document.getElementById(msgCardDivId).appendChild(contentDiv);
+		}
+		contentDiv.style.display = "block";
+		var contactLi = document.getElementById(chatUserId);
+		if (contactLi == null) {
+			return;
+		}
+		contactLi.style.backgroundColor = "blue";
+		var dispalyTitle = "与" + chatUserId + "聊天中";
+		document.getElementById(talkToDivId).children[0].innerHTML = dispalyTitle;
+	};
+	
+	//对上一个联系人的聊天窗口div做隐藏处理，并将联系人列表中选择的联系人背景色置空
+	var hiddenContactChatDiv = function(chatUserId) {
+		var contactLi = document.getElementById(chatUserId);
+		if (contactLi) {
+			contactLi.style.backgroundColor = "";
+		}
+		var contentDiv = getContactChatDiv(chatUserId);
+		if (contentDiv) {
+			contentDiv.style.display = "none";
+		}
+	};
+	
+	// 切换联系人聊天窗口div
+	var chooseContactDivClick = function(li) {
+		var chatUserId = li.id;
+		curChatUserSessionId = li.sessionId;
+		if (chatUserId != curChatUserId) {
+			if (curChatUserId == null) {
+				showContactChatDiv(chatUserId);
+			} else {
+				showContactChatDiv(chatUserId);
+				hiddenContactChatDiv(curChatUserId);
+			}
+			curChatUserId = chatUserId;
+		}
+		//对默认的null-nouser div进行处理,走的这里说明联系人列表肯定不为空所以对默认的聊天div进行处理
+		$('#null-nouser').css({
+			"display" : "none"
+		});
+	};
+	
+	// 添加对方发送的聊天信息到显示面板
+	var appendMsgSendByOthers = function(name, message, contact, chattype){
+		var contactUL = document.getElementById("contactlistUL");
+		if (contactUL.children.length == 0) {
+			return null;
+		}
+		var contactDivId = name;
+		var contactLi = getContactLi(name);
+
+		var date = new Date();
+		var time = date.toLocaleTimeString();
+		var headstr = [ "<p1>" + name + "   <span></span>" + "   </p1>",
+				"<p2>" + time + "<b></b><br/></p2>" ];
+		var header = $(headstr.join(''))
+
+		var lineDiv = document.createElement("div");
+		for ( var i = 0; i < header.length; i++) {
+			var ele = header[i];
+			lineDiv.appendChild(ele);
+		}
+		
+		var eletext = "<p3>" + message + "</p3>";
+		var ele = $(eletext);
+		ele[0].setAttribute("class", "chat-content-p3");
+		ele[0].setAttribute("className", "chat-content-p3");
+		ele[0].style.backgroundColor = "#0776A0";
+		
+		for ( var j = 0; j < ele.length; j++) {
+			lineDiv.appendChild(ele[j]);
+		}
+				
+		if (curChatUserId.indexOf(contact) < 0) {
+			contactLi.style.backgroundColor = "green";
+		}
+		 
+		var msgContentDiv = getContactChatDiv(contactDivId);
+		lineDiv.style.textAlign = "left";
+	
+		var create = false;
+		if (msgContentDiv == null) {
+			msgContentDiv = createContactChatDiv(contactDivId);
+			create = true;
+		}
+		msgContentDiv.appendChild(lineDiv);
+		if (create) {
+			document.getElementById(msgCardDivId).appendChild(msgContentDiv);
+		}
+		msgContentDiv.scrollTop = msgContentDiv.scrollHeight;
+		return lineDiv;
+	};
+	
+	// 添加自己发送的聊天信息到显示面板
+	var appendMsgSendByMe = function(message) {
+		var date = new Date();
+		var time = date.toLocaleTimeString();
+		var headstr = [ "<p1> 我 <span></span>" + "   </p1>",
+				"<p2>" + time + "<b></b><br/></p2>" ];
+		var header = $(headstr.join(''))
+
+		var lineDiv = document.createElement("div");
+		for ( var i = 0; i < header.length; i++) {
+			var ele = header[i];
+			lineDiv.appendChild(ele);
+		}
+	
+		var eletext = "<p3>" + message + "</p3>";
+		var ele = $(eletext);
+		ele[0].setAttribute("class", "chat-content-p3");
+		ele[0].setAttribute("className", "chat-content-p3");
+		ele[0].style.backgroundColor = "#6F47D7";
+		
+		for ( var j = 0; j < ele.length; j++) {
+				lineDiv.appendChild(ele[j]);
+		}
+		var msgContentDiv = getContactChatDiv(curChatUserId); 
+		lineDiv.style.textAlign = "right";
+		
+		var create = false;
+		if (msgContentDiv == null) {
+			msgContentDiv = createContactChatDiv(curChatUserId);
+			create = true;
+		}
+		msgContentDiv.appendChild(lineDiv);
+		if (create) {
+			document.getElementById(msgCardDivId).appendChild(msgContentDiv);
+		}
+		msgContentDiv.scrollTop = msgContentDiv.scrollHeight;
+		return lineDiv;
+	}; 
+	/* var appendMsgSendByMe = function(who, message, contact, chattype) {
+		var contactUL = document.getElementById("contactlistUL");
+		if (contactUL.children.length == 0) {
+			return null;
+		}
+		var contactDivId = curChatUserId;
+		var contactLi = getContactLi(curChatUserId);
+
+		var date = new Date();
+		var time = date.toLocaleTimeString();
+		var headstr = [ "<p1>" + who + "   <span></span>" + "   </p1>",
+				"<p2>" + time + "<b></b><br/></p2>" ];
+		var header = $(headstr.join(''))
+
+		var lineDiv = document.createElement("div");
+		for ( var i = 0; i < header.length; i++) {
+			var ele = header[i];
+			lineDiv.appendChild(ele);
+		}
+		
+		var eletext = "<p3>" + message + "</p3>";
+		var ele = $(eletext);
+		ele[0].setAttribute("class", "chat-content-p3");
+		ele[0].setAttribute("className", "chat-content-p3");
+		if (curUserId == who) {
+			ele[0].style.backgroundColor = "#EBEBEB";
+		}
+		for ( var j = 0; j < ele.length; j++) {
+			lineDiv.appendChild(ele[j]);
+		}
+				
+		if (curChatUserId.indexOf(contact) < 0) {
+			contactLi.style.backgroundColor = "green";
+		}
+		 
+		var msgContentDiv = getContactChatDiv(contactDivId);
+		if (curUserId == contact) {
+			lineDiv.style.textAlign = "left";
+		} else {
+			lineDiv.style.textAlign = "right";
+		}
+		var create = false;
+		if (msgContentDiv == null) {
+			msgContentDiv = createContactChatDiv(contactDivId);
+			create = true;
+		}
+		msgContentDiv.appendChild(lineDiv);
+		if (create) {
+			document.getElementById(msgCardDivId).appendChild(msgContentDiv);
+		}
+		msgContentDiv.scrollTop = msgContentDiv.scrollHeight;
+		return lineDiv;
+		******************************************** 
 		var date = new Date();
 		var time = date.toLocaleTimeString();
 		var headstr = [ "<p1>" + who + "   <span></span>" + "   </p1>",
@@ -77,9 +338,6 @@
 		for ( var j = 0; j < ele.length; j++) {
 				lineDiv.appendChild(ele[j]);
 		}
-		/* if (curChatUserId.indexOf(contact) < 0) {
-			contactLi.style.backgroundColor = "green";
-		} */
 		var msgContentDiv = getContactChatDiv("other"); 
 		if ('me' == who) {
 			lineDiv.style.textAlign = "right";
@@ -97,6 +355,12 @@
 		}
 		msgContentDiv.scrollTop = msgContentDiv.scrollHeight;
 		return lineDiv;
+		****************************************
+	}; */
+	
+	//选择联系人的处理
+	var getContactLi = function(chatUserId) {
+		return document.getElementById(chatUserId);
 	};
 	
 	var emotionFlag = false;

@@ -33,7 +33,7 @@ public class UserAction {
 	public void login(HttpServletRequest req, HttpServletResponse res) throws UnsupportedEncodingException{
 		String user_name = req.getParameter("user_name");
 		req.setCharacterEncoding("utf-8");
-		log.info(user_name+"is logining now.");
+		log.info(user_name+" is logining now.");
 		Jedis jedis = null;
 	   try {
 	           jedis = redisClient.getJeids();
