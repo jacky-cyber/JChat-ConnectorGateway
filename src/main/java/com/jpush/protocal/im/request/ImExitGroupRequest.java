@@ -4,7 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import com.jpush.protobuf.Im.Protocol;
-import com.jpush.protocal.common.Command;
+import com.jpush.protocal.utils.Command;
 import com.jpush.protocal.utils.ProtocolUtil;
 
 public class ImExitGroupRequest extends BaseRequest {

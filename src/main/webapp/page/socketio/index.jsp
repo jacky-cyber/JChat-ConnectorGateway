@@ -20,8 +20,8 @@
 	var userName = '<%=request.getParameter("user_name")%>';
 	curUserId = userName;
 	//var socket = io.connect("http://127.0.0.1:9092", {'reconnect':true,'upgrade':true});
-	//var socket = io.connect("http://127.0.0.1:9092",{'transports':['websocket']});
-	var socket = io.connect("http://127.0.0.1:9092");
+	var socket = io.connect("http://127.0.0.1:9092",{'transports':['websocket']});  //  websocket
+	//var socket = io.connect("http://127.0.0.1:9092");  //  polling
 	socket.on('connect', function(){
 		var message = 'user:'+userName+'login';
 		socket.emit('loginevent', {userName: userName, message: message});

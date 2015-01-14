@@ -1,4 +1,4 @@
-package com.jpush.protocal.common;
+package com.jpush.protocal.utils;
 
 
 public interface Command {

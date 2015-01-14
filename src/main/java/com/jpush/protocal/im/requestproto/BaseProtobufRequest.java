@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.jpush.protobuf.Im;
 import com.jpush.protobuf.Im.Protocol;
-import com.jpush.protocal.common.Command;
+import com.jpush.protocal.utils.Command;
 
 /*
  * IM 协议 Protobuf 结构请求封装

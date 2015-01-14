@@ -6,7 +6,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.Inflater;
 
-import com.jpush.protocal.common.Command;
+import com.jpush.protocal.utils.Command;
 import com.jpush.protocal.utils.ProtocolUtil;
 
 public class BaseRequest {

@@ -32,6 +32,7 @@ import com.jpush.protocal.im.requestproto.ImUpdateGroupInfoRequestProto;
 import com.jpush.protocal.push.PushLoginRequestBean;
 import com.jpush.protocal.push.PushLogoutRequest;
 import com.jpush.protocal.push.PushRegRequestBean;
+import com.jpush.protocal.utils.Command;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -49,8 +50,8 @@ import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder;
 import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
 import io.netty.handler.timeout.IdleStateHandler;
 
-public class NettyTcpClient {
-	private static Logger log = (Logger) LoggerFactory.getLogger(NettyTcpClient.class);
+public class JPushTcpClient {
+	private static Logger log = (Logger) LoggerFactory.getLogger(JPushTcpClient.class);
 	//private static final String HOST = "183.232.38.229";
 	private static final int PORT = 7000; 
 	private static final String HOST = "127.0.0.1";
@@ -58,7 +59,7 @@ public class NettyTcpClient {
 	private Bootstrap b;
 	private EventLoopGroup workGroup;
 
-	public NettyTcpClient(){
+	public JPushTcpClient(){
 		b = new Bootstrap();
 		try {
 			this.init();
@@ -80,7 +81,7 @@ public class NettyTcpClient {
 				ch.pipeline()//.addLast("idleStateHandler", new IdleStateHandler(10, 10, 0))
 								.addLast(new ImProtocalClientEncoder())
 								.addLast(new ImProtocalClientDecoder())
-								.addLast(new NettyTcpClientHandler());
+								.addLast(new JPushTcpClientHandler());
 					
 			}	
 		});		
@@ -109,7 +110,7 @@ public class NettyTcpClient {
 	}
 	
 	public static void main(String[] args) {
-		NettyTcpClient client = new NettyTcpClient();
+		JPushTcpClient client = new JPushTcpClient();
 		try {
 			//client.init();
 			log.info("success to connect the server.");

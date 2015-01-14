@@ -10,8 +10,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Random;
 
-import com.jpush.protocal.common.Command;
-
 public class ProtocolUtil {
 
 	private static DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");

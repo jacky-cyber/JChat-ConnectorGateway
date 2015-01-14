@@ -3,8 +3,8 @@ package com.jpush.protocal.push;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-import com.jpush.protocal.common.Command;
 import com.jpush.protocal.im.request.BaseRequest;
+import com.jpush.protocal.utils.Command;
 import com.jpush.protocal.utils.ProtocolUtil;
 
 public class PushLoginRequest extends BaseRequest {

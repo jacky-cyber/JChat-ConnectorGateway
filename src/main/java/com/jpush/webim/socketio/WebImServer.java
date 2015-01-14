@@ -4,14 +4,10 @@ import io.netty.channel.Channel;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.objenesis.instantiator.basic.NewInstanceInstantiator;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.exceptions.JedisConnectionException;
@@ -25,18 +21,16 @@ import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
-import com.jpush.protocal.common.Command;
-import com.jpush.protocal.common.NettyTcpClient;
-import com.jpush.protocal.im.bean.LogoutRequestBean;
+import com.jpush.protocal.common.JPushTcpClient;
 import com.jpush.protocal.im.bean.SendSingleMsgRequestBean;
-import com.jpush.protocal.im.requestproto.ImLogoutRequestProto;
 import com.jpush.protocal.im.requestproto.ImSendSingleMsgRequestProto;
+import com.jpush.protocal.utils.Command;
 import com.jpush.webim.common.RedisClient;
 import com.jpush.webim.socketio.bean.ChatObject;
 import com.jpush.webim.socketio.bean.ContracterObject;
 
-public class SocketIOHandlerServer {
-	private static Logger log = (Logger) LoggerFactory.getLogger(SocketIOHandlerServer.class);
+public class WebImServer {
+	private static Logger log = (Logger) LoggerFactory.getLogger(WebImServer.class);
 	private RedisClient redisClient;
 	
 	private static final String HOST_NAME = "127.0.0.1";
@@ -67,7 +61,7 @@ public class SocketIOHandlerServer {
 		 server.addConnectListener(new ConnectListener() {
 			@Override
 			public void onConnect(SocketIOClient client) {
-				log.info("connect from client: "+ client.getSessionId()+", "+client.getTransport());
+				log.info("connect from client, session id: "+ client.getSessionId()+", 接入方式: "+client.getTransport());
 				//  创建 jpush tcp 连接
 			}
 		 });
@@ -93,7 +87,7 @@ public class SocketIOHandlerServer {
 				userNameToSessionCilentMap.put(user_name,	client);
 				//  jpush 接入相关
 				log.info("build user connection to jpush.");
-				NettyTcpClient pushConnect = new NettyTcpClient();
+				JPushTcpClient pushConnect = new JPushTcpClient();
 				Channel pushChannel = pushConnect.getChannel();
 				userNameToPushChannelMap.put(user_name, pushChannel);
 				pushChannelToUsernameMap.put(pushChannel, user_name);
@@ -169,7 +163,7 @@ public class SocketIOHandlerServer {
 	
 	public void run(){
 		log.info("启动 im server......");
-		SocketIOHandlerServer socketServer = new SocketIOHandlerServer();
+		WebImServer socketServer = new WebImServer();
 		socketServer.init();
 		try {
 			socketServer.configMessageEventAndStart();
@@ -185,7 +179,7 @@ public class SocketIOHandlerServer {
 	
 	
 	public static void main(String[] args) throws InterruptedException {
-		SocketIOHandlerServer socketServer = new SocketIOHandlerServer();
+		WebImServer socketServer = new WebImServer();
 		socketServer.init();
 		socketServer.configMessageEventAndStart();
 	}

@@ -4,8 +4,8 @@ import java.util.List;
 
 import com.jpush.protobuf.Im;
 import com.jpush.protobuf.User;
-import com.jpush.protocal.common.Command;
 import com.jpush.protocal.im.bean.LoginRequestBean;
+import com.jpush.protocal.utils.Command;
 
 public class ImLoginRequestProto extends BaseProtobufRequest {
 

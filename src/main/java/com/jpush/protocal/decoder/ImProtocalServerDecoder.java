@@ -11,10 +11,10 @@ import com.jpush.protobuf.Im;
 import com.jpush.protobuf.Im.Protocol;
 import com.jpush.protobuf.Im.ProtocolBody;
 import com.jpush.protobuf.User.Login;
-import com.jpush.protocal.common.Command;
-import com.jpush.protocal.common.NettyTcpServerHandler;
+import com.jpush.protocal.common.JPushTcpServerHandler;
 import com.jpush.protocal.push.PushLoginRequestBean;
 import com.jpush.protocal.push.PushRegRequestBean;
+import com.jpush.protocal.utils.Command;
 import com.jpush.protocal.utils.ProtocolUtil;
 
 import io.netty.buffer.ByteBuf;

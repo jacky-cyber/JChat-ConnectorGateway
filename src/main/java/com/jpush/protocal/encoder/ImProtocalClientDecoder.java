@@ -8,11 +8,11 @@ import ch.qos.logback.classic.Logger;
 
 import com.jpush.protobuf.Im;
 import com.jpush.protobuf.Im.Protocol;
-import com.jpush.protocal.common.Command;
 import com.jpush.protocal.decoder.ImProtocalServerEncoder;
 import com.jpush.protocal.push.PushLoginResponseBean;
 import com.jpush.protocal.push.PushLogoutResponseBean;
 import com.jpush.protocal.push.PushRegResponseBean;
+import com.jpush.protocal.utils.Command;
 import com.jpush.protocal.utils.ProtocolUtil;
 
 import io.netty.buffer.ByteBuf;

@@ -39,14 +39,15 @@ import com.jpush.protocal.push.PushLoginResponseBean;
 import com.jpush.protocal.push.PushLogoutResponseBean;
 import com.jpush.protocal.push.PushRegRequestBean;
 import com.jpush.protocal.push.PushRegResponseBean;
+import com.jpush.protocal.utils.Command;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 
-public class NettyTcpServerHandler extends ChannelInboundHandlerAdapter {
-	private static Logger log = (Logger) LoggerFactory.getLogger(NettyTcpServerHandler.class);
+public class JPushTcpServerHandler extends ChannelInboundHandlerAdapter {
+	private static Logger log = (Logger) LoggerFactory.getLogger(JPushTcpServerHandler.class);
 	
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg)

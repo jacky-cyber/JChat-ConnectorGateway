@@ -21,8 +21,9 @@ import com.jpush.protocal.im.responseproto.ImLoginResponseProto;
 import com.jpush.protocal.push.PushLoginResponseBean;
 import com.jpush.protocal.push.PushLogoutResponseBean;
 import com.jpush.protocal.push.PushRegResponseBean;
+import com.jpush.protocal.utils.Command;
 import com.jpush.protocal.utils.ProtocolUtil;
-import com.jpush.webim.socketio.SocketIOHandlerServer;
+import com.jpush.webim.socketio.WebImServer;
 import com.jpush.webim.socketio.bean.ChatObject;
 
 import io.netty.buffer.ByteBuf;
@@ -32,8 +33,8 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 
-public class NettyTcpClientHandler extends ChannelInboundHandlerAdapter {
-	private static Logger log = (Logger) LoggerFactory.getLogger(NettyTcpClientHandler.class);
+public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
+	private static Logger log = (Logger) LoggerFactory.getLogger(JPushTcpClientHandler.class);
 	@Override
 	public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
 		log.info("handler Added");
@@ -94,7 +95,7 @@ public class NettyTcpClientHandler extends ChannelInboundHandlerAdapter {
 				// 模拟 Jpush 测试
 				ChatObject data = new ChatObject();
 				/****** channel map test   ******/
-				sessionClient = SocketIOHandlerServer.userNameToSessionCilentMap.get(singleMsgBean.getTargetUid()+"");
+				sessionClient = WebImServer.userNameToSessionCilentMap.get(singleMsgBean.getTargetUid()+"");
 				log.info("get username's session client: "+sessionClient.getSessionId());
 				
 				data.setToUserName(singleMsgBean.getTargetUid()+"");

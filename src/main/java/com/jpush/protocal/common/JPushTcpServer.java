@@ -23,12 +23,12 @@ import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.CharsetUtil;
 
-public class NettyTcpServer {
-	private static Logger log = (Logger) LoggerFactory.getLogger(NettyTcpServer.class);
+public class JPushTcpServer {
+	private static Logger log = (Logger) LoggerFactory.getLogger(JPushTcpServer.class);
 	
 	private int port;
 
-   public NettyTcpServer(int port) {
+   public JPushTcpServer(int port) {
         this.port = port;
     }
 
@@ -48,7 +48,7 @@ public class NettyTcpServer {
                      ch.pipeline()//.addLast("idleStateHandler", new IdleStateHandler(10, 10, 0))
                      				.addLast(new ImProtocalServerEncoder())
                      				.addLast(new ImProtocalServerDecoder())
-                     				.addLast(new NettyTcpServerHandler());
+                     				.addLast(new JPushTcpServerHandler());
                  	 }
              	}); 
 
@@ -62,6 +62,6 @@ public class NettyTcpServer {
     }
 
     public static void main(String[] args) throws Exception {
-    		new NettyTcpServer(7000).run();
+    		new JPushTcpServer(7000).run();
     }
 }
