@@ -1,5 +1,7 @@
 package com.jpush.webim.socketio;
 
+import io.netty.channel.Channel;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -23,6 +25,12 @@ import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
+import com.jpush.protocal.common.Command;
+import com.jpush.protocal.common.NettyTcpClient;
+import com.jpush.protocal.im.bean.LogoutRequestBean;
+import com.jpush.protocal.im.bean.SendSingleMsgRequestBean;
+import com.jpush.protocal.im.requestproto.ImLogoutRequestProto;
+import com.jpush.protocal.im.requestproto.ImSendSingleMsgRequestProto;
 import com.jpush.webim.common.RedisClient;
 import com.jpush.webim.socketio.bean.ChatObject;
 import com.jpush.webim.socketio.bean.ContracterObject;
@@ -33,7 +41,9 @@ public class SocketIOHandlerServer {
 	
 	private static final String HOST_NAME = "127.0.0.1";
 	private static final int PORT = 9092;
-	private static HashMap<String, SocketIOClient> userNameToSessionCilentMap = new HashMap<String, SocketIOClient>();
+	public static HashMap<String, SocketIOClient> userNameToSessionCilentMap = new HashMap<String, SocketIOClient>();
+	private static HashMap<String, Channel> userNameToPushChannelMap = new HashMap<String, Channel>();
+	public static HashMap<Channel, String> pushChannelToUsernameMap = new HashMap<Channel, String>();
 	
 	private Configuration config = null;
 	private SocketIOServer server = null;
@@ -58,6 +68,7 @@ public class SocketIOHandlerServer {
 			@Override
 			public void onConnect(SocketIOClient client) {
 				log.info("connect from client: "+ client.getSessionId()+", "+client.getTransport());
+				//  创建 jpush tcp 连接
 			}
 		 });
 		 
@@ -65,7 +76,8 @@ public class SocketIOHandlerServer {
 		 server.addDisconnectListener(new DisconnectListener() {
 			@Override
 			public void onDisconnect(SocketIOClient client) {
-				log.error("connect from client: "+client.getSessionId()+" disconnect.");
+				log.error("disconnect from client: "+client.getSessionId()+" disconnect.");
+				
 				// 向其他成员发送通知
 			}
 		});
@@ -77,7 +89,14 @@ public class SocketIOHandlerServer {
 					AckRequest ackSender) throws Exception {
 				log.info("user: "+data.getUserName()+" login success");
 				String user_name = data.getUserName();
+				log.info("add user and session client to map.");
 				userNameToSessionCilentMap.put(user_name,	client);
+				//  jpush 接入相关
+				log.info("build user connection to jpush.");
+				NettyTcpClient pushConnect = new NettyTcpClient();
+				Channel pushChannel = pushConnect.getChannel();
+				userNameToPushChannelMap.put(user_name, pushChannel);
+				pushChannelToUsernameMap.put(pushChannel, user_name);
 			}
 		 });
 		 
@@ -89,12 +108,14 @@ public class SocketIOHandlerServer {
 				String curUserName = data.getUser_name();
 				if(curUserName==null || data==null){
 					log.error("client arguments error: no user name.");
+					return;
 				}
 				List<ContracterObject> contractersList = new ArrayList<ContracterObject>();
 				Jedis jedis = null;
 				try {
 				    jedis = redisClient.getJeids();
 				    Set<String> userNameSet = jedis.smembers("im_users");
+				    log.info("当前用户数量："+userNameSet.size());
 				    for(String username: userNameSet){
 				    	if(!curUserName.equals(username)){
 				    		ContracterObject contracter = new ContracterObject();
@@ -129,14 +150,37 @@ public class SocketIOHandlerServer {
 						 cli.sendEvent("chatevent", data);
 					 }
 				 }*/
-				 SocketIOClient toClient = userNameToSessionCilentMap.get(data.getToUserName());
-				 toClient.sendEvent("chatevent", data);
+				 //SocketIOClient toClient = userNameToSessionCilentMap.get(data.getToUserName());
+				 //toClient.sendEvent("chatevent", data);
+				 // 模拟接入 Jpush 测试
+				 Channel channel = userNameToPushChannelMap.get(data.getUserName());
+				 SendSingleMsgRequestBean bean = new SendSingleMsgRequestBean(Long.parseLong(data.getToUserName()), data.getMessage());
+				 List<Integer> cookie = new ArrayList<Integer>();
+				 cookie.add(123);
+				 ImSendSingleMsgRequestProto req = new ImSendSingleMsgRequestProto(Command.JPUSH_IM.SENDMSG_SINGAL, 1, Long.parseLong(data.getUserName()), cookie, bean);
+				 channel.writeAndFlush(req);
 			 }
 		 });
 		 
 		 server.start();
 		 Thread.sleep(Integer.MAX_VALUE);
 		 server.stop();
+	}
+	
+	public void run(){
+		log.info("启动 im server......");
+		SocketIOHandlerServer socketServer = new SocketIOHandlerServer();
+		socketServer.init();
+		try {
+			socketServer.configMessageEventAndStart();
+		} catch (InterruptedException e) {
+			log.info("exception when start im server: "+e.getMessage());
+		}
+		log.info("启动 im server 成功.");
+	}
+	
+	public void stop(){
+		
 	}
 	
 	

@@ -93,6 +93,17 @@
     	<artifactId>hazelcast-all</artifactId>
     	<version>3.3.2</version>
     </dependency>
+    <dependency>
+		<groupId>com.google.protobuf</groupId>
+		<artifactId>protobuf-java</artifactId>
+		<version>2.5.0</version>
+	 </dependency>
+     <!-- <dependency>
+    	<groupId>com.jpush</groupId>
+  		<artifactId>socketio</artifactId>
+  		<version>0.0.1-SNAPSHOT</version>
+    </dependency> -->
+   
   </dependencies>
   <build>
     <finalName>webim</finalName>

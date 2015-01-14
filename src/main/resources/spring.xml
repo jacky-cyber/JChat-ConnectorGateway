@@ -39,4 +39,5 @@
  	<bean id="imHandlerWithSock" class="com.jpush.webim.service.ImServerWithSock"/>
    
   	<bean id="RedisClient" name="RedisClient" class="com.jpush.webim.common.RedisClient" />
+	<!-- <bean class="com.jpush.webim.socketio.SocketIOHandlerServer" init-method="run"></bean> -->
 </beans>

@@ -7,7 +7,7 @@ import redis.clients.jedis.ShardedJedis;
 import redis.clients.jedis.ShardedJedisPool;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 public class RedisClient {
-  private final  String BASE_URL = "220.231.194.136";
+  private final  String BASE_URL = "114.119.7.195";
   private final  int PORT = 16380;
   //private final  int PORT = 6379;
   public  int MAXTOTAL = 1000;
