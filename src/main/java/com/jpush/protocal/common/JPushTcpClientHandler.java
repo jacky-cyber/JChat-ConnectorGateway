@@ -1,9 +1,10 @@
 package com.jpush.protocal.common;
 
+import java.util.List;
+
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
-
 import com.corundumstudio.socketio.SocketIOClient;
 import com.jpush.protobuf.Group.AddGroupMember;
 import com.jpush.protobuf.Group.CreateGroup;
@@ -23,6 +24,8 @@ import com.jpush.protocal.push.PushLogoutResponseBean;
 import com.jpush.protocal.push.PushRegResponseBean;
 import com.jpush.protocal.utils.Command;
 import com.jpush.protocal.utils.ProtocolUtil;
+import com.jpush.webim.common.RedisClient;
+import com.jpush.webim.common.UidPool;
 import com.jpush.webim.socketio.WebImServer;
 import com.jpush.webim.socketio.bean.ChatObject;
 
@@ -56,9 +59,12 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 		log.info("client handler receive msg from server");
 		if(msg instanceof PushRegResponseBean){
 			PushRegResponseBean bean = (PushRegResponseBean) msg;
-			 log.info("客户端解析push reg response后的结果为：");
-			 log.info(bean.getResponse_code()+","+bean.getReg_id()+","+bean.getDevice_id()+", "+bean.getPasswd());
-		 }
+			log.info("客户端解析push reg response后的结果为：");
+			log.info(bean.getResponse_code()+","+bean.getReg_id()+","+bean.getDevice_id()+", "+bean.getPasswd());
+			UidPool.addUidToPool(bean.getUid());
+			UidPool.semaphore.release();
+			log.info("add data to pool success.");
+		}
 		if(msg instanceof PushLoginResponseBean){
 			PushLoginResponseBean bean = (PushLoginResponseBean) msg;
 			log.info("客户端解析push login response后的结果为：");
@@ -96,6 +102,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 				ChatObject data = new ChatObject();
 				/****** channel map test   ******/
 				sessionClient = WebImServer.userNameToSessionCilentMap.get(singleMsgBean.getTargetUid()+"");
+				
 				log.info("get username's session client: "+sessionClient.getSessionId());
 				
 				data.setToUserName(singleMsgBean.getTargetUid()+"");

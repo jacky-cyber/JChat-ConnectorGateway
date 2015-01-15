@@ -8,6 +8,7 @@ import com.google.protobuf.ExtensionRegistry;
 import com.jpush.protobuf.Im;
 import com.jpush.protocal.decoder.ImProtocalServerDecoder;
 import com.jpush.protocal.decoder.ImProtocalServerEncoder;
+import com.jpush.protocal.utils.SystemConfig;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -26,8 +27,10 @@ import io.netty.util.CharsetUtil;
 public class JPushTcpServer {
 	private static Logger log = (Logger) LoggerFactory.getLogger(JPushTcpServer.class);
 	
-	private int port;
-
+	private int port = SystemConfig.getIntProperty("jpush.server.port");
+	
+	public JPushTcpServer(){}
+	
    public JPushTcpServer(int port) {
         this.port = port;
     }
@@ -62,6 +65,6 @@ public class JPushTcpServer {
     }
 
     public static void main(String[] args) throws Exception {
-    		new JPushTcpServer(7000).run();
+    		new JPushTcpServer().run();
     }
 }

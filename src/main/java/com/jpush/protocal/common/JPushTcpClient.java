@@ -33,6 +33,7 @@ import com.jpush.protocal.push.PushLoginRequestBean;
 import com.jpush.protocal.push.PushLogoutRequest;
 import com.jpush.protocal.push.PushRegRequestBean;
 import com.jpush.protocal.utils.Command;
+import com.jpush.protocal.utils.SystemConfig;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -53,10 +54,10 @@ import io.netty.handler.timeout.IdleStateHandler;
 public class JPushTcpClient {
 	private static Logger log = (Logger) LoggerFactory.getLogger(JPushTcpClient.class);
 	//private static final String HOST = "183.232.38.229";
-	private static final int PORT = 7000; 
-	private static final String HOST = "127.0.0.1";
+	private static final int PORT = SystemConfig.getIntProperty("jpush.server.port"); 
+	private static final String HOST = SystemConfig.getProperty("jpush.server.host");
 	
-	private Bootstrap b;
+	private Bootstrap b; 
 	private EventLoopGroup workGroup;
 
 	public JPushTcpClient(){
@@ -98,6 +99,8 @@ public class JPushTcpClient {
 	}
 	
 	public void sendRequest(final Channel channel, Object request) throws InterruptedException{
+		if(channel==null||request==null)
+			throw new IllegalArgumentException("send request arguments exception");
 		ChannelFuture future = channel.writeAndFlush(request);
 		future.addListener(new ChannelFutureListener() {
 			@Override

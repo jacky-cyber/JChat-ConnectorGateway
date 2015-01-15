@@ -5,6 +5,7 @@ import io.netty.channel.Channel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.LoggerFactory;
@@ -25,16 +26,22 @@ import com.jpush.protocal.common.JPushTcpClient;
 import com.jpush.protocal.im.bean.SendSingleMsgRequestBean;
 import com.jpush.protocal.im.requestproto.ImSendSingleMsgRequestProto;
 import com.jpush.protocal.utils.Command;
+import com.jpush.protocal.utils.SystemConfig;
 import com.jpush.webim.common.RedisClient;
+import com.jpush.webim.common.UidPool;
 import com.jpush.webim.socketio.bean.ChatObject;
 import com.jpush.webim.socketio.bean.ContracterObject;
 
+/**
+ * Web Im 业务 Server
+ *
+ */
 public class WebImServer {
 	private static Logger log = (Logger) LoggerFactory.getLogger(WebImServer.class);
 	private RedisClient redisClient;
 	
-	private static final String HOST_NAME = "127.0.0.1";
-	private static final int PORT = 9092;
+  	private static final String HOST_NAME = SystemConfig.getProperty("webim.server.host");  
+	private static final int PORT = SystemConfig.getIntProperty("webim.server.port");
 	public static HashMap<String, SocketIOClient> userNameToSessionCilentMap = new HashMap<String, SocketIOClient>();
 	private static HashMap<String, Channel> userNameToPushChannelMap = new HashMap<String, Channel>();
 	public static HashMap<Channel, String> pushChannelToUsernameMap = new HashMap<Channel, String>();
@@ -83,8 +90,17 @@ public class WebImServer {
 					AckRequest ackSender) throws Exception {
 				log.info("user: "+data.getUserName()+" login success");
 				String user_name = data.getUserName();
+				
+				log.info("add current user to online users set.");
+				Jedis jedis = redisClient.getJeids();
+				jedis.sadd("im_online_users", user_name);
+				
 				log.info("add user and session client to map.");
 				userNameToSessionCilentMap.put(user_name,	client);
+			
+				// 获取uid
+				long uid = UidPool.getUid();
+				log.info("用户："+user_name+"接入，获取uid："+uid);
 				//  jpush 接入相关
 				log.info("build user connection to jpush.");
 				JPushTcpClient pushConnect = new JPushTcpClient();
@@ -108,18 +124,24 @@ public class WebImServer {
 				Jedis jedis = null;
 				try {
 				    jedis = redisClient.getJeids();
+				    Set<String> onlineUserSet = jedis.smembers("im_online_users");
 				    Set<String> userNameSet = jedis.smembers("im_users");
-				    log.info("当前用户数量："+userNameSet.size());
-				    for(String username: userNameSet){
+				    Set<String> offlineUserSet = jedis.sdiff("im_users", "im_online_users");
+				    log.info("当前总用户数量："+userNameSet.size());
+				    log.info("当前在线用户数量："+onlineUserSet.size());
+				    log.info("当前不在线用户数量："+offlineUserSet.size());
+				    for(String username: onlineUserSet){
 				    	if(!curUserName.equals(username)){
 				    		ContracterObject contracter = new ContracterObject();
-					    	SocketIOClient userClient = userNameToSessionCilentMap.get(username);
+					    	SocketIOClient userClient = userNameToSessionCilentMap.get(username); 
+				    		
 					    	String sessionId = userClient.getSessionId().toString();
 					    	contracter.setUser_name(username);
 					    	contracter.setSession_id(sessionId);
 					    	contractersList.add(contracter);
 				    	}
 				    }
+				    
 				    client.sendEvent("getContracterList", contractersList);
 				} catch (JedisConnectionException e) {
 					 log.error(e.getMessage());
@@ -161,7 +183,7 @@ public class WebImServer {
 		 server.stop();
 	}
 	
-	public void run(){
+	/*public void run(){
 		log.info("启动 im server......");
 		WebImServer socketServer = new WebImServer();
 		socketServer.init();
@@ -175,7 +197,7 @@ public class WebImServer {
 	
 	public void stop(){
 		
-	}
+	}*/
 	
 	
 	public static void main(String[] args) throws InterruptedException {

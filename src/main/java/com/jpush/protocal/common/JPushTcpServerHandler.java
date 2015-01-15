@@ -1,5 +1,7 @@
 package com.jpush.protocal.common;
 
+import java.util.Random;
+
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
@@ -40,6 +42,7 @@ import com.jpush.protocal.push.PushLogoutResponseBean;
 import com.jpush.protocal.push.PushRegRequestBean;
 import com.jpush.protocal.push.PushRegResponseBean;
 import com.jpush.protocal.utils.Command;
+import com.jpush.webim.common.UidPool;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -56,7 +59,10 @@ public class JPushTcpServerHandler extends ChannelInboundHandlerAdapter {
 		if(msg instanceof PushRegRequestBean){
 			PushRegRequestBean bean = (PushRegRequestBean) msg;
 			log.info("request bean: "+bean.getStrClientInfo()+", "+bean.getStrKey()+", "+bean.getStrApkVersion());
-			PushRegResponseBean respBean = new PushRegResponseBean(0, 21, "passwd", "reg_id:2342w34", "device_id:34523");
+			Random random = new Random();
+			long uid = Math.abs(random.nextLong());
+			log.info("随机生成uid: "+uid);
+			PushRegResponseBean respBean = new PushRegResponseBean(0, uid, "passwd", "reg_id:2342w34", "device_id:34523");
 			ctx.writeAndFlush(respBean); 
 		} else if(msg instanceof PushLoginRequestBean){
 			PushLoginRequestBean bean = (PushLoginRequestBean) msg;

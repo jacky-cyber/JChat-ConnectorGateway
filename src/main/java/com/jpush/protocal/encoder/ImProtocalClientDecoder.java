@@ -50,7 +50,7 @@ public class ImProtocalClientDecoder extends ByteToMessageDecoder {
 					String regid = new String(in.readBytes(regid_len).array(),"utf-8");
 					int deviceid_len = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
 					String deviceid = new String(in.readBytes(deviceid_len).array(),"utf-8");
-				
+					in.discardReadBytes();
 					PushRegResponseBean bean = new PushRegResponseBean(code, uid, passwd, regid, deviceid);
 					out.add(bean);
 				}

@@ -62,6 +62,7 @@ public class ImProtocalServerDecoder extends ByteToMessageDecoder {
 						int platform = ProtocolUtil.byteArrayToInt(in.readBytes(1).array());
 						int strKeyExtLen = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
 						String strKeyExt = new String(in.readBytes(strKeyExtLen).array(),"utf-8");
+						in.discardReadBytes();
 						PushRegRequestBean bean = new PushRegRequestBean(strKey, strApkVersion, strClientInfo, strDeviceToken, build_type, aps_type, platform, strKeyExt);
 						out.add(bean);
 					} else if(command==Command.KKPUSH_LOGIN.COMMAND){  // push login

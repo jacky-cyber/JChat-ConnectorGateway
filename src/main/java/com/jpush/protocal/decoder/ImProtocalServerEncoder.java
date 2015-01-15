@@ -33,10 +33,11 @@ public class ImProtocalServerEncoder extends MessageToByteEncoder<Object> {
 			throws Exception {
 		log.info("服务端开始encode....");
 		if(msg instanceof PushRegResponseBean){
+			log.info("返回 jpush reg 数据.");
 			PushRegResponseBean bean = (PushRegResponseBean) msg;
 			PushRegResponse response = new PushRegResponse(1, 2234, 243, bean);
 			byte[] data = response.getResponsePackage();
-			out.writeBytes(data);
+			out = out.writeBytes(data);
 		}
 		if(msg instanceof PushLoginResponseBean){
 			PushLoginResponseBean bean = (PushLoginResponseBean) msg;
@@ -61,5 +62,11 @@ public class ImProtocalServerEncoder extends MessageToByteEncoder<Object> {
 		}
 		
 	}
-
+	
+	@Override
+	public void flush(ChannelHandlerContext ctx) throws Exception {
+		// TODO Auto-generated method stub
+		super.flush(ctx);
+	}
+	
 }
