@@ -17,15 +17,20 @@ package com.corundumstudio.socketio.handler;
 
 import io.netty.channel.Channel;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.corundumstudio.socketio.HandshakeData;
 
-public class ClientsBox {
+public class ClientsBox implements Serializable {
 
-    private final Map<UUID, ClientHead> uuid2clients = new ConcurrentHashMap<UUID, ClientHead>();
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 543407419715653717L;
+	private final Map<UUID, ClientHead> uuid2clients = new ConcurrentHashMap<UUID, ClientHead>();
     private final Map<Channel, ClientHead> channel2clients = new ConcurrentHashMap<Channel, ClientHead>();
 
     // TODO use storeFactory

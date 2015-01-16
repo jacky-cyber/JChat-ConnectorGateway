@@ -17,9 +17,10 @@ package com.corundumstudio.socketio.scheduler;
 
 import io.netty.channel.ChannelHandlerContext;
 
+import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
 
-public interface CancelableScheduler {
+public interface CancelableScheduler extends Serializable{
 
     void update(ChannelHandlerContext ctx);
 

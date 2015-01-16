@@ -15,6 +15,8 @@
  */
 package com.corundumstudio.socketio;
 
-public interface DisconnectableHub extends Disconnectable {
+import java.io.Serializable;
+
+public interface DisconnectableHub extends Disconnectable, Serializable {
 
 }

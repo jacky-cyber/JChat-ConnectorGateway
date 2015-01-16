@@ -15,13 +15,15 @@
  */
 package com.corundumstudio.socketio;
 
+import java.io.Serializable;
+
 import com.corundumstudio.socketio.protocol.Packet;
 
 /**
  * Available client operations
  *
  */
-public interface ClientOperations {
+public interface ClientOperations extends Serializable {
 
     /**
      * Send custom packet.

@@ -15,11 +15,13 @@
  */
 package com.corundumstudio.socketio;
 
+import java.io.Serializable;
+
 import com.corundumstudio.socketio.handler.ClientHead;
 
 
 
-public interface Disconnectable {
+public interface Disconnectable extends Serializable {
 
     void onDisconnect(ClientHead client);
 

@@ -23,9 +23,14 @@ import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
 import com.jpush.protocal.common.JPushTcpClient;
+import com.jpush.protocal.im.bean.LoginRequestBean;
+import com.jpush.protocal.im.bean.SendGroupMsgRequestBean;
 import com.jpush.protocal.im.bean.SendSingleMsgRequestBean;
+import com.jpush.protocal.im.requestproto.ImLoginRequestProto;
+import com.jpush.protocal.im.requestproto.ImSendGroupMsgRequestProto;
 import com.jpush.protocal.im.requestproto.ImSendSingleMsgRequestProto;
 import com.jpush.protocal.utils.Command;
+import com.jpush.protocal.utils.SerializeUtil;
 import com.jpush.protocal.utils.SystemConfig;
 import com.jpush.webim.common.RedisClient;
 import com.jpush.webim.common.UidPool;
@@ -43,6 +48,7 @@ public class WebImServer {
   	private static final String HOST_NAME = SystemConfig.getProperty("webim.server.host");  
 	private static final int PORT = SystemConfig.getIntProperty("webim.server.port");
 	public static HashMap<String, SocketIOClient> userNameToSessionCilentMap = new HashMap<String, SocketIOClient>();
+	private static HashMap<SocketIOClient, String> sessionClientToUserNameMap = new HashMap<SocketIOClient, String>();
 	private static HashMap<String, Channel> userNameToPushChannelMap = new HashMap<String, Channel>();
 	public static HashMap<Channel, String> pushChannelToUsernameMap = new HashMap<Channel, String>();
 	
@@ -78,8 +84,22 @@ public class WebImServer {
 			@Override
 			public void onDisconnect(SocketIOClient client) {
 				log.error("disconnect from client: "+client.getSessionId()+" disconnect.");
-				
-				// 向其他成员发送通知
+				// 处理缓存数据(管理在线用户列表)
+				Jedis jedis = null;
+				try{
+					jedis = redisClient.getJeids();
+					log.info("remote related data from im_online_users.");
+					String user_name = sessionClientToUserNameMap.get(client);
+					jedis.srem("im_online_users", user_name);  // 把该用户从在线用户列表中清楚
+				} catch (JedisConnectionException e) {
+					log.error(e.getMessage());
+					redisClient.returnBrokenResource(jedis);
+					throw new JedisConnectionException(e);
+				} finally {
+					redisClient.returnResource(jedis);
+				}
+				// 向其他成员发送下线通知
+				// ...
 			}
 		});
 		 
@@ -97,7 +117,21 @@ public class WebImServer {
 				
 				log.info("add user and session client to map.");
 				userNameToSessionCilentMap.put(user_name,	client);
-			
+				sessionClientToUserNameMap.put(client, user_name);
+				//  redis 缓存 sessionclient 对象测试
+//				log.info("开始序列化session client...id："+client.getSessionId());
+//				Map<byte[], byte[]> hash = new HashMap<byte[], byte[]>();
+//				hash.put(SerializeUtil.serialize(user_name), SerializeUtil.serialize(client));
+//				jedis.hmset(SerializeUtil.serialize("user_to_client"), hash);
+//				log.info("序列化完成.");
+//				log.info("开始反序列化测试....");
+//				List<byte[]> list = jedis.hmget(SerializeUtil.serialize("user_to_client"), SerializeUtil.serialize(user_name));
+//				log.info("list size: "+list.size());
+//				SocketIOClient myclient = (SocketIOClient)SerializeUtil.unserialize(list.get(list.size()-1));
+//				log.info("反序列化后的session client... id: "+myclient.getSessionId());
+				/*------------------------------------*/
+				redisClient.returnResource(jedis);
+				
 				// 获取uid
 				long uid = UidPool.getUid();
 				log.info("用户："+user_name+"接入，获取uid："+uid);
@@ -107,6 +141,11 @@ public class WebImServer {
 				Channel pushChannel = pushConnect.getChannel();
 				userNameToPushChannelMap.put(user_name, pushChannel);
 				pushChannelToUsernameMap.put(pushChannel, user_name);
+				LoginRequestBean bean = new LoginRequestBean(user_name,"password123","appkey783245jsdvgf");
+				List<Integer> cookie = new ArrayList<Integer>();
+				cookie.add(123);
+				ImLoginRequestProto req = new ImLoginRequestProto(Command.JPUSH_IM.LOGIN, 1, 2324, cookie, bean);
+				pushChannel.writeAndFlush(req);  //  发送 IM 登陆请求
 			}
 		 });
 		 
@@ -168,13 +207,22 @@ public class WebImServer {
 				 }*/
 				 //SocketIOClient toClient = userNameToSessionCilentMap.get(data.getToUserName());
 				 //toClient.sendEvent("chatevent", data);
-				 // 模拟接入 Jpush 测试
+				 
+				 // 模拟接入 Jpush 单发消息测试
 				 Channel channel = userNameToPushChannelMap.get(data.getUserName());
 				 SendSingleMsgRequestBean bean = new SendSingleMsgRequestBean(Long.parseLong(data.getToUserName()), data.getMessage());
 				 List<Integer> cookie = new ArrayList<Integer>();
 				 cookie.add(123);
 				 ImSendSingleMsgRequestProto req = new ImSendSingleMsgRequestProto(Command.JPUSH_IM.SENDMSG_SINGAL, 1, Long.parseLong(data.getUserName()), cookie, bean);
 				 channel.writeAndFlush(req);
+				 
+				 // 模拟接入 JPush 群发消息测试
+				 /*Channel channel = userNameToPushChannelMap.get(data.getUserName());
+				 SendGroupMsgRequestBean bean = new SendGroupMsgRequestBean(666666, data.getMessage());
+				 List<Integer> cookie = new ArrayList<Integer>();
+				 cookie.add(123);
+				 ImSendGroupMsgRequestProto req = new ImSendGroupMsgRequestProto(Command.JPUSH_IM.SENDMSG_GROUP, 1, Long.parseLong(data.getUserName()), cookie, bean);
+				 channel.writeAndFlush(req);*/
 			 }
 		 });
 		 

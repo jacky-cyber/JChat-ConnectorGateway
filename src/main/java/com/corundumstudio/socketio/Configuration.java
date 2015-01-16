@@ -16,6 +16,7 @@
 package com.corundumstudio.socketio;
 
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 
@@ -27,9 +28,14 @@ import com.corundumstudio.socketio.protocol.JsonSupport;
 import com.corundumstudio.socketio.store.MemoryStoreFactory;
 import com.corundumstudio.socketio.store.StoreFactory;
 
-public class Configuration {
+public class Configuration implements Serializable {
 
-    private ExceptionListener exceptionListener = new DefaultExceptionListener();
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -8652645902200867394L;
+
+	private ExceptionListener exceptionListener = new DefaultExceptionListener();
 
     private String context = "/socket.io";
 

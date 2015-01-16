@@ -138,7 +138,7 @@
 		if (contactLi == null) {
 			return;
 		}
-		contactLi.style.backgroundColor = "blue";
+		contactLi.style.backgroundColor = "#B0E0E6";
 		var dispalyTitle = "与" + chatUserId + "聊天中";
 		document.getElementById(talkToDivId).children[0].innerHTML = dispalyTitle;
 	};
@@ -199,14 +199,14 @@
 		var ele = $(eletext);
 		ele[0].setAttribute("class", "chat-content-p3");
 		ele[0].setAttribute("className", "chat-content-p3");
-		ele[0].style.backgroundColor = "#0776A0";
+		ele[0].style.backgroundColor = "#98FB98";
 		
 		for ( var j = 0; j < ele.length; j++) {
 			lineDiv.appendChild(ele[j]);
 		}
 				
 		if (curChatUserId.indexOf(contact) < 0) {
-			contactLi.style.backgroundColor = "green";
+			contactLi.style.backgroundColor = "#FF4500";
 		}
 		 
 		var msgContentDiv = getContactChatDiv(contactDivId);
@@ -243,7 +243,7 @@
 		var ele = $(eletext);
 		ele[0].setAttribute("class", "chat-content-p3");
 		ele[0].setAttribute("className", "chat-content-p3");
-		ele[0].style.backgroundColor = "#6F47D7";
+		ele[0].style.backgroundColor = "#4169E1";
 		
 		for ( var j = 0; j < ele.length; j++) {
 				lineDiv.appendChild(ele[j]);

@@ -1,10 +1,13 @@
 package com.jpush.protocal.common;
 
-import java.util.List;
+import java.util.Set;
 
 import org.slf4j.LoggerFactory;
 
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.exceptions.JedisConnectionException;
 import ch.qos.logback.classic.Logger;
+
 import com.corundumstudio.socketio.SocketIOClient;
 import com.jpush.protobuf.Group.AddGroupMember;
 import com.jpush.protobuf.Group.CreateGroup;
@@ -28,6 +31,7 @@ import com.jpush.webim.common.RedisClient;
 import com.jpush.webim.common.UidPool;
 import com.jpush.webim.socketio.WebImServer;
 import com.jpush.webim.socketio.bean.ChatObject;
+import com.jpush.webim.socketio.bean.ContracterObject;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -38,6 +42,7 @@ import io.netty.handler.timeout.IdleStateEvent;
 
 public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 	private static Logger log = (Logger) LoggerFactory.getLogger(JPushTcpClientHandler.class);
+	private RedisClient redisClient;
 	@Override
 	public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
 		log.info("handler Added");
@@ -98,7 +103,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 				log.info("single msg data, target uid: "+singleMsgBean.getTargetUid()+", msgid: "+singleMsgBean.getMsgid());
 				Response resp = protocol.getBody().getCommonRep();
 				log.info("single msg response data: code: "+resp.getCode()+", message: "+resp.getMessage());
-				// 模拟 Jpush 测试
+				// 模拟 Jpush 单发消息测试
 				ChatObject data = new ChatObject();
 				/****** channel map test   ******/
 				sessionClient = WebImServer.userNameToSessionCilentMap.get(singleMsgBean.getTargetUid()+"");
@@ -116,6 +121,31 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 				log.info("group msg data, target gid: "+groupMsgBean.getTargetGid()+", msgid: "+groupMsgBean.getMsgid());
 				Response resp = protocol.getBody().getCommonRep();
 				log.info("group msg response data: code: "+resp.getCode()+", message: "+resp.getMessage());
+				// 模拟 Jpush 群发消息测试
+				ChatObject data = new ChatObject();
+				Jedis jedis = null;
+				try {
+					 redisClient = new RedisClient();
+				    jedis = redisClient.getJeids();
+				    Set<String> onlineGroupMemberSet = jedis.sinter("im_group_test", "im_online_users");
+				    log.info("当前群组在线用户数量："+onlineGroupMemberSet.size());
+				    for(String username: onlineGroupMemberSet){
+				    	if(!username.equals(protocol.getHead().getUid()+"")){
+				    		SocketIOClient userClient = WebImServer.userNameToSessionCilentMap.get(username); 
+					    	data.setToUserName(username);
+							data.setUserName(protocol.getHead().getUid()+"");
+							data.setMessage(groupMsgBean.getContent().getText());
+							userClient.sendEvent("chatevent", data);
+				    	}
+				    }
+				} catch (JedisConnectionException e) {
+					 log.error(e.getMessage());
+				    redisClient.returnBrokenResource(jedis);
+				    throw new JedisConnectionException(e);
+				} finally {
+				    redisClient.returnResource(jedis);
+				}
+				
 			}
 			if(Command.JPUSH_IM.CREATE_GROUP==protocol.getHead().getCmd()){  // im create group msg
 				log.info("im create group msg response...");

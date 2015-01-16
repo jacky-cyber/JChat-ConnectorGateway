@@ -15,6 +15,7 @@
  */
 package com.corundumstudio.socketio.transport;
 
+import java.io.Serializable;
 import java.net.SocketAddress;
 import java.util.Arrays;
 import java.util.Set;
@@ -33,9 +34,11 @@ import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.protocol.PacketType;
 
-public class NamespaceClient implements SocketIOClient {
+public class NamespaceClient implements SocketIOClient, Serializable {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+	private static final long serialVersionUID = -4964426801030710654L;
+
+	private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final AtomicBoolean disconnected = new AtomicBoolean();
     private final ClientHead baseClient;

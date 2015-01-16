@@ -21,6 +21,7 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.util.AttributeKey;
 
+import java.io.Serializable;
 import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.Map;
@@ -52,9 +53,11 @@ import com.corundumstudio.socketio.store.Store;
 import com.corundumstudio.socketio.store.StoreFactory;
 import com.corundumstudio.socketio.transport.NamespaceClient;
 
-public class ClientHead {
+public class ClientHead implements Serializable {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+	private static final long serialVersionUID = -4206429625265277041L;
+
+	private final Logger log = LoggerFactory.getLogger(getClass());
 
     public static final AttributeKey<ClientHead> CLIENT = AttributeKey.<ClientHead>valueOf("client");
 

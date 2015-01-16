@@ -39,7 +39,9 @@ import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
 
 public class AckManager implements Disconnectable {
 
-    class AckEntry {
+	private static final long serialVersionUID = -3956580741604286565L;
+
+	class AckEntry {
 
         final Map<Long, AckCallback<?>> ackCallbacks = new ConcurrentHashMap<Long, AckCallback<?>>();
         final AtomicLong ackIndex = new AtomicLong(-1);

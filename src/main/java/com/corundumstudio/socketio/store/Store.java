@@ -15,8 +15,10 @@
  */
 package com.corundumstudio.socketio.store;
 
+import java.io.Serializable;
 
-public interface Store {
+
+public interface Store extends Serializable {
 
     void set(String key, Object val);
 

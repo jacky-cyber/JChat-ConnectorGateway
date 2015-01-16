@@ -15,6 +15,7 @@
  */
 package com.corundumstudio.socketio;
 
+import java.io.Serializable;
 import java.net.SocketAddress;
 import java.util.Set;
 import java.util.UUID;
@@ -27,7 +28,7 @@ import com.corundumstudio.socketio.store.Store;
  * Fully thread-safe.
  *
  */
-public interface SocketIOClient extends ClientOperations, Store {
+public interface SocketIOClient extends ClientOperations, Store, Serializable{
 
     /**
      * Handshake data used during client connection
