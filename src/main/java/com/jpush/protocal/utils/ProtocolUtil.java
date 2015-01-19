@@ -1,5 +1,7 @@
 package com.jpush.protocal.utils;
 
+import io.netty.buffer.ByteBuf;
+
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
@@ -9,6 +11,24 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Random;
+
+import com.jpush.protobuf.Group.AddGroupMember;
+import com.jpush.protobuf.Group.CreateGroup;
+import com.jpush.protobuf.Group.DelGroupMember;
+import com.jpush.protobuf.Group.ExitGroup;
+import com.jpush.protobuf.Group.UpdateGroupInfo;
+import com.jpush.protobuf.Im.Protocol;
+import com.jpush.protobuf.Im.Response;
+import com.jpush.protobuf.Message.GroupMsg;
+import com.jpush.protobuf.Message.SingleMsg;
+import com.jpush.protobuf.User.Login;
+import com.jpush.protobuf.User.Logout;
+import com.jpush.protocal.push.PushLoginRequestBean;
+import com.jpush.protocal.push.PushLoginResponseBean;
+import com.jpush.protocal.push.PushLogoutResponseBean;
+import com.jpush.protocal.push.PushMessageRequestBean;
+import com.jpush.protocal.push.PushRegRequestBean;
+import com.jpush.protocal.push.PushRegResponseBean;
 
 public class ProtocolUtil {
 
@@ -318,4 +338,132 @@ public class ProtocolUtil {
 		System.arraycopy(data, startIndex, tmp, 0, tmp.length);
 		return byteArrayToInt(tmp);
 	}
+	
+	//  push protocol 解析
+	
+	public static PushRegRequestBean getPushRegRequestBean(ByteBuf in) throws UnsupportedEncodingException{
+		int strKeyLen = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
+		String strKey = new String(in.readBytes(strKeyLen).array(),"utf-8");
+		int strApkVersionLen = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
+		String strApkVersion = new String(in.readBytes(strApkVersionLen).array(),"utf-8");
+		int strClientInfoLen = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
+		String strClientInfo = new String(in.readBytes(strClientInfoLen).array(),"utf-8");
+		int strDeviceTokenLen = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
+		String strDeviceToken = new String(in.readBytes(strDeviceTokenLen).array(),"utf-8");
+		int build_type = ProtocolUtil.byteArrayToInt(in.readBytes(1).array());
+		int aps_type = ProtocolUtil.byteArrayToInt(in.readBytes(1).array());
+		int platform = ProtocolUtil.byteArrayToInt(in.readBytes(1).array());
+		int strKeyExtLen = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
+		String strKeyExt = new String(in.readBytes(strKeyExtLen).array(),"utf-8");
+		in.discardReadBytes();
+		PushRegRequestBean bean = new PushRegRequestBean(strKey, strApkVersion, strClientInfo, strDeviceToken, build_type, aps_type, platform, strKeyExt);
+		return bean;
+	}
+	
+	public static PushLoginRequestBean getPushLoginRequestBean(ByteBuf in) throws UnsupportedEncodingException{
+		String from_resources = new String(in.readBytes(4).array(),"utf-8");
+		int passwordLen = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
+		String password = new String(in.readBytes(passwordLen).array(),"utf-8");
+		int client_version = ProtocolUtil.byteArrayToInt(in.readBytes(4).array());
+		int appkeyLen = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
+		String appkey = new String(in.readBytes(appkeyLen).array(),"utf-8");
+		int platform = ProtocolUtil.byteArrayToInt(in.readBytes(1).array());
+		PushLoginRequestBean bean = new PushLoginRequestBean(from_resources, password, client_version, appkey, platform);
+		return bean;
+	}
+	
+	public static PushRegResponseBean getPushRegResponseBean(ByteBuf in) throws UnsupportedEncodingException{
+		int code = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
+		long uid = ProtocolUtil.byteArrayToLong(in.readBytes(8).array());
+		int passwd_len = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
+		String passwd = new String(in.readBytes(passwd_len).array(),"utf-8");
+		int regid_len = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
+		String regid = new String(in.readBytes(regid_len).array(),"utf-8");
+		int deviceid_len = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
+		String deviceid = new String(in.readBytes(deviceid_len).array(),"utf-8");
+		in.discardReadBytes();
+		PushRegResponseBean bean = new PushRegResponseBean(code, uid, passwd, regid, deviceid);
+		return bean;
+	}
+	
+	public static PushLoginResponseBean getPushLoginResponseBean(ByteBuf in) throws UnsupportedEncodingException{
+		int code = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
+		int sid = ProtocolUtil.byteArrayToInt(in.readBytes(4).array());
+		int server_version = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
+		int session_key_len = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
+		String session_key = new String(in.readBytes(session_key_len).array(),"utf-8");
+		int server_time = ProtocolUtil.byteArrayToInt(in.readBytes(4).array());
+		PushLoginResponseBean bean = new PushLoginResponseBean(code, sid, server_version, session_key, server_time);
+		return bean;
+	}
+	
+	public static PushLogoutResponseBean getPushLogoutResponseBean(ByteBuf in) throws UnsupportedEncodingException{
+		int code = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
+		PushLogoutResponseBean bean = new PushLogoutResponseBean(code);
+		return bean;
+	}
+	
+	public static PushMessageRequestBean getPushMessageRequestBean(ByteBuf in) throws UnsupportedEncodingException{
+		in.readBytes(4); //  这里是个 push message 请求，不是响应，注意头的长度.
+		int msgtype = ProtocolUtil.byteArrayToInt(in.readBytes(1).array());
+		int msgid = ProtocolUtil.byteArrayToInt(in.readBytes(8).array());
+		int message_len = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
+		String message = new String(in.readBytes(message_len).array(),"utf-8");
+		PushMessageRequestBean bean = new PushMessageRequestBean(msgtype, msgid, message);
+		return bean;
+	}
+	
+	//  IM ProtoBuf 数据解析
+	public static Response getCommonResp(Protocol protocol){
+		Response resp = protocol.getBody().getCommonRep();
+		return resp;
+	}
+	
+	public static Login getLogin(Protocol protocol){
+		Login loginBean = protocol.getBody().getLogin();
+		return loginBean;
+	}
+
+	public static Logout getLogout(Protocol protocol){
+		Logout logoutBean = protocol.getBody().getLogout();
+		return logoutBean;
+	}
+	
+	public static SingleMsg getSingleMsg(Protocol protocol){
+		SingleMsg singleMsgBean = protocol.getBody().getSingleMsg();
+		return singleMsgBean;
+	}
+	
+	public static GroupMsg getGroupMsg(Protocol protocol){
+		GroupMsg groupMsgBean = protocol.getBody().getGroupMsg();
+		return groupMsgBean;
+	}
+	
+	public static CreateGroup getCreateGroup(Protocol protocol){
+		CreateGroup createGroupBean = protocol.getBody().getCreateGroup();
+		return createGroupBean;
+	}
+	
+	public static ExitGroup getExitGroup(Protocol protocol){
+		ExitGroup exitGroupBean = protocol.getBody().getExitGroup();
+		return exitGroupBean;
+	}
+	
+	public static AddGroupMember getAddGroupMember(Protocol protocol){
+		AddGroupMember addGroupMemberBean = protocol.getBody().getAddGroupMember();
+		return addGroupMemberBean;
+	}
+	
+	public static DelGroupMember getDelGroupMember(Protocol protocol){
+		DelGroupMember delGroupMemberBean = protocol.getBody().getDelGroupMember();
+		return delGroupMemberBean;
+	}
+	
+	public static UpdateGroupInfo getUpdateGroupInfo(Protocol protocol){
+		UpdateGroupInfo updateGroupInfoBean = protocol.getBody().getUpdateGroupInfo();
+		return updateGroupInfoBean;
+	}
+	
 }
+
+

@@ -15,10 +15,12 @@ import com.jpush.protocal.im.response.ImResponse;
 import com.jpush.protocal.im.response.ImSingleMsgResponse;
 import com.jpush.protocal.im.response.ImUpdateGroupInfoResponse;
 import com.jpush.protocal.push.HeartBeatRequest;
+import com.jpush.protocal.push.HeartBeatResponse;
 import com.jpush.protocal.push.PushLoginResponse;
 import com.jpush.protocal.push.PushLoginResponseBean;
 import com.jpush.protocal.push.PushLogoutResponse;
 import com.jpush.protocal.push.PushLogoutResponseBean;
+import com.jpush.protocal.push.PushMessageRequest;
 import com.jpush.protocal.push.PushRegResponse;
 import com.jpush.protocal.push.PushRegResponseBean;
 
@@ -51,9 +53,14 @@ public class ImProtocalServerEncoder extends MessageToByteEncoder<Object> {
 			byte[] data = response.getResponsePackage();
 			out.writeBytes(data);
 		}
-		if(msg instanceof HeartBeatRequest){
-			HeartBeatRequest request = (HeartBeatRequest) msg;
-			byte[] data = request.getRequestPackage();
+		if(msg instanceof HeartBeatResponse){
+			HeartBeatResponse response = (HeartBeatResponse) msg;
+			byte[] data = response.getResponsePackage();
+			out.writeBytes(data);
+		}
+		if(msg instanceof PushMessageRequest){  //  im 消息走 push
+			PushMessageRequest response = (PushMessageRequest) msg;
+			byte[] data = response.getRequestPackage();
 			out.writeBytes(data);
 		}
 		if(msg instanceof ImResponse){  //  Im 业务响应

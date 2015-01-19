@@ -24,6 +24,7 @@ import com.jpush.protocal.im.requestproto.ImLogoutRequestProto;
 import com.jpush.protocal.im.requestproto.ImSendGroupMsgRequestProto;
 import com.jpush.protocal.im.requestproto.ImSendSingleMsgRequestProto;
 import com.jpush.protocal.im.requestproto.ImUpdateGroupInfoRequestProto;
+import com.jpush.protocal.push.HeartBeatRequest;
 import com.jpush.protocal.push.PushLoginRequest;
 import com.jpush.protocal.push.PushLoginRequestBean;
 import com.jpush.protocal.push.PushLogoutRequest;
@@ -60,6 +61,12 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 		if (msg instanceof PushLogoutRequest) {  // push logout protocal
 			log.info("push logout request...");
 			PushLogoutRequest request = (PushLogoutRequest) msg;
+			byte[] data = request.getRequestPackage();
+			out.writeBytes(data);
+		}
+		if (msg instanceof HeartBeatRequest) {  // push heart beat protocal
+			log.info("push heart beat request...");
+			HeartBeatRequest request = (HeartBeatRequest) msg;
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 		}

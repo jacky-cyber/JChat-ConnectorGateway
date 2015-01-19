@@ -1,20 +1,16 @@
 package com.jpush.protocal.push;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 
 import com.jpush.protocal.im.request.BaseRequest;
 import com.jpush.protocal.utils.Command;
-import com.jpush.protocal.utils.ProtocolUtil;
 
 public class PushLogoutRequest extends BaseRequest {
-	private int cmd = 5;  //  push logout command
 	public PushLogoutRequest(int version, long rid, int sid, long juid) {
 		super(version, rid, sid, juid);
 		this.command = Command.KKPUSH_LOGOUT.COMMAND;
 	}
 
-	@Override
+	/*@Override
 	public void buidRequestBody() {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		try{
@@ -27,6 +23,6 @@ public class PushLogoutRequest extends BaseRequest {
 				e1.printStackTrace();
 			}
 		}
-	}
+	}*/
 
 }

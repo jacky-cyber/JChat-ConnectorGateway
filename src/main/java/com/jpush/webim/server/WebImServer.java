@@ -1,4 +1,4 @@
-package com.jpush.webim.socketio;
+package com.jpush.webim.server;
 
 import io.netty.channel.Channel;
 
@@ -33,7 +33,7 @@ import com.jpush.protocal.utils.Command;
 import com.jpush.protocal.utils.SerializeUtil;
 import com.jpush.protocal.utils.SystemConfig;
 import com.jpush.webim.common.RedisClient;
-import com.jpush.webim.common.UidPool;
+import com.jpush.webim.common.UidResourcesPool;
 import com.jpush.webim.socketio.bean.ChatObject;
 import com.jpush.webim.socketio.bean.ContracterObject;
 
@@ -90,7 +90,11 @@ public class WebImServer {
 					jedis = redisClient.getJeids();
 					log.info("remote related data from im_online_users.");
 					String user_name = sessionClientToUserNameMap.get(client);
-					jedis.srem("im_online_users", user_name);  // 把该用户从在线用户列表中清楚
+					sessionClientToUserNameMap.remove(client);
+					userNameToSessionCilentMap.remove(user_name);
+					Channel channel = userNameToPushChannelMap.get(user_name);
+					channel.close();
+					jedis.srem("im_online_users", user_name);  // 把该用户从在线用户列表中清除
 				} catch (JedisConnectionException e) {
 					log.error(e.getMessage());
 					redisClient.returnBrokenResource(jedis);
@@ -118,7 +122,7 @@ public class WebImServer {
 				log.info("add user and session client to map.");
 				userNameToSessionCilentMap.put(user_name,	client);
 				sessionClientToUserNameMap.put(client, user_name);
-				//  redis 缓存 sessionclient 对象测试
+				//  测试 redis 缓存 sessionclient 对象测试
 //				log.info("开始序列化session client...id："+client.getSessionId());
 //				Map<byte[], byte[]> hash = new HashMap<byte[], byte[]>();
 //				hash.put(SerializeUtil.serialize(user_name), SerializeUtil.serialize(client));
@@ -133,7 +137,7 @@ public class WebImServer {
 				redisClient.returnResource(jedis);
 				
 				// 获取uid
-				long uid = UidPool.getUid();
+				long uid = UidResourcesPool.getUid();
 				log.info("用户："+user_name+"接入，获取uid："+uid);
 				//  jpush 接入相关
 				log.info("build user connection to jpush.");
@@ -210,6 +214,8 @@ public class WebImServer {
 				 
 				 // 模拟接入 Jpush 单发消息测试
 				 Channel channel = userNameToPushChannelMap.get(data.getUserName());
+				 if(channel==null)
+					 log.info("当前用户与jpush的连接已断开.");
 				 SendSingleMsgRequestBean bean = new SendSingleMsgRequestBean(Long.parseLong(data.getToUserName()), data.getMessage());
 				 List<Integer> cookie = new ArrayList<Integer>();
 				 cookie.add(123);

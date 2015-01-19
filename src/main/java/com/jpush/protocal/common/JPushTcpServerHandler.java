@@ -1,11 +1,14 @@
 package com.jpush.protocal.common;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
 
+import com.google.gson.Gson;
 import com.jpush.protobuf.Group.AddGroupMember;
 import com.jpush.protobuf.Group.CreateGroup;
 import com.jpush.protobuf.Group.DelGroupMember;
@@ -36,13 +39,16 @@ import com.jpush.protocal.im.responseproto.ImSendGroupMsgResponseProto;
 import com.jpush.protocal.im.responseproto.ImSendSingleMsgResponseProto;
 import com.jpush.protocal.im.responseproto.ImUpdateGroupInfoResponseProto;
 import com.jpush.protocal.push.HeartBeatRequest;
+import com.jpush.protocal.push.HeartBeatResponse;
 import com.jpush.protocal.push.PushLoginRequestBean;
 import com.jpush.protocal.push.PushLoginResponseBean;
 import com.jpush.protocal.push.PushLogoutResponseBean;
+import com.jpush.protocal.push.PushMessageRequest;
+import com.jpush.protocal.push.PushMessageRequestBean;
 import com.jpush.protocal.push.PushRegRequestBean;
 import com.jpush.protocal.push.PushRegResponseBean;
 import com.jpush.protocal.utils.Command;
-import com.jpush.webim.common.UidPool;
+import com.jpush.webim.common.UidResourcesPool;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -51,11 +57,13 @@ import io.netty.handler.timeout.IdleStateEvent;
 
 public class JPushTcpServerHandler extends ChannelInboundHandlerAdapter {
 	private static Logger log = (Logger) LoggerFactory.getLogger(JPushTcpServerHandler.class);
-	
+	private Gson gson = new Gson();
+	private int count = 0;
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg)
 			throws Exception {
 		log.info("server handler receive msg and track......");
+		count = 0;
 		if(msg instanceof PushRegRequestBean){
 			PushRegRequestBean bean = (PushRegRequestBean) msg;
 			log.info("request bean: "+bean.getStrClientInfo()+", "+bean.getStrKey()+", "+bean.getStrApkVersion());
@@ -91,9 +99,17 @@ public class JPushTcpServerHandler extends ChannelInboundHandlerAdapter {
 				log.info("im send single msg request...");
 				SingleMsg singleMsgBean = protocol.getBody().getSingleMsg();
 				log.info("single msg data, target uid: "+singleMsgBean.getTargetUid());
-				protocol = new ImSendSingleMsgResponseProto(protocol).setMsgid(12889).setMessage("send single message success").getResponseProtocol();
+				/*protocol = new ImSendSingleMsgResponseProto(protocol).setMsgid(12889).setMessage("send single message success").getResponseProtocol();
 				ImResponse response = new ImResponse(1, 23, 23, protocol);
-				ctx.writeAndFlush(response);
+				ctx.writeAndFlush(response);*/
+				//  IM 消息走 jpush message
+				Map map = new HashMap();
+				map.put("target_uid", String.valueOf(singleMsgBean.getTargetUid()));
+				map.put("uid", String.valueOf(protocol.getHead().getUid()));
+				map.put("message", singleMsgBean.getContent().getText());
+				PushMessageRequestBean bean = new PushMessageRequestBean(1, 123456, gson.toJson(map));
+				PushMessageRequest request = new PushMessageRequest(1, 23, 32, 321, bean);
+				ctx.writeAndFlush(request);
 			}
 			if(Command.JPUSH_IM.SENDMSG_GROUP==protocol.getHead().getCmd()){  // im send group msg
 				log.info("im send group msg request...");
@@ -147,11 +163,22 @@ public class JPushTcpServerHandler extends ChannelInboundHandlerAdapter {
 		}
 		else {
 			int cmd = (int) msg;
-			log.info("logout bean cmd:"+cmd);
-			PushLogoutResponseBean respBean = new PushLogoutResponseBean(0); 
-			ctx.writeAndFlush(respBean); 
+			if(cmd==Command.KKPUSH_LOGOUT.COMMAND){  //  push 登出
+				log.info("logout bean cmd:"+cmd);
+				PushLogoutResponseBean respBean = new PushLogoutResponseBean(0); 
+				ctx.writeAndFlush(respBean); 
+			} else if(cmd==Command.KKPUSH_HEARTBEAT.COMMAND){   //  push 心跳
+				log.info("heartbeat bean cmd:"+cmd);
+				HeartBeatResponse resp = new HeartBeatResponse(1, 231, 321, Command.KKPUSH_HEARTBEAT.COMMAND);
+				ctx.writeAndFlush(resp); 
+			}
 		}
 		
+	}
+
+	@Override
+	public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+		log.info("handler Removed...channel: "+ctx.channel().toString());
 	}
 
 	@Override
@@ -160,13 +187,15 @@ public class JPushTcpServerHandler extends ChannelInboundHandlerAdapter {
 		if(evt instanceof IdleStateEvent){
 			IdleStateEvent e = (IdleStateEvent) evt;
 			if(e.state()==IdleState.READER_IDLE){
-				log.info("servet heartbeat..., it is too long to read.");
-				HeartBeatRequest request = new HeartBeatRequest(1, 32, 23, 34, 43);
-				ctx.channel().writeAndFlush(request);
-			} else if(e.state()==IdleState.WRITER_IDLE){
-				log.info("server heartbeat..., it is too long to write.");
+				log.info("servet heartbeat...server read idle...channel: "+ctx.channel().toString()+", count:"+count++);
+				if(count>=3){
+					ctx.channel().close();
+					log.info("the client:"+ctx.channel().toString()+" didn't send message for a long time, so close it.");
+				}
+			}/* else if(e.state()==IdleState.WRITER_IDLE){
+				log.info("server heartbeat...server write idle...channel: "+ctx.channel().toString());
 				//ctx.close(); 
-			}
+			}*/
 		}
 	}
 	

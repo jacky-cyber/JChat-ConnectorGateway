@@ -8,7 +8,6 @@ import com.jpush.protocal.utils.Command;
 import com.jpush.protocal.utils.ProtocolUtil;
 
 public class PushLoginRequest extends BaseRequest {
-	private int cmd = 1;  //  push login command
 	private PushLoginRequestBean content;
 	public PushLoginRequest(int version, long rid, int sid, long juid, PushLoginRequestBean bean) {
 		super(version, rid, sid, juid);
@@ -20,7 +19,6 @@ public class PushLoginRequest extends BaseRequest {
 	public void buidRequestBody() {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		try{
-			bos.write(ProtocolUtil.intToByteArray(this.cmd, 1));  
 			bos.write(ProtocolUtil.copyArray(content.getFrom_resource().getBytes(), 4)); 
 			this.writeTLV2(bos, content.getPasswdmd5());
 			bos.write(ProtocolUtil.intToByteArray(content.getClient_version(), 4));
