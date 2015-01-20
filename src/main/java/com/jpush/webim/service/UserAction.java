@@ -39,7 +39,7 @@ public class UserAction {
 	           jedis = redisClient.getJeids();
 	           jedis.sadd("im_users", user_name);
 	           //res.sendRedirect("../page/demo.jsp?user_name="+user_name); // sockjs+spring4的实现
-	           res.sendRedirect("../page/socketio/index.jsp?user_name="+user_name);  // socket.io.js + netty的实现
+	           res.sendRedirect("../page/socketio/index.html?user_name="+user_name);  // socket.io.js + netty的实现
 	       } catch (JedisConnectionException e) {
 	           redisClient.returnBrokenResource(jedis);
 	           throw new JedisConnectionException(e);

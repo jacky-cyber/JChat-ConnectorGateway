@@ -115,9 +115,17 @@ public class JPushTcpServerHandler extends ChannelInboundHandlerAdapter {
 				log.info("im send group msg request...");
 				GroupMsg groupMsgBean = protocol.getBody().getGroupMsg();
 				log.info("group msg data, target uid: "+groupMsgBean.getTargetGid());
-				protocol = new ImSendGroupMsgResponseProto(protocol).setMsgid(12899).setMessage("send group message success").getResponseProtocol();
+				/*protocol = new ImSendGroupMsgResponseProto(protocol).setMsgid(12899).setMessage("send group message success").getResponseProtocol();
 				ImResponse response = new ImResponse(1, 23, 23, protocol);
-				ctx.writeAndFlush(response);
+				ctx.writeAndFlush(response);*/
+				//  IM 消息走 jpush message
+				Map map = new HashMap();
+				map.put("target_gid", String.valueOf(groupMsgBean.getTargetGid()));
+				map.put("uid", String.valueOf(protocol.getHead().getUid()));
+				map.put("message", groupMsgBean.getContent().getText());
+				PushMessageRequestBean bean = new PushMessageRequestBean(1, 123456, gson.toJson(map));
+				PushMessageRequest request = new PushMessageRequest(1, 23, 32, 321, bean);
+				ctx.writeAndFlush(request);
 			}
 			if(Command.JPUSH_IM.CREATE_GROUP==protocol.getHead().getCmd()){  // im create group msg
 				log.info("im create group msg request...");

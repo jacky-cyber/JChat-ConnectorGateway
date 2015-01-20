@@ -50,7 +50,7 @@
   border-top-right-radius: 0;
 }
 	</style>
-   <title>Jpush IM login</title>
+   <title>Web IM Login</title>
   </head>
   <body>
     

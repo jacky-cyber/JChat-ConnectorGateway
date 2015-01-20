@@ -3,7 +3,9 @@ package com.jpush.webim.socketio.bean;
 public class ChatObject {
 	private String userName;
 	private String toUserName;
+	private String groupId;
 	private String message;
+	private String msgType;
 	public ChatObject(){};
 	public ChatObject(String userName, String message){
 		this.userName = userName;
@@ -27,4 +29,17 @@ public class ChatObject {
 	public void setToUserName(String toUserName) {
 		this.toUserName = toUserName;
 	}
+	public String getMsgType() {
+		return msgType;
+	}
+	public void setMsgType(String msgType) {
+		this.msgType = msgType;
+	}
+	public String getGroupId() {
+		return groupId;
+	}
+	public void setGroupId(String groupId) {
+		this.groupId = groupId;
+	}
+	
 }	

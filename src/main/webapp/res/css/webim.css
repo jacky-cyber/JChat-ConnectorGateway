@@ -112,6 +112,7 @@ a:hover {
 	z-index: 1000;
 	position: relative;
 	width: 196px;
+	height: 30px;
 	background-color: #5D6978;
 }
 
@@ -222,7 +223,7 @@ a:hover {
 }
 
 .chat01_content {
-	height: 312px;
+	height: 356px;
 	width: 555px;
 	overflow-x: none;
 	overflow-y: auto;

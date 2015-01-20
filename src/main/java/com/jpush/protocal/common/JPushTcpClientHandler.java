@@ -153,6 +153,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					singleMsgdata.setToUserName(singleMsgBean.getTargetUid()+"");
 					singleMsgdata.setUserName(protocol.getHead().getUid()+"");
 					singleMsgdata.setMessage(singleMsgBean.getContent().getText());
+					singleMsgdata.setMsgType("single");
 					sessionClient.sendEvent("chatevent", singleMsgdata);
 					break;
 				case Command.JPUSH_IM.SENDMSG_GROUP:
@@ -175,6 +176,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					    		groupMsgdata.setToUserName(username);
 					    		groupMsgdata.setUserName(protocol.getHead().getUid()+"");
 					    		groupMsgdata.setMessage(groupMsgBean.getContent().getText());
+					    		groupMsgdata.setMsgType("group");
 								userClient.sendEvent("chatevent", groupMsgdata);
 					    	}
 					    }
