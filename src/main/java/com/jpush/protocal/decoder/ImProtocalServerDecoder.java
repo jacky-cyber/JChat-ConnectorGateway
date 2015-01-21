@@ -2,12 +2,13 @@ package com.jpush.protocal.decoder;
 
 import java.util.List;
 
+import jpushim.s2b.JpushimSdk2B;
+import jpushim.s2b.JpushimSdk2B.Packet;
+
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
 
-import com.jpush.protobuf.Im;
-import com.jpush.protobuf.Im.Protocol;
 import com.jpush.protocal.push.JHead;
 import com.jpush.protocal.push.PushLoginRequestBean;
 import com.jpush.protocal.push.PushRegRequestBean;
@@ -68,7 +69,7 @@ public class ImProtocalServerDecoder extends ByteToMessageDecoder {
 							
 						case Command.JPUSH_IM.COMMAND:
 							log.info("im 业务请求....");
-							Protocol protocol = Im.Protocol.parseFrom(in.readBytes(pkg_len-24).array());
+							Packet protocol = JpushimSdk2B.Packet.parseFrom(in.readBytes(pkg_len-24).array());
 							out.add(protocol);
 							break;
 							

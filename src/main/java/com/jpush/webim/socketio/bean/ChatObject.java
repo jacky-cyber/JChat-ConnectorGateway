@@ -3,7 +3,6 @@ package com.jpush.webim.socketio.bean;
 public class ChatObject {
 	private String userName;
 	private String toUserName;
-	private String groupId;
 	private String message;
 	private String msgType;
 	public ChatObject(){};
@@ -34,12 +33,6 @@ public class ChatObject {
 	}
 	public void setMsgType(String msgType) {
 		this.msgType = msgType;
-	}
-	public String getGroupId() {
-		return groupId;
-	}
-	public void setGroupId(String groupId) {
-		this.groupId = groupId;
 	}
 	
 }	

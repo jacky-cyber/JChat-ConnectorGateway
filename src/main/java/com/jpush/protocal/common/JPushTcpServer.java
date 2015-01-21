@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Logger;
 
 import com.google.protobuf.ExtensionRegistry;
-import com.jpush.protobuf.Im;
 import com.jpush.protocal.decoder.ImProtocalServerDecoder;
 import com.jpush.protocal.decoder.ImProtocalServerEncoder;
 import com.jpush.protocal.utils.SystemConfig;

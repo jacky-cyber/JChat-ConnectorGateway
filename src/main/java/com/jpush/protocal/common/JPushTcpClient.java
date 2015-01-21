@@ -7,8 +7,6 @@ import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
 
-import com.jpush.protobuf.Im;
-import com.jpush.protobuf.Im.Protocol;
 import com.jpush.protocal.encoder.ImProtocalClientDecoder;
 import com.jpush.protocal.encoder.ImProtocalClientEncoder;
 import com.jpush.protocal.im.bean.AddGroupMemberRequestBean;

@@ -2,8 +2,9 @@ package com.jpush.protocal.im.requestproto;
 
 import java.util.List;
 
-import com.jpush.protobuf.Im;
-import com.jpush.protobuf.Message;
+import jpushim.s2b.JpushimSdk2B;
+
+import com.google.protobuf.ByteString;
 import com.jpush.protocal.im.bean.SendGroupMsgRequestBean;
 
 public class ImSendGroupMsgRequestProto extends BaseProtobufRequest {
@@ -15,12 +16,12 @@ public class ImSendGroupMsgRequestProto extends BaseProtobufRequest {
 
 	@Override
 	protected void buildBody(Object obj) {
-		Im.ProtocolBody.Builder bodyBuilder = Im.ProtocolBody.newBuilder();
+		JpushimSdk2B.ProtocolBody.Builder bodyBuilder = JpushimSdk2B.ProtocolBody.newBuilder();
 		SendGroupMsgRequestBean bean = (SendGroupMsgRequestBean) obj;
-		Message.GroupMsg.Builder groupBuilder = Message.GroupMsg.newBuilder();
+		JpushimSdk2B.GroupMsg.Builder groupBuilder = JpushimSdk2B.GroupMsg.newBuilder();
 		groupBuilder.setTargetGid(bean.getTarget_gid());
-		Message.MessageContent.Builder msgContent = Message.MessageContent.newBuilder();
-		msgContent.setText(bean.getMsg_content());
+		JpushimSdk2B.MessageContent.Builder msgContent = JpushimSdk2B.MessageContent.newBuilder();
+		msgContent.setContent(ByteString.copyFromUtf8(bean.getMsg_content()));
 		groupBuilder.setContent(msgContent);
 		bodyBuilder.setGroupMsg(groupBuilder);
 		protocalBuilder.setBody(bodyBuilder);

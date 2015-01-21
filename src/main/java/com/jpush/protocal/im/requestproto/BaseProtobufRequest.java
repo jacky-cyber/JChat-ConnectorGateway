@@ -2,8 +2,9 @@ package com.jpush.protocal.im.requestproto;
 
 import java.util.List;
 
-import com.jpush.protobuf.Im;
-import com.jpush.protobuf.Im.Protocol;
+import jpushim.s2b.JpushimSdk2B;
+import jpushim.s2b.JpushimSdk2B.Packet;
+
 import com.jpush.protocal.utils.Command;
 
 /*
@@ -15,7 +16,7 @@ public class BaseProtobufRequest {
 	private long uid;
 	private List<Integer> cookie;
 	private Object bean;
-	protected Im.Protocol.Builder protocalBuilder = Im.Protocol.newBuilder();
+	protected Packet.Builder protocalBuilder = Packet.newBuilder();
 	public BaseProtobufRequest(int cmd, int version, long uid, List cookie, Object bean) {
 		super();
 		this.cmd = cmd;
@@ -25,7 +26,7 @@ public class BaseProtobufRequest {
 		this.bean = bean;
 	}
 	
-	public Protocol buildProtoBufProtocal(){
+	public Packet buildProtoBufProtocal(){
 		this.buildHead();
 		this.buildBody(this.bean);
 		return protocalBuilder.build();
@@ -34,11 +35,11 @@ public class BaseProtobufRequest {
 	protected void buildBody(Object obj){}
 	
 	private void buildHead(){
-		Im.ProtocolHead.Builder headBuilder = Im.ProtocolHead.newBuilder();
+		JpushimSdk2B.ProtocolHead.Builder headBuilder = JpushimSdk2B.ProtocolHead.newBuilder();
 		headBuilder.setCmd(this.cmd);
 		headBuilder.setVer(this.version);
 		headBuilder.setUid(this.uid);
-		Im.Cookie.Builder cookieBuilder = Im.Cookie.newBuilder();
+		JpushimSdk2B.Cookie.Builder cookieBuilder = JpushimSdk2B.Cookie.newBuilder();
 		for(int i=0; i<cookie.size(); i++){
 			cookieBuilder.addRes(cookie.get(i));
 		}

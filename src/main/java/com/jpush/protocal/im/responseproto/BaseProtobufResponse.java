@@ -1,12 +1,13 @@
 package com.jpush.protocal.im.responseproto;
 
-import com.jpush.protobuf.Im.Protocol;
+import jpushim.s2b.JpushimSdk2B.Packet;
+
 
 public class BaseProtobufResponse {
 	private int code = 0;
 	private String message = "success";
-	protected Protocol protocol;
-	public BaseProtobufResponse(Protocol protocol) {
+	protected Packet protocol;
+	public BaseProtobufResponse(Packet protocol) {
 		this.protocol = protocol;
 	}
 	
@@ -14,7 +15,7 @@ public class BaseProtobufResponse {
 		
 	}
 	
-	public Protocol getResponseProtocol(){
+	public Packet getResponseProtocol(){
 		this.buildResposneBody();
 		return protocol;
 	}

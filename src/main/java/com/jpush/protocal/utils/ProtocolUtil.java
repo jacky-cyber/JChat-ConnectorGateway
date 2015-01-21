@@ -12,17 +12,18 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Random;
 
-import com.jpush.protobuf.Group.AddGroupMember;
-import com.jpush.protobuf.Group.CreateGroup;
-import com.jpush.protobuf.Group.DelGroupMember;
-import com.jpush.protobuf.Group.ExitGroup;
-import com.jpush.protobuf.Group.UpdateGroupInfo;
-import com.jpush.protobuf.Im.Protocol;
-import com.jpush.protobuf.Im.Response;
-import com.jpush.protobuf.Message.GroupMsg;
-import com.jpush.protobuf.Message.SingleMsg;
-import com.jpush.protobuf.User.Login;
-import com.jpush.protobuf.User.Logout;
+import jpushim.s2b.JpushimSdk2B.AddGroupMember;
+import jpushim.s2b.JpushimSdk2B.CreateGroup;
+import jpushim.s2b.JpushimSdk2B.DelGroupMember;
+import jpushim.s2b.JpushimSdk2B.ExitGroup;
+import jpushim.s2b.JpushimSdk2B.GroupMsg;
+import jpushim.s2b.JpushimSdk2B.Login;
+import jpushim.s2b.JpushimSdk2B.Logout;
+import jpushim.s2b.JpushimSdk2B.Packet;
+import jpushim.s2b.JpushimSdk2B.Response;
+import jpushim.s2b.JpushimSdk2B.SingleMsg;
+import jpushim.s2b.JpushimSdk2B.UpdateGroupInfo;
+
 import com.jpush.protocal.push.PushLoginRequestBean;
 import com.jpush.protocal.push.PushLoginResponseBean;
 import com.jpush.protocal.push.PushLogoutResponseBean;
@@ -414,52 +415,52 @@ public class ProtocolUtil {
 	}
 	
 	//  IM ProtoBuf 数据解析
-	public static Response getCommonResp(Protocol protocol){
+	public static Response getCommonResp(Packet protocol){
 		Response resp = protocol.getBody().getCommonRep();
 		return resp;
 	}
 	
-	public static Login getLogin(Protocol protocol){
+	public static Login getLogin(Packet protocol){
 		Login loginBean = protocol.getBody().getLogin();
 		return loginBean;
 	}
 
-	public static Logout getLogout(Protocol protocol){
+	public static Logout getLogout(Packet protocol){
 		Logout logoutBean = protocol.getBody().getLogout();
 		return logoutBean;
 	}
 	
-	public static SingleMsg getSingleMsg(Protocol protocol){
+	public static SingleMsg getSingleMsg(Packet protocol){
 		SingleMsg singleMsgBean = protocol.getBody().getSingleMsg();
 		return singleMsgBean;
 	}
 	
-	public static GroupMsg getGroupMsg(Protocol protocol){
+	public static GroupMsg getGroupMsg(Packet protocol){
 		GroupMsg groupMsgBean = protocol.getBody().getGroupMsg();
 		return groupMsgBean;
 	}
 	
-	public static CreateGroup getCreateGroup(Protocol protocol){
+	public static CreateGroup getCreateGroup(Packet protocol){
 		CreateGroup createGroupBean = protocol.getBody().getCreateGroup();
 		return createGroupBean;
 	}
 	
-	public static ExitGroup getExitGroup(Protocol protocol){
+	public static ExitGroup getExitGroup(Packet protocol){
 		ExitGroup exitGroupBean = protocol.getBody().getExitGroup();
 		return exitGroupBean;
 	}
 	
-	public static AddGroupMember getAddGroupMember(Protocol protocol){
+	public static AddGroupMember getAddGroupMember(Packet protocol){
 		AddGroupMember addGroupMemberBean = protocol.getBody().getAddGroupMember();
 		return addGroupMemberBean;
 	}
 	
-	public static DelGroupMember getDelGroupMember(Protocol protocol){
+	public static DelGroupMember getDelGroupMember(Packet protocol){
 		DelGroupMember delGroupMemberBean = protocol.getBody().getDelGroupMember();
 		return delGroupMemberBean;
 	}
 	
-	public static UpdateGroupInfo getUpdateGroupInfo(Protocol protocol){
+	public static UpdateGroupInfo getUpdateGroupInfo(Packet protocol){
 		UpdateGroupInfo updateGroupInfoBean = protocol.getBody().getUpdateGroupInfo();
 		return updateGroupInfoBean;
 	}

@@ -2,8 +2,9 @@ package com.jpush.protocal.im.requestproto;
 
 import java.util.List;
 
-import com.jpush.protobuf.Group;
-import com.jpush.protobuf.Im;
+import jpushim.s2b.JpushimSdk2B;
+
+import com.google.protobuf.ByteString;
 import com.jpush.protocal.im.bean.UpdateGroupInfoRequestBean;
 
 public class ImUpdateGroupInfoRequestProto extends BaseProtobufRequest {
@@ -15,12 +16,12 @@ public class ImUpdateGroupInfoRequestProto extends BaseProtobufRequest {
 
 	@Override
 	protected void buildBody(Object obj) {
-		Im.ProtocolBody.Builder bodyBuilder = Im.ProtocolBody.newBuilder();
+		JpushimSdk2B.ProtocolBody.Builder bodyBuilder = JpushimSdk2B.ProtocolBody.newBuilder();
 		UpdateGroupInfoRequestBean bean = (UpdateGroupInfoRequestBean) obj;
-		Group.UpdateGroupInfo.Builder updateGroupInfoMemberBuilder = Group.UpdateGroupInfo.newBuilder();
+		JpushimSdk2B.UpdateGroupInfo.Builder updateGroupInfoMemberBuilder = JpushimSdk2B.UpdateGroupInfo.newBuilder();
 		updateGroupInfoMemberBuilder.setGid(bean.getGid());
-		updateGroupInfoMemberBuilder.setName(bean.getName());
-		updateGroupInfoMemberBuilder.setInfo(bean.getContent());
+		updateGroupInfoMemberBuilder.setName(ByteString.copyFromUtf8(bean.getName()));
+		updateGroupInfoMemberBuilder.setInfo(ByteString.copyFromUtf8(bean.getContent()));
 		bodyBuilder.setUpdateGroupInfo(updateGroupInfoMemberBuilder);
 		protocalBuilder.setBody(bodyBuilder);
 	}

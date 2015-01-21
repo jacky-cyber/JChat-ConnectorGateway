@@ -4,21 +4,22 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
+import jpushim.s2b.JpushimSdk2B.AddGroupMember;
+import jpushim.s2b.JpushimSdk2B.CreateGroup;
+import jpushim.s2b.JpushimSdk2B.DelGroupMember;
+import jpushim.s2b.JpushimSdk2B.ExitGroup;
+import jpushim.s2b.JpushimSdk2B.GroupMsg;
+import jpushim.s2b.JpushimSdk2B.Login;
+import jpushim.s2b.JpushimSdk2B.Logout;
+import jpushim.s2b.JpushimSdk2B.Packet;
+import jpushim.s2b.JpushimSdk2B.SingleMsg;
+import jpushim.s2b.JpushimSdk2B.UpdateGroupInfo;
+
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
 
 import com.google.gson.Gson;
-import com.jpush.protobuf.Group.AddGroupMember;
-import com.jpush.protobuf.Group.CreateGroup;
-import com.jpush.protobuf.Group.DelGroupMember;
-import com.jpush.protobuf.Group.ExitGroup;
-import com.jpush.protobuf.Group.UpdateGroupInfo;
-import com.jpush.protobuf.Im.Protocol;
-import com.jpush.protobuf.Message.GroupMsg;
-import com.jpush.protobuf.Message.SingleMsg;
-import com.jpush.protobuf.User.Login;
-import com.jpush.protobuf.User.Logout;
 import com.jpush.protocal.im.response.ImAddGroupMemberResponse;
 import com.jpush.protocal.im.response.ImCreateGroupResponse;
 import com.jpush.protocal.im.response.ImDeleteGroupMemberResponse;
@@ -77,12 +78,12 @@ public class JPushTcpServerHandler extends ChannelInboundHandlerAdapter {
 			log.info("request bean: "+bean.getFrom_resource()+", "+bean.getAppkey()+", "+bean.getPasswdmd5());
 			PushLoginResponseBean respBean = new PushLoginResponseBean(0, 2314, 1, "session key", 1234567);
 			ctx.writeAndFlush(respBean); 
-		} else if(msg instanceof Protocol){
-			Protocol protocol = (Protocol) msg;
+		} else if(msg instanceof Packet){
+			Packet protocol = (Packet) msg;
 			if(Command.JPUSH_IM.LOGIN==protocol.getHead().getCmd()){  // im login
 				log.info("im login request...");
 				Login loginBean = protocol.getBody().getLogin();
-				log.info("login data, username: "+loginBean.getUsername()+", password: "+loginBean.getPassword());
+				log.info("login data, username: "+loginBean.getUsername().toStringUtf8()+", password: "+loginBean.getPassword().toStringUtf8());
 				protocol = new ImLoginResponseProto(protocol).setMessage("login success").getResponseProtocol();
 				ImResponse response = new ImResponse(1, 32, 34, protocol);
 				ctx.writeAndFlush(response);
@@ -90,7 +91,7 @@ public class JPushTcpServerHandler extends ChannelInboundHandlerAdapter {
 			if(Command.JPUSH_IM.LOGOUT==protocol.getHead().getCmd()){  // im logout
 				log.info("im logout request...");
 				Logout logoutBean = protocol.getBody().getLogout();
-				log.info("logout data, username: "+logoutBean.getUsername()+", appkey"+logoutBean.getAppkey());
+				log.info("logout data, username: "+logoutBean.getUsername().toStringUtf8()+", appkey"+logoutBean.getAppkey().toStringUtf8());
 				protocol = new ImLogoutResponseProto(protocol).setMessage("logout success").getResponseProtocol();
 				ImResponse response = new ImResponse(1, 23, 23, protocol);
 				ctx.writeAndFlush(response);
@@ -104,9 +105,10 @@ public class JPushTcpServerHandler extends ChannelInboundHandlerAdapter {
 				ctx.writeAndFlush(response);*/
 				//  IM 消息走 jpush message
 				Map map = new HashMap();
+				map.put("type", "single");
 				map.put("target_uid", String.valueOf(singleMsgBean.getTargetUid()));
 				map.put("uid", String.valueOf(protocol.getHead().getUid()));
-				map.put("message", singleMsgBean.getContent().getText());
+				map.put("message", singleMsgBean.getContent().getContent().toStringUtf8());
 				PushMessageRequestBean bean = new PushMessageRequestBean(1, 123456, gson.toJson(map));
 				PushMessageRequest request = new PushMessageRequest(1, 23, 32, 321, bean);
 				ctx.writeAndFlush(request);
@@ -115,14 +117,12 @@ public class JPushTcpServerHandler extends ChannelInboundHandlerAdapter {
 				log.info("im send group msg request...");
 				GroupMsg groupMsgBean = protocol.getBody().getGroupMsg();
 				log.info("group msg data, target uid: "+groupMsgBean.getTargetGid());
-				/*protocol = new ImSendGroupMsgResponseProto(protocol).setMsgid(12899).setMessage("send group message success").getResponseProtocol();
-				ImResponse response = new ImResponse(1, 23, 23, protocol);
-				ctx.writeAndFlush(response);*/
 				//  IM 消息走 jpush message
 				Map map = new HashMap();
+				map.put("type", "group");
 				map.put("target_gid", String.valueOf(groupMsgBean.getTargetGid()));
 				map.put("uid", String.valueOf(protocol.getHead().getUid()));
-				map.put("message", groupMsgBean.getContent().getText());
+				map.put("message", groupMsgBean.getContent().getContent().toStringUtf8());
 				PushMessageRequestBean bean = new PushMessageRequestBean(1, 123456, gson.toJson(map));
 				PushMessageRequest request = new PushMessageRequest(1, 23, 32, 321, bean);
 				ctx.writeAndFlush(request);
@@ -130,7 +130,7 @@ public class JPushTcpServerHandler extends ChannelInboundHandlerAdapter {
 			if(Command.JPUSH_IM.CREATE_GROUP==protocol.getHead().getCmd()){  // im create group msg
 				log.info("im create group msg request...");
 				CreateGroup createGroupBean = protocol.getBody().getCreateGroup();
-				log.info("create group data, group name: "+createGroupBean.getGroupName()+", desc: "+createGroupBean.getGroupDesc());
+				log.info("create group data, group name: "+createGroupBean.getGroupName().toStringUtf8()+", desc: "+createGroupBean.getGroupDesc().toStringUtf8());
 				protocol = new ImCreateGroupResponseProto(protocol).setGid(8998).setMessage("create group success").getResponseProtocol();
 				ImResponse response = new ImResponse(1, 23, 23, protocol);
 				ctx.writeAndFlush(response);
@@ -162,7 +162,7 @@ public class JPushTcpServerHandler extends ChannelInboundHandlerAdapter {
 			if(Command.JPUSH_IM.UPDATE_GROUP_INFO==protocol.getHead().getCmd()){  // im modify group info msg
 				log.info("im modify group info msg request...");
 				UpdateGroupInfo bean = protocol.getBody().getUpdateGroupInfo();
-				log.info("modify group info data, group gid: "+bean.getGid()+", count: "+bean.getInfo());
+				log.info("modify group info data, group gid: "+bean.getGid()+", count: "+bean.getInfo().toStringUtf8());
 				protocol = new ImUpdateGroupInfoResponseProto(protocol).setMessage("update group info success").getResponseProtocol();
 				ImResponse response = new ImResponse(1, 23, 23, protocol);
 				ctx.writeAndFlush(response);

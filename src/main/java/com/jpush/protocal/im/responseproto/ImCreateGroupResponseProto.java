@@ -1,33 +1,32 @@
 package com.jpush.protocal.im.responseproto;
 
-import com.jpush.protobuf.Group;
-import com.jpush.protobuf.Im;
-import com.jpush.protobuf.Message;
-import com.jpush.protobuf.Group.CreateGroup;
-import com.jpush.protobuf.Im.Protocol;
-import com.jpush.protobuf.Im.ProtocolBody;
-import com.jpush.protobuf.Message.GroupMsg;
-import com.jpush.protobuf.Message.SingleMsg;
+import com.google.protobuf.ByteString;
+
+import jpushim.s2b.JpushimSdk2B;
+import jpushim.s2b.JpushimSdk2B.CreateGroup;
+import jpushim.s2b.JpushimSdk2B.Packet;
+import jpushim.s2b.JpushimSdk2B.ProtocolBody;
+
 
 public class ImCreateGroupResponseProto extends BaseProtobufResponse {
 	private long gid;
-	public ImCreateGroupResponseProto(Protocol protocol) {
+	public ImCreateGroupResponseProto(Packet protocol) {
 		super(protocol);
 	}
 
 	@Override
 	protected void buildResposneBody() {
-		Im.Response.Builder responseBuilder = Im.Response.newBuilder();
+		JpushimSdk2B.Response.Builder responseBuilder = JpushimSdk2B.Response.newBuilder();
 		responseBuilder.setCode(this.getCode());
-		responseBuilder.setMessage(this.getMessage());
+		responseBuilder.setMessage(ByteString.copyFromUtf8(this.getMessage()));
 		
-		Im.ProtocolBody body = this.protocol.getBody();
+		JpushimSdk2B.ProtocolBody body = this.protocol.getBody();
 		
-		Group.CreateGroup createGroupBean = this.protocol.getBody().getCreateGroup();
+		JpushimSdk2B.CreateGroup createGroupBean = this.protocol.getBody().getCreateGroup();
 		createGroupBean = CreateGroup.newBuilder(createGroupBean).setGid(this.gid).build();
 		body = ProtocolBody.newBuilder(body).setCreateGroup(createGroupBean).build();
 		body = ProtocolBody.newBuilder(body).setCommonRep(responseBuilder).build();
-		protocol = Protocol.newBuilder(protocol).setBody(body).build();
+		protocol = Packet.newBuilder(protocol).setBody(body).build();
 	}
 
 	public ImCreateGroupResponseProto setGid(long gid) {

@@ -4,6 +4,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import jpushim.s2b.JpushimSdk2B.AddGroupMember;
+import jpushim.s2b.JpushimSdk2B.CreateGroup;
+import jpushim.s2b.JpushimSdk2B.DelGroupMember;
+import jpushim.s2b.JpushimSdk2B.ExitGroup;
+import jpushim.s2b.JpushimSdk2B.GroupMsg;
+import jpushim.s2b.JpushimSdk2B.Login;
+import jpushim.s2b.JpushimSdk2B.Logout;
+import jpushim.s2b.JpushimSdk2B.Packet;
+import jpushim.s2b.JpushimSdk2B.Response;
+import jpushim.s2b.JpushimSdk2B.SingleMsg;
+import jpushim.s2b.JpushimSdk2B.UpdateGroupInfo;
+
 import org.slf4j.LoggerFactory;
 
 import redis.clients.jedis.Jedis;
@@ -12,17 +24,6 @@ import ch.qos.logback.classic.Logger;
 
 import com.corundumstudio.socketio.SocketIOClient;
 import com.google.gson.Gson;
-import com.jpush.protobuf.Group.AddGroupMember;
-import com.jpush.protobuf.Group.CreateGroup;
-import com.jpush.protobuf.Group.DelGroupMember;
-import com.jpush.protobuf.Group.ExitGroup;
-import com.jpush.protobuf.Group.UpdateGroupInfo;
-import com.jpush.protobuf.Im.Protocol;
-import com.jpush.protobuf.Im.Response;
-import com.jpush.protobuf.Message.GroupMsg;
-import com.jpush.protobuf.Message.SingleMsg;
-import com.jpush.protobuf.User.Login;
-import com.jpush.protobuf.User.Logout;
 import com.jpush.protocal.im.response.ImLoginResponse;
 import com.jpush.protocal.im.responseproto.ImLoginResponseProto;
 import com.jpush.protocal.push.HeartBeatRequest;
@@ -112,38 +113,75 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 			String json_content = bean.getMessage();
 			Map content = gson.fromJson(json_content, HashMap.class);
 			ChatObject data = new ChatObject();
-			SocketIOClient client = WebImServer.userNameToSessionCilentMap.get(content.get("target_uid"));	
-			log.info("get username's session client: "+client.getSessionId());
-			data.setToUserName(content.get("target_uid")+"");
-			data.setUserName(content.get("uid")+"");
-			data.setMessage(content.get("message")+"");
-			client.sendEvent("chatevent", data);  // send message to web client
+			String type = (String)content.get("type");
+			if("single".equals(type)){
+				SocketIOClient client = WebImServer.userNameToSessionCilentMap.get(content.get("target_uid"));	
+				log.info("get username's session client: "+client.getSessionId());
+				data.setToUserName(content.get("target_uid")+"");
+				data.setUserName(content.get("uid")+"");
+				data.setMessage(content.get("message")+"");
+				data.setMsgType("single");
+				if(client!=null){
+					client.sendEvent("chatevent", data);  // send message to web client
+				} else {
+					log.info("该用户此时不在线.");
+				}
+			} else if("group".equals(type)){
+				String gid = (String)content.get("target_gid");
+				Jedis jedis = null;
+				try {
+					 redisClient = new RedisClient();
+				    jedis = redisClient.getJeids();
+				    Set<String> groupMembers = jedis.smembers("web_im_group:"+gid);
+				    for(String username: groupMembers){
+				    	if(!username.equals(content.get("uid")+"")){
+				    		SocketIOClient client = WebImServer.userNameToSessionCilentMap.get(username);	
+							data.setToUserName(gid);
+							data.setUserName(content.get("uid")+"");
+							data.setMessage(content.get("message")+"");
+							data.setMsgType("group");
+							if(client!=null){
+								client.sendEvent("chatevent", data);  // send message to web client
+							} else {
+								log.info("该用户此时不在线.");
+							}
+				    	}
+				    }
+				} catch (JedisConnectionException e) {
+					 log.error(e.getMessage());
+				    redisClient.returnBrokenResource(jedis);
+				    log.info("redis connect exception:"+e.getMessage());
+				} finally {
+				    redisClient.returnResource(jedis);
+				}
+				
+			}
 		}
-		if(msg instanceof Protocol){   //  im 业务
+		if(msg instanceof Packet){   //  im 业务
 			SocketIOClient sessionClient;
-			Protocol protocol = (Protocol) msg;
+			Packet protocol = (Packet) msg;
 			int command = protocol.getHead().getCmd();
 			switch (command) {
 				case Command.JPUSH_IM.LOGIN:
 					log.info("im login response...");
 					Login loginBean = ProtocolUtil.getLogin(protocol);
-					log.info("login data, username: "+loginBean.getUsername()+", password: "+loginBean.getPassword());
+					log.info("login data, username: "+loginBean.getUsername().toStringUtf8()+", password: "+loginBean.getPassword().toStringUtf8());
 					Response loginResp = ProtocolUtil.getCommonResp(protocol);
-					log.info("login response data: code: "+loginResp.getCode()+", message: "+loginResp.getMessage());
+					log.info("login response data: code: "+loginResp.getCode()+", message: "+loginResp.getMessage().toStringUtf8());
 					break;
 				case Command.JPUSH_IM.LOGOUT:
 					log.info("im logout response...");
 					Logout logoutBean = ProtocolUtil.getLogout(protocol);
-					log.info("logout data, username: "+logoutBean.getUsername()+", appkey: "+logoutBean.getAppkey());
+					log.info("logout data, username: "+logoutBean.getUsername().toStringUtf8()+", appkey: "+logoutBean.getAppkey().toStringUtf8());
 					Response logoutResp = ProtocolUtil.getCommonResp(protocol);
-					log.info("logout response data: code: "+logoutResp.getCode()+", message: "+logoutResp.getMessage());
+					log.info("logout response data: code: "+logoutResp.getCode()+", message: "+logoutResp.getMessage().toStringUtf8());
 					break;
 				case Command.JPUSH_IM.SENDMSG_SINGAL:
 					log.info("im send single msg response...");
 					SingleMsg singleMsgBean = ProtocolUtil.getSingleMsg(protocol);
 					log.info("single msg data, target uid: "+singleMsgBean.getTargetUid()+", msgid: "+singleMsgBean.getMsgid());
 					Response singleMsgResp = ProtocolUtil.getCommonResp(protocol);
-					log.info("single msg response data: code: "+singleMsgResp.getCode()+", message: "+singleMsgResp.getMessage());
+					log.info("single msg response data: code: "+singleMsgResp.getCode()+", message: "+singleMsgResp.getMessage().toStringUtf8());
 					// 模拟 Jpush 单发消息测试
 					ChatObject singleMsgdata = new ChatObject();
 					sessionClient = WebImServer.userNameToSessionCilentMap.get(singleMsgBean.getTargetUid()+"");
@@ -152,7 +190,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					
 					singleMsgdata.setToUserName(singleMsgBean.getTargetUid()+"");
 					singleMsgdata.setUserName(protocol.getHead().getUid()+"");
-					singleMsgdata.setMessage(singleMsgBean.getContent().getText());
+					singleMsgdata.setMessage(singleMsgBean.getContent().getContent().toStringUtf8());
 					singleMsgdata.setMsgType("single");
 					sessionClient.sendEvent("chatevent", singleMsgdata);
 					break;
@@ -161,7 +199,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					GroupMsg groupMsgBean = ProtocolUtil.getGroupMsg(protocol);
 					log.info("group msg data, target gid: "+groupMsgBean.getTargetGid()+", msgid: "+groupMsgBean.getMsgid());
 					Response groupMsgResp = ProtocolUtil.getCommonResp(protocol);
-					log.info("group msg response data: code: "+groupMsgResp.getCode()+", message: "+groupMsgResp.getMessage());
+					log.info("group msg response data: code: "+groupMsgResp.getCode()+", message: "+groupMsgResp.getMessage().toStringUtf8());
 					// 模拟 Jpush 群发消息测试
 					ChatObject groupMsgdata = new ChatObject();
 					Jedis jedis = null;
@@ -175,7 +213,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					    		SocketIOClient userClient = WebImServer.userNameToSessionCilentMap.get(username); 
 					    		groupMsgdata.setToUserName(username);
 					    		groupMsgdata.setUserName(protocol.getHead().getUid()+"");
-					    		groupMsgdata.setMessage(groupMsgBean.getContent().getText());
+					    		groupMsgdata.setMessage(groupMsgBean.getContent().getContent().toStringUtf8());
 					    		groupMsgdata.setMsgType("group");
 								userClient.sendEvent("chatevent", groupMsgdata);
 					    	}
@@ -193,35 +231,35 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					CreateGroup createGroupBean = ProtocolUtil.getCreateGroup(protocol);
 					log.info("create group data, gid: "+createGroupBean.getGid());
 					Response createGroupResp = ProtocolUtil.getCommonResp(protocol);
-					log.info("create group response data: code: "+createGroupResp.getCode()+", message: "+createGroupResp.getMessage());
+					log.info("create group response data: code: "+createGroupResp.getCode()+", message: "+createGroupResp.getMessage().toStringUtf8());
 					break;
 				case Command.JPUSH_IM.EXIT_GROUP:
 					log.info("im exit group msg response...");
 					ExitGroup exitGroupBean = ProtocolUtil.getExitGroup(protocol);
 					log.info("exit group data, gid: "+exitGroupBean.getGid());
 					Response exitGroupResp = protocol.getBody().getCommonRep();
-					log.info("exit group response data: code: "+exitGroupResp.getCode()+", message: "+exitGroupResp.getMessage());
+					log.info("exit group response data: code: "+exitGroupResp.getCode()+", message: "+exitGroupResp.getMessage().toStringUtf8());
 					break;
 				case Command.JPUSH_IM.ADD_GROUP_MEMBER:
 					log.info("im add group member msg response...");
 					AddGroupMember addGroupMemberBean = ProtocolUtil.getAddGroupMember(protocol);
 					log.info("add group member data, gid: "+addGroupMemberBean.getGid());
 					Response addGroupMemberResp = ProtocolUtil.getCommonResp(protocol);
-					log.info("add group member response data: code: "+addGroupMemberResp.getCode()+", message: "+addGroupMemberResp.getMessage());
+					log.info("add group member response data: code: "+addGroupMemberResp.getCode()+", message: "+addGroupMemberResp.getMessage().toStringUtf8());
 					break;
 				case Command.JPUSH_IM.DEL_GROUP_MEMBER:
 					log.info("im delete group member msg response...");
 					DelGroupMember delGroupMemberBean = ProtocolUtil.getDelGroupMember(protocol);
 					log.info("del group member data, gid: "+delGroupMemberBean.getGid());
 					Response delGroupMemberResp = ProtocolUtil.getCommonResp(protocol);
-					log.info("del group member response data: code: "+delGroupMemberResp.getCode()+", message: "+delGroupMemberResp.getMessage());
+					log.info("del group member response data: code: "+delGroupMemberResp.getCode()+", message: "+delGroupMemberResp.getMessage().toStringUtf8());
 					break;
 				case Command.JPUSH_IM.UPDATE_GROUP_INFO:
 					log.info("im update group info msg response...");
 					UpdateGroupInfo bean = ProtocolUtil.getUpdateGroupInfo(protocol);
 					log.info("update group info data, gid: "+bean.getGid()+", info: "+bean.getInfo());
 					Response updateGroupInfoResp = ProtocolUtil.getCommonResp(protocol);
-					log.info("update group info response data: code: "+updateGroupInfoResp.getCode()+", message: "+updateGroupInfoResp.getMessage());
+					log.info("update group info response data: code: "+updateGroupInfoResp.getCode()+", message: "+updateGroupInfoResp.getMessage().toStringUtf8());
 					break;
 	
 				default:

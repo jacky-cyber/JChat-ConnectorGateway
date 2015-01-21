@@ -1,3 +1,4 @@
+
 /** custom login button **/
 .flatbtn-blu {
 	-webkit-box-sizing: border-box;
@@ -484,4 +485,24 @@ label.offline {
 
 .fade.in {
 	opacity: 1;
+}
+
+/*********************/
+.im-left-tab{
+	font-size:13px;
+	text-decoration:none;
+	display:inline-block;
+	text-align: center;
+	width:96px;
+	height: 30px;
+	margin-left:15px;
+	padding-top:5px;
+	background-color: #FFEBCD;
+}
+.im-left-tab:HOVER{
+	text-decoration: none;
+	cursor: pointer;
+}
+.right-tab{
+	margin-left: -2px;
 }

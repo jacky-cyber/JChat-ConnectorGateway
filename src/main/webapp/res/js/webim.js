@@ -12,6 +12,7 @@ var curChatUserId = null;  //  当前聊天对象id
 var curChatGroupId = null;  // 当前聊天Group id
 var curChatUserSessionId  = null;  // data session_id
 var preChatUserId = null;  // 前一个聊天对象
+var preChatGroupId = null; // 前一个群组对象
 var msgCardDivId = "chat01";
 var talkToDivId = "talkTo";
 var isSingleOrGroup = "single";  //  区分是单聊还是群聊
@@ -108,6 +109,10 @@ socket.on('getGroupsList', function(data){
 		grouplist.removeChild(children[0]);
 	}
 	grouplist.appendChild(uielem);
+	//  默认选择与第一个联系人聊天
+	if(data.length>0){
+		setCurrentGroup(data[0].group_id);
+	}
 });
 
 //  监听用户聊天
@@ -145,20 +150,18 @@ function sendText(){
  	 appendMsgSendByMe(content);
     document.getElementById('talkInputId').value = '';
     if(isSingleOrGroup=='single'){
-    	console.log("single msg");
-    	//socket.emit('chatevent', {userName: user_name, toUserName: curChatUserId, message: content, msgType:'single'});
+    	socket.emit('chatevent', {userName: user_name, toUserName: curChatUserId, message: content, msgType:'single'});
     } else if(isSingleOrGroup=='group'){
-    	console.log("group msg");
-    	//socket.emit('chatevent', {userName: user_name, groupId: curChatGroupId, message: content, msgType:'group'});
+    	socket.emit('chatevent', {userName: user_name, toUserName: curChatGroupId, message: content, msgType:'group'});
      } 
 };
 	 
-//构造当前聊天记录的窗口div
+//获取当前聊天记录的窗口div
 var getContactChatDiv = function(chatUserId) {
 	return document.getElementById(curUserId + "-" + chatUserId);
 };
 
-//构造当前群组聊天记录的窗口
+//获取当前群组聊天记录的窗口
 var getGroupChatDiv = function(chatGroupId) {
 	return document.getElementById(curUserId + "-" + chatGroupId);
 };
@@ -220,6 +223,21 @@ var setCurrentContact = function(defaultUserId) {
 	curChatUserId = defaultUserId;
 	preChatUserId = curChatUserId;
 };
+
+//设置当前群组界面
+var setCurrentGroup = function(defaultUserId) {
+	showGroupChatDiv(defaultUserId);
+	if (curChatGroupId != null) {
+		hiddenGroupChatDiv(curChatGroupId);
+	} else {
+		$('#null-nouser').css({
+			"display" : "none"
+		});
+	}
+	curChatGroupId = defaultUserId;
+	preChatGroupId = curChatGroupId;
+};
+
 	
 // 显示与联系人聊天的窗口
 var showContactChatDiv = function(chatUserId) {
@@ -240,7 +258,7 @@ var showContactChatDiv = function(chatUserId) {
 
 //  显示群组的聊天窗口
 var showGroupChatDiv = function(chatGroupId) {
-	var contentDiv = getContactChatDiv(chatGroupId);
+	var contentDiv = getGroupChatDiv(chatGroupId);
 	if (contentDiv == null) {
 		contentDiv = createGroupChatDiv(chatGroupId);
 		document.getElementById(msgCardDivId).appendChild(contentDiv);
@@ -287,7 +305,7 @@ var chooseContactDivClick = function(li) {
 	curChatUserSessionId = li.sessionId;
 	if (chatUserId != curChatUserId) {
 		if (curChatUserId == null) {
-			showContactChatDiv(chatUserId);
+			createContactChatDiv(chatUserId);
 		} else {
 			showContactChatDiv(chatUserId);
 			hiddenContactChatDiv(curChatUserId);
@@ -321,7 +339,7 @@ var chooseGroupDivClick = function(li) {
 	var chatGroupId = li.id;
 	if (chatGroupId != curChatGroupId) {
 		if (curChatGroupId == null) {
-			showGroupChatDiv(chatGroupId);
+			createGroupChatDiv(chatGroupId);
 		} else {
 			showGroupChatDiv(chatGroupId);
 			hiddenGroupChatDiv(curChatGroupId);
@@ -343,55 +361,100 @@ var appendMsgSendByOthers = function(name, message, contact, chattype){
 		if (contactUL.children.length == 0) {
 			return null;
 		}
+		// 
+		var contactDivId = name;
+		var contactLi = getContactLi(name);
+		var date = new Date();
+		var time = date.toLocaleTimeString();
+		var headstr = [ "<p1>" + name + "   <span></span>" + "   </p1>",
+				"<p2>" + time + "<b></b><br/></p2>" ];
+		var header = $(headstr.join(''))
+
+		var lineDiv = document.createElement("div");
+		for ( var i = 0; i < header.length; i++) {
+			var ele = header[i];
+			lineDiv.appendChild(ele);
+		}
+			
+		var eletext = "<p3>" + message + "</p3>";
+		var ele = $(eletext);
+		ele[0].setAttribute("class", "chat-content-p3");
+		ele[0].setAttribute("className", "chat-content-p3");
+		ele[0].style.backgroundColor = "#98FB98";
+		
+		for ( var j = 0; j < ele.length; j++) {
+			lineDiv.appendChild(ele[j]);
+		}
+					
+		//if (curChatUserId.indexOf(contact) < 0) {
+			contactLi.style.backgroundColor = "#FF4500";
+		//}
+			 
+		var msgContentDiv = getContactChatDiv(contactDivId);
+		lineDiv.style.textAlign = "left";
+		
+		var create = false;
+		if (msgContentDiv == null) {
+			msgContentDiv = createContactChatDiv(contactDivId);
+			create = true;
+		}
+		msgContentDiv.appendChild(lineDiv);
+		if (create) {
+			document.getElementById(msgCardDivId).appendChild(msgContentDiv);
+		}
+		msgContentDiv.scrollTop = msgContentDiv.scrollHeight;
+		return lineDiv;
 	}
 	if(chattype=='group'){
 		var groupUL = document.getElementById("grouplistUL");
 		if (groupUL.children.length == 0) {
 			return null;
 		}
-	}
-	var contactDivId = name;
-	var contactLi = getContactLi(name);
-	var date = new Date();
-	var time = date.toLocaleTimeString();
-	var headstr = [ "<p1>" + name + "   <span></span>" + "   </p1>",
-			"<p2>" + time + "<b></b><br/></p2>" ];
-	var header = $(headstr.join(''))
+		// 
+		var contactDivId = contact;
+		var contactLi = getContactLi(contact);
+		var date = new Date();
+		var time = date.toLocaleTimeString();
+		var headstr = [ "<p1>" + name + "   <span></span>" + "   </p1>",
+				"<p2>" + time + "<b></b><br/></p2>" ];
+		var header = $(headstr.join(''))
 
-	var lineDiv = document.createElement("div");
-	for ( var i = 0; i < header.length; i++) {
-		var ele = header[i];
-		lineDiv.appendChild(ele);
-	}
+		var lineDiv = document.createElement("div");
+		for ( var i = 0; i < header.length; i++) {
+			var ele = header[i];
+			lineDiv.appendChild(ele);
+		}
+			
+		var eletext = "<p3>" + message + "</p3>";
+		var ele = $(eletext);
+		ele[0].setAttribute("class", "chat-content-p3");
+		ele[0].setAttribute("className", "chat-content-p3");
+		ele[0].style.backgroundColor = "#98FB98";
 		
-	var eletext = "<p3>" + message + "</p3>";
-	var ele = $(eletext);
-	ele[0].setAttribute("class", "chat-content-p3");
-	ele[0].setAttribute("className", "chat-content-p3");
-	ele[0].style.backgroundColor = "#98FB98";
+		for ( var j = 0; j < ele.length; j++) {
+			lineDiv.appendChild(ele[j]);
+		}
+					
+		//if (curChatGroupId.indexOf(contact) < 0) {
+			contactLi.style.backgroundColor = "#FF4500";
+		//}
+			 
+		var msgContentDiv = getGroupChatDiv(contactDivId);
+		lineDiv.style.textAlign = "left";
+		
+		var create = false;
+		if (msgContentDiv == null) {
+			msgContentDiv = createGroupChatDiv(contactDivId);
+			create = true;
+		}
+		msgContentDiv.appendChild(lineDiv);
+		if (create) {
+			document.getElementById(msgCardDivId).appendChild(msgContentDiv);
+		}
+		msgContentDiv.scrollTop = msgContentDiv.scrollHeight;
+		return lineDiv;
+	}
 	
-	for ( var j = 0; j < ele.length; j++) {
-		lineDiv.appendChild(ele[j]);
-	}
-				
-	if (curChatUserId.indexOf(contact) < 0) {
-		contactLi.style.backgroundColor = "#FF4500";
-	}
-		 
-	var msgContentDiv = getContactChatDiv(contactDivId);
-	lineDiv.style.textAlign = "left";
-	
-	var create = false;
-	if (msgContentDiv == null) {
-		msgContentDiv = createContactChatDiv(contactDivId);
-		create = true;
-	}
-	msgContentDiv.appendChild(lineDiv);
-	if (create) {
-		document.getElementById(msgCardDivId).appendChild(msgContentDiv);
-	}
-	msgContentDiv.scrollTop = msgContentDiv.scrollHeight;
-	return lineDiv;
 };
 	
 // 添加自己发送的聊天信息到显示面板
@@ -417,12 +480,22 @@ var appendMsgSendByMe = function(message) {
 	for ( var j = 0; j < ele.length; j++) {
 			lineDiv.appendChild(ele[j]);
 	}
-	var msgContentDiv = getContactChatDiv(curChatUserId); 
+	
+	var msgContentDiv;
+	if(isSingleOrGroup=='single'){
+		msgContentDiv = getContactChatDiv(curChatUserId); 
+	} else if(isSingleOrGroup=='group'){
+		msgContentDiv = getGroupChatDiv(curChatGroupId); 
+	}
 	lineDiv.style.textAlign = "right";
 	
 	var create = false;
 	if (msgContentDiv == null) {
-		msgContentDiv = createContactChatDiv(curChatUserId);
+		if(isSingleOrGroup=='single'){
+			msgContentDiv = createContactChatDiv(curChatUserId);
+		} else {
+			msgContentDiv = createGroupChatDiv(curChatUserId);
+		}
 		create = true;
 	}
 	msgContentDiv.appendChild(lineDiv);

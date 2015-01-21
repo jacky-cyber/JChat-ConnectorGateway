@@ -2,8 +2,8 @@ package com.jpush.protocal.im.requestproto;
 
 import java.util.List;
 
-import com.jpush.protobuf.Group;
-import com.jpush.protobuf.Im;
+import jpushim.s2b.JpushimSdk2B;
+
 import com.jpush.protocal.im.bean.DeleteGroupMemberRequestBean;
 
 public class ImDeleteGroupMemberRequestProto extends BaseProtobufRequest {
@@ -14,9 +14,9 @@ public class ImDeleteGroupMemberRequestProto extends BaseProtobufRequest {
 
 	@Override
 	protected void buildBody(Object obj) {
-		Im.ProtocolBody.Builder bodyBuilder = Im.ProtocolBody.newBuilder();
+		JpushimSdk2B.ProtocolBody.Builder bodyBuilder = JpushimSdk2B.ProtocolBody.newBuilder();
 		DeleteGroupMemberRequestBean bean = (DeleteGroupMemberRequestBean) obj;
-		Group.DelGroupMember.Builder delGroupMemberBuilder = Group.DelGroupMember.newBuilder();
+		JpushimSdk2B.DelGroupMember.Builder delGroupMemberBuilder = JpushimSdk2B.DelGroupMember.newBuilder();
 		delGroupMemberBuilder.setGid(bean.getGid());
 		delGroupMemberBuilder.setMemberCount(bean.getMember_count());
 		List memList = bean.getMember_uid_list();

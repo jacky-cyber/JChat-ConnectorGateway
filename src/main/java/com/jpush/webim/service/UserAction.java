@@ -42,7 +42,7 @@ public class UserAction {
 	           res.sendRedirect("../page/socketio/index.html?user_name="+user_name);  // socket.io.js + netty的实现
 	       } catch (JedisConnectionException e) {
 	           redisClient.returnBrokenResource(jedis);
-	           throw new JedisConnectionException(e);
+	           log.info("connect to redis server exception:"+e.getMessage());
 	       } catch (IOException e) {
 	    	   log.error(e.getMessage());
 		} finally {

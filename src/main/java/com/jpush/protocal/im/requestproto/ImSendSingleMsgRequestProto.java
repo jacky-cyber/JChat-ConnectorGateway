@@ -2,8 +2,9 @@ package com.jpush.protocal.im.requestproto;
 
 import java.util.List;
 
-import com.jpush.protobuf.Im;
-import com.jpush.protobuf.Message;
+import jpushim.s2b.JpushimSdk2B;
+
+import com.google.protobuf.ByteString;
 import com.jpush.protocal.im.bean.SendSingleMsgRequestBean;
 
 public class ImSendSingleMsgRequestProto extends BaseProtobufRequest {
@@ -15,12 +16,12 @@ public class ImSendSingleMsgRequestProto extends BaseProtobufRequest {
 
 	@Override
 	protected void buildBody(Object obj) {
-		Im.ProtocolBody.Builder bodyBuilder = Im.ProtocolBody.newBuilder();
+		JpushimSdk2B.ProtocolBody.Builder bodyBuilder = JpushimSdk2B.ProtocolBody.newBuilder();
 		SendSingleMsgRequestBean bean = (SendSingleMsgRequestBean) obj;
-		Message.SingleMsg.Builder singleBuilder = Message.SingleMsg.newBuilder();
+		JpushimSdk2B.SingleMsg.Builder singleBuilder = JpushimSdk2B.SingleMsg.newBuilder();
 		singleBuilder.setTargetUid(bean.getTarget_uid());
-		Message.MessageContent.Builder msgContent = Message.MessageContent.newBuilder();
-		msgContent.setText(bean.getMsg_content());
+		JpushimSdk2B.MessageContent.Builder msgContent = JpushimSdk2B.MessageContent.newBuilder();
+		msgContent.setContent(ByteString.copyFromUtf8(bean.getMsg_content()));
 		singleBuilder.setContent(msgContent);
 		bodyBuilder.setSingleMsg(singleBuilder);
 		protocalBuilder.setBody(bodyBuilder);

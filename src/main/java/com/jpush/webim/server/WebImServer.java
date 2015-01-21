@@ -217,10 +217,10 @@ public class WebImServer {
 				}
 				List<GroupObject> groupsList = new ArrayList<GroupObject>();
 				GroupObject group2 = new GroupObject();
-				group2.setGroup_id("010223");
+				group2.setGroup_id("10011");
 				group2.setGroup_name("JPush Company");
 				GroupObject group3 = new GroupObject();
-				group3.setGroup_id("d346354");
+				group3.setGroup_id("10010");
 				group3.setGroup_name("JPush dev");
 				groupsList.add(group2);
 				groupsList.add(group3);
@@ -248,7 +248,7 @@ public class WebImServer {
 					 channel.writeAndFlush(req);
 				 } else if("group".equals(data.getMsgType())){
 					// 模拟接入 JPush 群发消息测试
-					 SendGroupMsgRequestBean bean = new SendGroupMsgRequestBean(Long.parseLong(data.getGroupId()), data.getMessage());
+					 SendGroupMsgRequestBean bean = new SendGroupMsgRequestBean(Long.parseLong(data.getToUserName()), data.getMessage());
 					 List<Integer> cookie = new ArrayList<Integer>();
 					 cookie.add(123);
 					 ImSendGroupMsgRequestProto req = new ImSendGroupMsgRequestProto(Command.JPUSH_IM.SENDMSG_GROUP, 1, Long.parseLong(data.getUserName()), cookie, bean);

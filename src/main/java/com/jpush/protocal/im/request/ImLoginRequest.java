@@ -3,13 +3,14 @@ package com.jpush.protocal.im.request;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-import com.jpush.protobuf.Im.Protocol;
+import jpushim.s2b.JpushimSdk2B.Packet;
+
 import com.jpush.protocal.utils.Command;
 import com.jpush.protocal.utils.ProtocolUtil;
 
 public class ImLoginRequest extends BaseRequest {
-	private Protocol protobuf;
-	public ImLoginRequest(int version, long rid, int sid, long juid, Protocol protobuf) {
+	private Packet protobuf;
+	public ImLoginRequest(int version, long rid, int sid, long juid, Packet protobuf) {
 		super(version, rid, sid, juid);
 		this.command = Command.JPUSH_IM.COMMAND;
 		this.protobuf = protobuf;

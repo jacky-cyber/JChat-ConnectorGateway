@@ -2,8 +2,9 @@ package com.jpush.protocal.im.requestproto;
 
 import java.util.List;
 
-import com.jpush.protobuf.Im;
-import com.jpush.protobuf.User;
+import jpushim.s2b.JpushimSdk2B;
+
+import com.google.protobuf.ByteString;
 import com.jpush.protocal.im.bean.LogoutRequestBean;
 
 public class ImLogoutRequestProto extends BaseProtobufRequest {
@@ -15,11 +16,11 @@ public class ImLogoutRequestProto extends BaseProtobufRequest {
 
 	@Override
 	protected void buildBody(Object obj) {
-		Im.ProtocolBody.Builder bodyBuilder = Im.ProtocolBody.newBuilder();
+		JpushimSdk2B.ProtocolBody.Builder bodyBuilder = JpushimSdk2B.ProtocolBody.newBuilder();
 		LogoutRequestBean bean = (LogoutRequestBean) obj;
-		User.Logout.Builder logoutBuilder = User.Logout.newBuilder();
-		logoutBuilder.setUsername(bean.getUsername());
-		logoutBuilder.setAppkey(bean.getAppkey());
+		JpushimSdk2B.Logout.Builder logoutBuilder = JpushimSdk2B.Logout.newBuilder();
+		logoutBuilder.setUsername(ByteString.copyFromUtf8(bean.getUsername()));
+		logoutBuilder.setAppkey(ByteString.copyFromUtf8(bean.getAppkey()));
 		bodyBuilder.setLogout(logoutBuilder);
 		protocalBuilder.setBody(bodyBuilder);
 	}

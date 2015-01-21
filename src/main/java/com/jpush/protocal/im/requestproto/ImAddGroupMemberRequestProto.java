@@ -2,8 +2,8 @@ package com.jpush.protocal.im.requestproto;
 
 import java.util.List;
 
-import com.jpush.protobuf.Group;
-import com.jpush.protobuf.Im;
+import jpushim.s2b.JpushimSdk2B;
+
 import com.jpush.protocal.im.bean.AddGroupMemberRequestBean;
 
 public class ImAddGroupMemberRequestProto extends BaseProtobufRequest {
@@ -15,9 +15,9 @@ public class ImAddGroupMemberRequestProto extends BaseProtobufRequest {
 
 	@Override
 	protected void buildBody(Object obj) {
-		Im.ProtocolBody.Builder bodyBuilder = Im.ProtocolBody.newBuilder();
+		JpushimSdk2B.ProtocolBody.Builder bodyBuilder = JpushimSdk2B.ProtocolBody.newBuilder();
 		AddGroupMemberRequestBean bean = (AddGroupMemberRequestBean) obj;
-		Group.AddGroupMember.Builder addGroupMemberBuilder = Group.AddGroupMember.newBuilder();
+		JpushimSdk2B.AddGroupMember.Builder addGroupMemberBuilder = JpushimSdk2B.AddGroupMember.newBuilder();
 		addGroupMemberBuilder.setGid(bean.getGid());
 		addGroupMemberBuilder.setMemberCount(bean.getMember_count());
 		List memList = bean.getMember_uid_list();

@@ -17,7 +17,8 @@
     http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
 	 http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd"
 	 default-autowire="byType">
-	
+	 
+	 <mvc:resources location="/" mapping="/**" />
 	 <mvc:resources location="/res/css/" mapping="/res/css/**" />
     <mvc:resources location="/res/fonts/" mapping="/res/fonts/**" />
     <mvc:resources location="/res/js/" mapping="/res/js/**" />
