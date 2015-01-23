@@ -208,6 +208,11 @@ public class JPushTcpServerHandler extends ChannelInboundHandlerAdapter {
 	}
 	
 	@Override
+	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+		log.info("inactive...channel: "+ctx.channel().toString());
+	}
+
+	@Override
 	public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
 		log.info("server channelReadComplete");
 		//ctx.close();

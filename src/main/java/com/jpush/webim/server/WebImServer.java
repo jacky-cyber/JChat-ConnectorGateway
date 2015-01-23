@@ -5,7 +5,6 @@ import io.netty.channel.Channel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.LoggerFactory;
@@ -94,6 +93,9 @@ public class WebImServer {
 					sessionClientToUserNameMap.remove(client);
 					userNameToSessionCilentMap.remove(user_name);
 					Channel channel = userNameToPushChannelMap.get(user_name);
+					userNameToPushChannelMap.remove(user_name);
+					pushChannelToUsernameMap.remove(channel);
+					channel.close();
 					jedis.srem("im_online_users", user_name);  // 把该用户从在线用户列表中清除
 				} catch (JedisConnectionException e) {
 					log.error(e.getMessage());
@@ -122,18 +124,6 @@ public class WebImServer {
 				log.info("add user and session client to map.");
 				userNameToSessionCilentMap.put(user_name,	client);
 				sessionClientToUserNameMap.put(client, user_name);
-				//  测试 redis 缓存 sessionclient 对象测试
-//				log.info("开始序列化session client...id："+client.getSessionId());
-//				Map<byte[], byte[]> hash = new HashMap<byte[], byte[]>();
-//				hash.put(SerializeUtil.serialize(user_name), SerializeUtil.serialize(client));
-//				jedis.hmset(SerializeUtil.serialize("user_to_client"), hash);
-//				log.info("序列化完成.");
-//				log.info("开始反序列化测试....");
-//				List<byte[]> list = jedis.hmget(SerializeUtil.serialize("user_to_client"), SerializeUtil.serialize(user_name));
-//				log.info("list size: "+list.size());
-//				SocketIOClient myclient = (SocketIOClient)SerializeUtil.unserialize(list.get(list.size()-1));
-//				log.info("反序列化后的session client... id: "+myclient.getSessionId());
-				/*------------------------------------*/
 				redisClient.returnResource(jedis);
 				
 				// 获取uid

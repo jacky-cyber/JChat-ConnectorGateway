@@ -59,7 +59,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 	public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
 		log.info("handler Removed...channel: "+ctx.channel().toString());
 		// 下线相关用户
-		Jedis jedis = null;
+		/*Jedis jedis = null;
 		try {
 			 redisClient = new RedisClient();
 		    jedis = redisClient.getJeids();
@@ -72,7 +72,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 		    throw new JedisConnectionException(e);
 		} finally {
 		    redisClient.returnResource(jedis);
-		}
+		}*/
 	}
 
 	@Override

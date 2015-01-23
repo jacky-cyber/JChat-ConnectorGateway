@@ -1,3 +1,6 @@
+.webim-body {
+	
+}
 
 /** custom login button **/
 .flatbtn-blu {
@@ -188,6 +191,14 @@ a:hover {
 	height: 15px;
 }
 
+.chat01 {
+	background: #F5F5F5;
+}
+
+.chat02 {
+	background: #F5F5F5;
+}
+
 .chat02_title {
 	background: url('../img/chat_title_bg.jpg') repeat-x 0 0;
 	height: 25px;
@@ -228,6 +239,8 @@ a:hover {
 	width: 555px;
 	overflow-x: none;
 	overflow-y: auto;
+	background: #F5F5F5;
+	border-style:none;
 }
 
 .chat02_content {
@@ -281,7 +294,15 @@ a:hover {
 	position: relative;
 	padding: 5px 10px 5px 5px;
 }
-
+.chat-content-pic {
+	white-space: pre-wrap;
+	border-radius: 5px;
+	background-color: #C0C0C0;
+	position: relative;
+	padding: 5px 10px 5px 5px;
+	display: inline-block;
+	height: 80px;
+}
 .chat03_content ul {
 	position: relative;
 }
@@ -360,7 +381,7 @@ a:hover {
 	background: url('../img/wlf_bg.png') repeat 0 0;
 	position: absolute;
 	width: 428px;
-	height: 225px;
+	height: 170px;
 	bottom: 22px;
 	left: -50px;
 	display: none;
@@ -370,7 +391,7 @@ a:hover {
 	background: #fff;
 	border: 1px #ccc solid;
 	width: 417px;
-	height: 216px;
+	height: 160px;
 	margin: 3px 4px;
 }
 
@@ -429,13 +450,14 @@ a:hover {
 
 .wl_faces_main ul li {
 	float: left;
-	border-right: 1px #CCC solid;
-	border-bottom: 1px #CCC solid;
+	/* border-right: 1px #CCC solid;
+	border-bottom: 1px #CCC solid; */
 	height: 22px;
 	width: 26px;
 	margin: -1px 0 0 -1px;
 	padding: 4px 2px;
 	text-align: center;
+	cursor: pointer;
 }
 
 .wl_faces_main ul li img {
@@ -493,16 +515,36 @@ label.offline {
 	text-decoration:none;
 	display:inline-block;
 	text-align: center;
-	width:96px;
+	width:97px;
 	height: 30px;
 	margin-left:15px;
 	padding-top:5px;
-	background-color: #FFEBCD;
+	background-color: #EEF1F4;
 }
 .im-left-tab:HOVER{
 	text-decoration: none;
 	cursor: pointer;
 }
 .right-tab{
-	margin-left: -2px;
+	margin-left: -3px;
 }
+
+/* #picFileModal {
+	margin:0 auto;
+	width:400px;
+	height:300px;	
+}
+
+#audioFileModal {
+	margin:0 auto;
+	width:400px;
+	height:300px;	
+} */
+
+ .emoji { 
+	border-right: 0px #CCC solid;
+	border-bottom: 0px #CCC solid;
+	height: 26px;
+	width: 26px;
+	text-align: center;
+ }

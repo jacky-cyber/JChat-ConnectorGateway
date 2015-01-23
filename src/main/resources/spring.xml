@@ -34,11 +34,11 @@
 
    <bean id="imHandler" class="com.jpush.webim.service.ImServer"/> -->
    
-   <websocket:handlers>
+   <!-- <websocket:handlers>
         <websocket:mapping path="/im" handler="imHandlerWithSock"/>
         <websocket:sockjs/>  
    </websocket:handlers>
- 	<bean id="imHandlerWithSock" class="com.jpush.webim.service.ImServerWithSock"/>
+ 	<bean id="imHandlerWithSock" class="com.jpush.webim.service.ImServerWithSock"/> -->
    
   	<bean id="RedisClient" name="RedisClient" class="com.jpush.webim.common.RedisClient" />
 	<!-- <bean class="com.jpush.webim.socketio.SocketIOHandlerServer" init-method="run"></bean> -->

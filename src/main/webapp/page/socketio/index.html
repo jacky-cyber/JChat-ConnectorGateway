@@ -6,9 +6,9 @@
 <title>WebIM-JPush</title>
 <link rel="stylesheet" type="text/css" href="../../res/css/webim.css" />
 <link rel="stylesheet" type="text/css" href="../../res/css/bootstrap.css" />
-
+<link rel="stylesheet" type="text/css" href="../../res/css/emojify-emoticons.min.css" />
 </head>
-<body>
+<body class="webim-body" style="background:#404449">
 	<div class="content" id="content" style="display: block">
 		<div class="leftcontact" id="leftcontact">
 			<div id="headerimg" class="leftheader">
@@ -41,13 +41,13 @@
 				</div>
 				
 			</div>
-			<div id="contractlist" style="height: 493px; overflow-y: auto; overflow-x: auto;"></div>
-			<div id="grouplist" style="height: 493px; overflow-y: auto; overflow-x: auto; display:none;"></div>
+			<div id="contractlist" style="height: 493px; overflow-y: auto; overflow-x: auto; background:#F5F5F5"></div>
+			<div id="grouplist" style="height: 493px; overflow-y: auto; overflow-x: auto; background:#F5F5F5; display:none;"></div>
 		</div>
 		<!-- 聊天页面 -->
 		<div style="height: 78px;" id="righttop"></div>
 		<div class="chatRight">
-			<div id="chat01">
+			<div id="chat01" class="chat01">
 				<div class="chat01_title">
 					<ul class="talkTo">
 						<li id="talkTo"><a href="#"></a></li>
@@ -69,11 +69,11 @@
 				<div class="chat02_title">
 					<a class="chat02_title_btn ctb01" onclick="showEmotionDialog()"
 						title="选择表情"></a> <a class="chat02_title_btn ctb03" title="选择图片"
-						onclick="showSendPic()" href="#"> </a> <a
-						class="chat02_title_btn ctb02" onclick="showSendAudio()" href="#"
+						data-toggle="modal" data-target="#picFileModal"> </a> <a
+						class="chat02_title_btn ctb02" data-toggle="modal" data-target="#audioFileModal"
 						title="选择语音"><span></span></a> <label id="chat02_title_t"></label>
 					<div id="wl_faces_box" class="wl_faces_box">
-						<div class="wl_faces_content">
+						 <div class="wl_faces_content">
 							<div class="title">
 								<ul>
 									<li class="title_name">常用表情</li>
@@ -98,110 +98,69 @@
 							onclick="sendText()" /></li>
 					</ul>
 				</div>
-
-				
 			</div>
-			<div id="fileModal" class="modal hide fade" role="dialog"
-				aria-hidden="true" data-backdrop="static">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal"
-						aria-hidden="true">&times;</button>
-					<h3>文件选择框</h3>
+			<div id="picFileModal" class="modal fade" tabindex="-1" role="dialog"
+				aria-hidden="true" data-backdrop="true">
+				<div class="modal-dialog">
+    				<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal"
+								aria-hidden="true">&times;</button>
+							<h3>图片选择框</h3>
+						</div>
+						<div class="modal-body">
+							<input type='file' id="picfileInput" /> <input type='hidden'
+								id="sendfiletype" />
+							<div id="send-file-warning"></div>
+						</div>
+						<div class="modal-footer">
+							<button id="fileSend" class="btn btn-primary" onclick="sendPicFile();" data-dismiss="modal">发送</button>
+							<button id="cancelfileSend" class="btn" data-dismiss="modal">取消</button>
+						</div>
+					</div>
 				</div>
-				<div class="modal-body">
-					<input type='file' id="fileInput" /> <input type='hidden'
-						id="sendfiletype" />
-					<div id="send-file-warning"></div>
+			</div>
+			<div id="audioFileModal" class="modal fade" tabindex="-1" role="dialog"
+				aria-hidden="true" data-backdrop="true">
+				<div class="modal-dialog">
+    				<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal"
+								aria-hidden="true">&times;</button>
+							<h3>语音选择框</h3>
+						</div>
+						<div class="modal-body">
+							<input type='file' id="fileInput" /> <input type='hidden'
+								id="sendfiletype" />
+							<div id="send-file-warning"></div>
+						</div>
+						<div class="modal-footer">
+							<button id="fileSend" class="btn btn-primary" onclick="sendAudioFile();" data-dismiss="modal">发送</button>
+							<button id="cancelfileSend" class="btn" data-dismiss="modal">取消</button>
+						</div>
+					</div>
 				</div>
-				<div class="modal-footer">
-					<button id="fileSend" class="btn btn-primary" onclick="sendFile()">发送</button>
-					<button id="cancelfileSend" class="btn" data-dismiss="modal">取消</button>
+			</div>
+			
+			<div id="zoomOutPicView" class="modal fade" tabindex="-1" role="dialog"
+				aria-hidden="true" data-backdrop="true">
+				<div class="modal-dialog">
+					<div class="modal-body">
+						<img id="zoomOutPic" alt="原图效果哦" />
+					</div>
 				</div>
 			</div>
+			
 		</div>
 
-		<div id="addFridentModal" class="modal hide fade" role="dialog"
-			aria-hidden="true" data-backdrop="static">
-			<div class="modal-header">
-				<button type="button" class="close" data-dismiss="modal"
-					aria-hidden="true">&times;</button>
-				<h3>添加好友</h3>
-			</div>
-			<div class="modal-body">
-				<input id="addfridentId" onfocus='clearInputValue("addfridentId")' />
-				<div id="add-frident-warning"></div>
-			</div>
-			<div class="modal-footer">
-				<button id="addFridend" class="btn btn-primary"
-					onclick="startAddFriend()">添加</button>
-				<button id="cancelAddFridend" class="btn" data-dismiss="modal">取消</button>
-			</div>
-		</div>
-
-		<div id="delFridentModal" class="modal hide fade" role="dialog"
-			aria-hidden="true" data-backdrop="static">
-			<div class="modal-header">
-				<button type="button" class="close" data-dismiss="modal"
-					aria-hidden="true">&times;</button>
-				<h3>删除好友</h3>
-			</div>
-			<div class="modal-body">
-				<input id="delfridentId" onfocus='clearInputValue("delfridentId")' />
-				<div id="del-frident-warning"></div>
-			</div>
-			<div class="modal-footer">
-				<button id="delFridend" class="btn btn-primary"
-					onclick="directDelFriend()">删除</button>
-				<button id="canceldelFridend" class="btn" data-dismiss="modal">取消</button>
-			</div>
-		</div>
-
-		<!-- 一般消息通知 -->
-		<div id="notice-block-div" class="modal fade hide">
-			<button type="button" class="close" data-dismiss="alert">&times;</button>
-			<div class="modal-body">
-				<h4>Warning!</h4>
-				<div id="notice-block-body"></div>
-			</div>
-		</div>
-
-		<!-- 确认消息通知 -->
-		<div id="confirm-block-div-modal" class="modal fade hide"
-			role="dialog" aria-hidden="true" data-backdrop="static">
-			<div class="modal-header">
-				<h3>订阅通知</h3>
-			</div>
-			<div class="modal-body">
-				<div id="confirm-block-footer-body"></div>
-			</div>
-			<div class="modal-footer">
-				<button id="confirm-block-footer-confirmButton"
-					class="btn btn-primary">同意</button>
-				<button id="confirm-block-footer-cancelButton" class="btn"
-					data-dismiss="modal">拒绝</button>
-			</div>
-		</div>
-
-		<!-- 群组成员操作界面 -->
-		<div id="option-room-div-modal" class="alert modal fade hide"
-			role="dialog" aria-hidden="true" data-backdrop="static">
-			<button type="button" class="close" data-dismiss="modal"
-				aria-hidden="true">&times;</button>
-			<div class="modal-header">
-				<h3>群组成员</h3>
-			</div>
-			<div class="modal-body">
-				<div id="room-member-list" style="height: 100px; overflow-y: auto"></div>
-			</div>
-		</div>
-
-	</div>
+	</div> 
 	
 	
 <script type="text/javascript" src="../../res/js/jquery.js"></script>
 <script type='text/javascript' src='../../res/js/json2.js'></script>
 <script type="text/javascript" src="../../res/js/bootstrap.js"></script>
 <script type="text/javascript" src="../../res/js/socket.io.js"></script>
+<script type="text/javascript" src="../../res/js/emojify.js"></script>
 <script type="text/javascript" src="../../res/js/webim.js"></script>  <!-- im logic js -->
 </body>
 </html>
