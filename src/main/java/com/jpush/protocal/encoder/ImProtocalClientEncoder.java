@@ -31,6 +31,7 @@ import com.jpush.protocal.push.PushLoginRequestBean;
 import com.jpush.protocal.push.PushLogoutRequest;
 import com.jpush.protocal.push.PushRegRequest;
 import com.jpush.protocal.push.PushRegRequestBean;
+import com.jpush.protocal.utils.ProtocolUtil;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -52,11 +53,11 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 		}
-		if (msg instanceof PushLoginRequestBean) {  // push login protocal
+		if (msg instanceof PushLoginRequest) {  // push login protocal
 			log.info("push login request...");
-			PushLoginRequestBean bean = (PushLoginRequestBean) msg;
-			PushLoginRequest request = new PushLoginRequest(1, 12, 342, 342, bean);
+			PushLoginRequest request = (PushLoginRequest) msg;
 			byte[] data = request.getRequestPackage();
+			log.info("jpush login pkg size: "+data.length);
 			out.writeBytes(data);
 		}
 		if (msg instanceof PushLogoutRequest) {  // push logout protocal
@@ -77,6 +78,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			Packet reqProtobuf = req.buildProtoBufProtocal();
 			ImRequest request = new ImRequest(1, 12, 342, 343, reqProtobuf);
 			byte[] data = request.getRequestPackage();
+			log.info("im login pkg size: "+data.length);
 			out.writeBytes(data);
 		}
 		if(msg instanceof ImLogoutRequestProto){  // im logout

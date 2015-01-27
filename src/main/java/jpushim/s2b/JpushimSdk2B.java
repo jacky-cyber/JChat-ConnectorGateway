@@ -510,17 +510,27 @@ public final class JpushimSdk2B {
      */
     long getUid();
 
-    // optional .jpushim.s2b.Cookie cookie = 4;
+    // optional bytes appkey = 4;
     /**
-     * <code>optional .jpushim.s2b.Cookie cookie = 4;</code>
+     * <code>optional bytes appkey = 4;</code>
+     */
+    boolean hasAppkey();
+    /**
+     * <code>optional bytes appkey = 4;</code>
+     */
+    com.google.protobuf.ByteString getAppkey();
+
+    // optional .jpushim.s2b.Cookie cookie = 5;
+    /**
+     * <code>optional .jpushim.s2b.Cookie cookie = 5;</code>
      */
     boolean hasCookie();
     /**
-     * <code>optional .jpushim.s2b.Cookie cookie = 4;</code>
+     * <code>optional .jpushim.s2b.Cookie cookie = 5;</code>
      */
     jpushim.s2b.JpushimSdk2B.Cookie getCookie();
     /**
-     * <code>optional .jpushim.s2b.Cookie cookie = 4;</code>
+     * <code>optional .jpushim.s2b.Cookie cookie = 5;</code>
      */
     jpushim.s2b.JpushimSdk2B.CookieOrBuilder getCookieOrBuilder();
   }
@@ -591,8 +601,13 @@ public final class JpushimSdk2B {
               break;
             }
             case 34: {
+              bitField0_ |= 0x00000008;
+              appkey_ = input.readBytes();
+              break;
+            }
+            case 42: {
               jpushim.s2b.JpushimSdk2B.Cookie.Builder subBuilder = null;
-              if (((bitField0_ & 0x00000008) == 0x00000008)) {
+              if (((bitField0_ & 0x00000010) == 0x00000010)) {
                 subBuilder = cookie_.toBuilder();
               }
               cookie_ = input.readMessage(jpushim.s2b.JpushimSdk2B.Cookie.PARSER, extensionRegistry);
@@ -600,7 +615,7 @@ public final class JpushimSdk2B {
                 subBuilder.mergeFrom(cookie_);
                 cookie_ = subBuilder.buildPartial();
               }
-              bitField0_ |= 0x00000008;
+              bitField0_ |= 0x00000010;
               break;
             }
           }
@@ -691,23 +706,39 @@ public final class JpushimSdk2B {
       return uid_;
     }
 
-    // optional .jpushim.s2b.Cookie cookie = 4;
-    public static final int COOKIE_FIELD_NUMBER = 4;
-    private jpushim.s2b.JpushimSdk2B.Cookie cookie_;
+    // optional bytes appkey = 4;
+    public static final int APPKEY_FIELD_NUMBER = 4;
+    private com.google.protobuf.ByteString appkey_;
     /**
-     * <code>optional .jpushim.s2b.Cookie cookie = 4;</code>
+     * <code>optional bytes appkey = 4;</code>
      */
-    public boolean hasCookie() {
+    public boolean hasAppkey() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
     /**
-     * <code>optional .jpushim.s2b.Cookie cookie = 4;</code>
+     * <code>optional bytes appkey = 4;</code>
+     */
+    public com.google.protobuf.ByteString getAppkey() {
+      return appkey_;
+    }
+
+    // optional .jpushim.s2b.Cookie cookie = 5;
+    public static final int COOKIE_FIELD_NUMBER = 5;
+    private jpushim.s2b.JpushimSdk2B.Cookie cookie_;
+    /**
+     * <code>optional .jpushim.s2b.Cookie cookie = 5;</code>
+     */
+    public boolean hasCookie() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    /**
+     * <code>optional .jpushim.s2b.Cookie cookie = 5;</code>
      */
     public jpushim.s2b.JpushimSdk2B.Cookie getCookie() {
       return cookie_;
     }
     /**
-     * <code>optional .jpushim.s2b.Cookie cookie = 4;</code>
+     * <code>optional .jpushim.s2b.Cookie cookie = 5;</code>
      */
     public jpushim.s2b.JpushimSdk2B.CookieOrBuilder getCookieOrBuilder() {
       return cookie_;
@@ -717,6 +748,7 @@ public final class JpushimSdk2B {
       cmd_ = 0;
       ver_ = 0;
       uid_ = 0L;
+      appkey_ = com.google.protobuf.ByteString.EMPTY;
       cookie_ = jpushim.s2b.JpushimSdk2B.Cookie.getDefaultInstance();
     }
     private byte memoizedIsInitialized = -1;
@@ -741,7 +773,10 @@ public final class JpushimSdk2B {
         output.writeInt64(3, uid_);
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        output.writeMessage(4, cookie_);
+        output.writeBytes(4, appkey_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        output.writeMessage(5, cookie_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -766,7 +801,11 @@ public final class JpushimSdk2B {
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(4, cookie_);
+          .computeBytesSize(4, appkey_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(5, cookie_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -891,12 +930,14 @@ public final class JpushimSdk2B {
         bitField0_ = (bitField0_ & ~0x00000002);
         uid_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000004);
+        appkey_ = com.google.protobuf.ByteString.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000008);
         if (cookieBuilder_ == null) {
           cookie_ = jpushim.s2b.JpushimSdk2B.Cookie.getDefaultInstance();
         } else {
           cookieBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00000008);
+        bitField0_ = (bitField0_ & ~0x00000010);
         return this;
       }
 
@@ -940,6 +981,10 @@ public final class JpushimSdk2B {
         if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
           to_bitField0_ |= 0x00000008;
         }
+        result.appkey_ = appkey_;
+        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+          to_bitField0_ |= 0x00000010;
+        }
         if (cookieBuilder_ == null) {
           result.cookie_ = cookie_;
         } else {
@@ -969,6 +1014,9 @@ public final class JpushimSdk2B {
         }
         if (other.hasUid()) {
           setUid(other.getUid());
+        }
+        if (other.hasAppkey()) {
+          setAppkey(other.getAppkey());
         }
         if (other.hasCookie()) {
           mergeCookie(other.getCookie());
@@ -1099,18 +1147,54 @@ public final class JpushimSdk2B {
         return this;
       }
 
-      // optional .jpushim.s2b.Cookie cookie = 4;
+      // optional bytes appkey = 4;
+      private com.google.protobuf.ByteString appkey_ = com.google.protobuf.ByteString.EMPTY;
+      /**
+       * <code>optional bytes appkey = 4;</code>
+       */
+      public boolean hasAppkey() {
+        return ((bitField0_ & 0x00000008) == 0x00000008);
+      }
+      /**
+       * <code>optional bytes appkey = 4;</code>
+       */
+      public com.google.protobuf.ByteString getAppkey() {
+        return appkey_;
+      }
+      /**
+       * <code>optional bytes appkey = 4;</code>
+       */
+      public Builder setAppkey(com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000008;
+        appkey_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bytes appkey = 4;</code>
+       */
+      public Builder clearAppkey() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        appkey_ = getDefaultInstance().getAppkey();
+        onChanged();
+        return this;
+      }
+
+      // optional .jpushim.s2b.Cookie cookie = 5;
       private jpushim.s2b.JpushimSdk2B.Cookie cookie_ = jpushim.s2b.JpushimSdk2B.Cookie.getDefaultInstance();
       private com.google.protobuf.SingleFieldBuilder<
           jpushim.s2b.JpushimSdk2B.Cookie, jpushim.s2b.JpushimSdk2B.Cookie.Builder, jpushim.s2b.JpushimSdk2B.CookieOrBuilder> cookieBuilder_;
       /**
-       * <code>optional .jpushim.s2b.Cookie cookie = 4;</code>
+       * <code>optional .jpushim.s2b.Cookie cookie = 5;</code>
        */
       public boolean hasCookie() {
-        return ((bitField0_ & 0x00000008) == 0x00000008);
+        return ((bitField0_ & 0x00000010) == 0x00000010);
       }
       /**
-       * <code>optional .jpushim.s2b.Cookie cookie = 4;</code>
+       * <code>optional .jpushim.s2b.Cookie cookie = 5;</code>
        */
       public jpushim.s2b.JpushimSdk2B.Cookie getCookie() {
         if (cookieBuilder_ == null) {
@@ -1120,7 +1204,7 @@ public final class JpushimSdk2B {
         }
       }
       /**
-       * <code>optional .jpushim.s2b.Cookie cookie = 4;</code>
+       * <code>optional .jpushim.s2b.Cookie cookie = 5;</code>
        */
       public Builder setCookie(jpushim.s2b.JpushimSdk2B.Cookie value) {
         if (cookieBuilder_ == null) {
@@ -1132,11 +1216,11 @@ public final class JpushimSdk2B {
         } else {
           cookieBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000010;
         return this;
       }
       /**
-       * <code>optional .jpushim.s2b.Cookie cookie = 4;</code>
+       * <code>optional .jpushim.s2b.Cookie cookie = 5;</code>
        */
       public Builder setCookie(
           jpushim.s2b.JpushimSdk2B.Cookie.Builder builderForValue) {
@@ -1146,15 +1230,15 @@ public final class JpushimSdk2B {
         } else {
           cookieBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000010;
         return this;
       }
       /**
-       * <code>optional .jpushim.s2b.Cookie cookie = 4;</code>
+       * <code>optional .jpushim.s2b.Cookie cookie = 5;</code>
        */
       public Builder mergeCookie(jpushim.s2b.JpushimSdk2B.Cookie value) {
         if (cookieBuilder_ == null) {
-          if (((bitField0_ & 0x00000008) == 0x00000008) &&
+          if (((bitField0_ & 0x00000010) == 0x00000010) &&
               cookie_ != jpushim.s2b.JpushimSdk2B.Cookie.getDefaultInstance()) {
             cookie_ =
               jpushim.s2b.JpushimSdk2B.Cookie.newBuilder(cookie_).mergeFrom(value).buildPartial();
@@ -1165,11 +1249,11 @@ public final class JpushimSdk2B {
         } else {
           cookieBuilder_.mergeFrom(value);
         }
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000010;
         return this;
       }
       /**
-       * <code>optional .jpushim.s2b.Cookie cookie = 4;</code>
+       * <code>optional .jpushim.s2b.Cookie cookie = 5;</code>
        */
       public Builder clearCookie() {
         if (cookieBuilder_ == null) {
@@ -1178,19 +1262,19 @@ public final class JpushimSdk2B {
         } else {
           cookieBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00000008);
+        bitField0_ = (bitField0_ & ~0x00000010);
         return this;
       }
       /**
-       * <code>optional .jpushim.s2b.Cookie cookie = 4;</code>
+       * <code>optional .jpushim.s2b.Cookie cookie = 5;</code>
        */
       public jpushim.s2b.JpushimSdk2B.Cookie.Builder getCookieBuilder() {
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000010;
         onChanged();
         return getCookieFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .jpushim.s2b.Cookie cookie = 4;</code>
+       * <code>optional .jpushim.s2b.Cookie cookie = 5;</code>
        */
       public jpushim.s2b.JpushimSdk2B.CookieOrBuilder getCookieOrBuilder() {
         if (cookieBuilder_ != null) {
@@ -1200,7 +1284,7 @@ public final class JpushimSdk2B {
         }
       }
       /**
-       * <code>optional .jpushim.s2b.Cookie cookie = 4;</code>
+       * <code>optional .jpushim.s2b.Cookie cookie = 5;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           jpushim.s2b.JpushimSdk2B.Cookie, jpushim.s2b.JpushimSdk2B.Cookie.Builder, jpushim.s2b.JpushimSdk2B.CookieOrBuilder> 
@@ -1730,23 +1814,13 @@ public final class JpushimSdk2B {
      */
     com.google.protobuf.ByteString getPassword();
 
-    // optional bytes appkey = 3;
+    // optional int32 platform = 3;
     /**
-     * <code>optional bytes appkey = 3;</code>
-     */
-    boolean hasAppkey();
-    /**
-     * <code>optional bytes appkey = 3;</code>
-     */
-    com.google.protobuf.ByteString getAppkey();
-
-    // optional int32 platform = 4;
-    /**
-     * <code>optional int32 platform = 4;</code>
+     * <code>optional int32 platform = 3;</code>
      */
     boolean hasPlatform();
     /**
-     * <code>optional int32 platform = 4;</code>
+     * <code>optional int32 platform = 3;</code>
      */
     int getPlatform();
   }
@@ -1811,13 +1885,8 @@ public final class JpushimSdk2B {
               password_ = input.readBytes();
               break;
             }
-            case 26: {
+            case 24: {
               bitField0_ |= 0x00000004;
-              appkey_ = input.readBytes();
-              break;
-            }
-            case 32: {
-              bitField0_ |= 0x00000008;
               platform_ = input.readInt32();
               break;
             }
@@ -1893,33 +1962,17 @@ public final class JpushimSdk2B {
       return password_;
     }
 
-    // optional bytes appkey = 3;
-    public static final int APPKEY_FIELD_NUMBER = 3;
-    private com.google.protobuf.ByteString appkey_;
+    // optional int32 platform = 3;
+    public static final int PLATFORM_FIELD_NUMBER = 3;
+    private int platform_;
     /**
-     * <code>optional bytes appkey = 3;</code>
+     * <code>optional int32 platform = 3;</code>
      */
-    public boolean hasAppkey() {
+    public boolean hasPlatform() {
       return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
-     * <code>optional bytes appkey = 3;</code>
-     */
-    public com.google.protobuf.ByteString getAppkey() {
-      return appkey_;
-    }
-
-    // optional int32 platform = 4;
-    public static final int PLATFORM_FIELD_NUMBER = 4;
-    private int platform_;
-    /**
-     * <code>optional int32 platform = 4;</code>
-     */
-    public boolean hasPlatform() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
-    }
-    /**
-     * <code>optional int32 platform = 4;</code>
+     * <code>optional int32 platform = 3;</code>
      */
     public int getPlatform() {
       return platform_;
@@ -1928,7 +1981,6 @@ public final class JpushimSdk2B {
     private void initFields() {
       username_ = com.google.protobuf.ByteString.EMPTY;
       password_ = com.google.protobuf.ByteString.EMPTY;
-      appkey_ = com.google.protobuf.ByteString.EMPTY;
       platform_ = 0;
     }
     private byte memoizedIsInitialized = -1;
@@ -1950,10 +2002,7 @@ public final class JpushimSdk2B {
         output.writeBytes(2, password_);
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeBytes(3, appkey_);
-      }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        output.writeInt32(4, platform_);
+        output.writeInt32(3, platform_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -1974,11 +2023,7 @@ public final class JpushimSdk2B {
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(3, appkey_);
-      }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(4, platform_);
+          .computeInt32Size(3, platform_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -2100,10 +2145,8 @@ public final class JpushimSdk2B {
         bitField0_ = (bitField0_ & ~0x00000001);
         password_ = com.google.protobuf.ByteString.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000002);
-        appkey_ = com.google.protobuf.ByteString.EMPTY;
-        bitField0_ = (bitField0_ & ~0x00000004);
         platform_ = 0;
-        bitField0_ = (bitField0_ & ~0x00000008);
+        bitField0_ = (bitField0_ & ~0x00000004);
         return this;
       }
 
@@ -2143,10 +2186,6 @@ public final class JpushimSdk2B {
         if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
           to_bitField0_ |= 0x00000004;
         }
-        result.appkey_ = appkey_;
-        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
-          to_bitField0_ |= 0x00000008;
-        }
         result.platform_ = platform_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
@@ -2169,9 +2208,6 @@ public final class JpushimSdk2B {
         }
         if (other.hasPassword()) {
           setPassword(other.getPassword());
-        }
-        if (other.hasAppkey()) {
-          setAppkey(other.getAppkey());
         }
         if (other.hasPlatform()) {
           setPlatform(other.getPlatform());
@@ -2275,70 +2311,34 @@ public final class JpushimSdk2B {
         return this;
       }
 
-      // optional bytes appkey = 3;
-      private com.google.protobuf.ByteString appkey_ = com.google.protobuf.ByteString.EMPTY;
+      // optional int32 platform = 3;
+      private int platform_ ;
       /**
-       * <code>optional bytes appkey = 3;</code>
+       * <code>optional int32 platform = 3;</code>
        */
-      public boolean hasAppkey() {
+      public boolean hasPlatform() {
         return ((bitField0_ & 0x00000004) == 0x00000004);
       }
       /**
-       * <code>optional bytes appkey = 3;</code>
-       */
-      public com.google.protobuf.ByteString getAppkey() {
-        return appkey_;
-      }
-      /**
-       * <code>optional bytes appkey = 3;</code>
-       */
-      public Builder setAppkey(com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000004;
-        appkey_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional bytes appkey = 3;</code>
-       */
-      public Builder clearAppkey() {
-        bitField0_ = (bitField0_ & ~0x00000004);
-        appkey_ = getDefaultInstance().getAppkey();
-        onChanged();
-        return this;
-      }
-
-      // optional int32 platform = 4;
-      private int platform_ ;
-      /**
-       * <code>optional int32 platform = 4;</code>
-       */
-      public boolean hasPlatform() {
-        return ((bitField0_ & 0x00000008) == 0x00000008);
-      }
-      /**
-       * <code>optional int32 platform = 4;</code>
+       * <code>optional int32 platform = 3;</code>
        */
       public int getPlatform() {
         return platform_;
       }
       /**
-       * <code>optional int32 platform = 4;</code>
+       * <code>optional int32 platform = 3;</code>
        */
       public Builder setPlatform(int value) {
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000004;
         platform_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional int32 platform = 4;</code>
+       * <code>optional int32 platform = 3;</code>
        */
       public Builder clearPlatform() {
-        bitField0_ = (bitField0_ & ~0x00000008);
+        bitField0_ = (bitField0_ & ~0x00000004);
         platform_ = 0;
         onChanged();
         return this;
@@ -2367,16 +2367,6 @@ public final class JpushimSdk2B {
      * <code>optional bytes username = 1;</code>
      */
     com.google.protobuf.ByteString getUsername();
-
-    // optional bytes appkey = 2;
-    /**
-     * <code>optional bytes appkey = 2;</code>
-     */
-    boolean hasAppkey();
-    /**
-     * <code>optional bytes appkey = 2;</code>
-     */
-    com.google.protobuf.ByteString getAppkey();
   }
   /**
    * Protobuf type {@code jpushim.s2b.Logout}
@@ -2432,11 +2422,6 @@ public final class JpushimSdk2B {
             case 10: {
               bitField0_ |= 0x00000001;
               username_ = input.readBytes();
-              break;
-            }
-            case 18: {
-              bitField0_ |= 0x00000002;
-              appkey_ = input.readBytes();
               break;
             }
           }
@@ -2495,25 +2480,8 @@ public final class JpushimSdk2B {
       return username_;
     }
 
-    // optional bytes appkey = 2;
-    public static final int APPKEY_FIELD_NUMBER = 2;
-    private com.google.protobuf.ByteString appkey_;
-    /**
-     * <code>optional bytes appkey = 2;</code>
-     */
-    public boolean hasAppkey() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
-    }
-    /**
-     * <code>optional bytes appkey = 2;</code>
-     */
-    public com.google.protobuf.ByteString getAppkey() {
-      return appkey_;
-    }
-
     private void initFields() {
       username_ = com.google.protobuf.ByteString.EMPTY;
-      appkey_ = com.google.protobuf.ByteString.EMPTY;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -2530,9 +2498,6 @@ public final class JpushimSdk2B {
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeBytes(1, username_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeBytes(2, appkey_);
-      }
       getUnknownFields().writeTo(output);
     }
 
@@ -2545,10 +2510,6 @@ public final class JpushimSdk2B {
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(1, username_);
-      }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(2, appkey_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -2668,8 +2629,6 @@ public final class JpushimSdk2B {
         super.clear();
         username_ = com.google.protobuf.ByteString.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000001);
-        appkey_ = com.google.protobuf.ByteString.EMPTY;
-        bitField0_ = (bitField0_ & ~0x00000002);
         return this;
       }
 
@@ -2702,10 +2661,6 @@ public final class JpushimSdk2B {
           to_bitField0_ |= 0x00000001;
         }
         result.username_ = username_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
-          to_bitField0_ |= 0x00000002;
-        }
-        result.appkey_ = appkey_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -2724,9 +2679,6 @@ public final class JpushimSdk2B {
         if (other == jpushim.s2b.JpushimSdk2B.Logout.getDefaultInstance()) return this;
         if (other.hasUsername()) {
           setUsername(other.getUsername());
-        }
-        if (other.hasAppkey()) {
-          setAppkey(other.getAppkey());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -2787,42 +2739,6 @@ public final class JpushimSdk2B {
       public Builder clearUsername() {
         bitField0_ = (bitField0_ & ~0x00000001);
         username_ = getDefaultInstance().getUsername();
-        onChanged();
-        return this;
-      }
-
-      // optional bytes appkey = 2;
-      private com.google.protobuf.ByteString appkey_ = com.google.protobuf.ByteString.EMPTY;
-      /**
-       * <code>optional bytes appkey = 2;</code>
-       */
-      public boolean hasAppkey() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
-      }
-      /**
-       * <code>optional bytes appkey = 2;</code>
-       */
-      public com.google.protobuf.ByteString getAppkey() {
-        return appkey_;
-      }
-      /**
-       * <code>optional bytes appkey = 2;</code>
-       */
-      public Builder setAppkey(com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000002;
-        appkey_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional bytes appkey = 2;</code>
-       */
-      public Builder clearAppkey() {
-        bitField0_ = (bitField0_ & ~0x00000002);
-        appkey_ = getDefaultInstance().getAppkey();
         onChanged();
         return this;
       }
@@ -12162,46 +12078,46 @@ public final class JpushimSdk2B {
   static {
     java.lang.String[] descriptorData = {
       "\n\023jpushim_sdk2b.proto\022\013jpushim.s2b\"\025\n\006Co" +
-      "okie\022\013\n\003res\030\001 \003(\005\"Z\n\014ProtocolHead\022\013\n\003cmd" +
-      "\030\001 \001(\005\022\013\n\003ver\030\002 \001(\005\022\013\n\003uid\030\003 \001(\003\022#\n\006cook" +
-      "ie\030\004 \001(\0132\023.jpushim.s2b.Cookie\")\n\010Respons" +
-      "e\022\014\n\004code\030\001 \001(\005\022\017\n\007message\030\002 \001(\014\"M\n\005Logi" +
-      "n\022\020\n\010username\030\001 \001(\014\022\020\n\010password\030\002 \001(\014\022\016\n" +
-      "\006appkey\030\003 \001(\014\022\020\n\010platform\030\004 \001(\005\"*\n\006Logou" +
-      "t\022\020\n\010username\030\001 \001(\014\022\016\n\006appkey\030\002 \001(\014\"!\n\016M" +
-      "essageContent\022\017\n\007content\030\001 \001(\014\"\\\n\tSingle" +
-      "Msg\022\022\n\ntarget_uid\030\001 \001(\003\022,\n\007content\030\002 \001(\013",
-      "2\033.jpushim.s2b.MessageContent\022\r\n\005msgid\030\003" +
-      " \001(\003\"[\n\010GroupMsg\022\022\n\ntarget_gid\030\001 \001(\003\022,\n\007" +
-      "content\030\002 \001(\0132\033.jpushim.s2b.MessageConte" +
-      "nt\022\r\n\005msgid\030\003 \001(\003\"\013\n\tAddFriend\"\013\n\tDelFri" +
-      "end\"\014\n\nUpdateMemo\"e\n\013CreateGroup\022\022\n\ngrou" +
-      "p_name\030\001 \001(\014\022\022\n\ngroup_desc\030\002 \001(\014\022\023\n\013grou" +
-      "p_level\030\003 \001(\005\022\014\n\004flag\030\004 \001(\005\022\013\n\003gid\030\005 \001(\003" +
-      "\"\030\n\tExitGroup\022\013\n\003gid\030\001 \001(\003\"K\n\016AddGroupMe" +
-      "mber\022\013\n\003gid\030\001 \001(\003\022\024\n\014member_count\030\002 \001(\005\022" +
-      "\026\n\016member_uidlist\030\003 \003(\003\"K\n\016DelGroupMembe",
-      "r\022\013\n\003gid\030\001 \001(\003\022\024\n\014member_count\030\002 \001(\005\022\026\n\016" +
-      "member_uidlist\030\003 \003(\003\":\n\017UpdateGroupInfo\022" +
-      "\013\n\003gid\030\001 \001(\003\022\014\n\004name\030\002 \001(\014\022\014\n\004info\030\003 \001(\014" +
-      "\"\340\004\n\014ProtocolBody\022!\n\005login\030\001 \001(\0132\022.jpush" +
-      "im.s2b.Login\022#\n\006logout\030\002 \001(\0132\023.jpushim.s" +
-      "2b.Logout\022*\n\nsingle_msg\030\003 \001(\0132\026.jpushim." +
-      "s2b.SingleMsg\022(\n\tgroup_msg\030\004 \001(\0132\025.jpush" +
-      "im.s2b.GroupMsg\022*\n\nadd_friend\030\005 \001(\0132\026.jp" +
-      "ushim.s2b.AddFriend\022*\n\ndel_friend\030\006 \001(\0132" +
-      "\026.jpushim.s2b.DelFriend\022,\n\013update_memo\030\007",
-      " \001(\0132\027.jpushim.s2b.UpdateMemo\022.\n\014create_" +
-      "group\030\010 \001(\0132\030.jpushim.s2b.CreateGroup\022*\n" +
-      "\nexit_group\030\t \001(\0132\026.jpushim.s2b.ExitGrou" +
-      "p\0225\n\020add_group_member\030\n \001(\0132\033.jpushim.s2" +
-      "b.AddGroupMember\0225\n\020del_group_member\030\013 \001" +
-      "(\0132\033.jpushim.s2b.DelGroupMember\0227\n\021updat" +
-      "e_group_info\030\014 \001(\0132\034.jpushim.s2b.UpdateG" +
-      "roupInfo\022)\n\ncommon_rep\030\024 \001(\0132\025.jpushim.s" +
-      "2b.Response\"Z\n\006Packet\022\'\n\004head\030\001 \001(\0132\031.jp" +
-      "ushim.s2b.ProtocolHead\022\'\n\004body\030\002 \001(\0132\031.j",
-      "pushim.s2b.ProtocolBody"
+      "okie\022\013\n\003res\030\001 \003(\005\"j\n\014ProtocolHead\022\013\n\003cmd" +
+      "\030\001 \001(\005\022\013\n\003ver\030\002 \001(\005\022\013\n\003uid\030\003 \001(\003\022\016\n\006appk" +
+      "ey\030\004 \001(\014\022#\n\006cookie\030\005 \001(\0132\023.jpushim.s2b.C" +
+      "ookie\")\n\010Response\022\014\n\004code\030\001 \001(\005\022\017\n\007messa" +
+      "ge\030\002 \001(\014\"=\n\005Login\022\020\n\010username\030\001 \001(\014\022\020\n\010p" +
+      "assword\030\002 \001(\014\022\020\n\010platform\030\003 \001(\005\"\032\n\006Logou" +
+      "t\022\020\n\010username\030\001 \001(\014\"!\n\016MessageContent\022\017\n" +
+      "\007content\030\001 \001(\014\"\\\n\tSingleMsg\022\022\n\ntarget_ui" +
+      "d\030\001 \001(\003\022,\n\007content\030\002 \001(\0132\033.jpushim.s2b.M",
+      "essageContent\022\r\n\005msgid\030\003 \001(\003\"[\n\010GroupMsg" +
+      "\022\022\n\ntarget_gid\030\001 \001(\003\022,\n\007content\030\002 \001(\0132\033." +
+      "jpushim.s2b.MessageContent\022\r\n\005msgid\030\003 \001(" +
+      "\003\"\013\n\tAddFriend\"\013\n\tDelFriend\"\014\n\nUpdateMem" +
+      "o\"e\n\013CreateGroup\022\022\n\ngroup_name\030\001 \001(\014\022\022\n\n" +
+      "group_desc\030\002 \001(\014\022\023\n\013group_level\030\003 \001(\005\022\014\n" +
+      "\004flag\030\004 \001(\005\022\013\n\003gid\030\005 \001(\003\"\030\n\tExitGroup\022\013\n" +
+      "\003gid\030\001 \001(\003\"K\n\016AddGroupMember\022\013\n\003gid\030\001 \001(" +
+      "\003\022\024\n\014member_count\030\002 \001(\005\022\026\n\016member_uidlis" +
+      "t\030\003 \003(\003\"K\n\016DelGroupMember\022\013\n\003gid\030\001 \001(\003\022\024",
+      "\n\014member_count\030\002 \001(\005\022\026\n\016member_uidlist\030\003" +
+      " \003(\003\":\n\017UpdateGroupInfo\022\013\n\003gid\030\001 \001(\003\022\014\n\004" +
+      "name\030\002 \001(\014\022\014\n\004info\030\003 \001(\014\"\340\004\n\014ProtocolBod" +
+      "y\022!\n\005login\030\001 \001(\0132\022.jpushim.s2b.Login\022#\n\006" +
+      "logout\030\002 \001(\0132\023.jpushim.s2b.Logout\022*\n\nsin" +
+      "gle_msg\030\003 \001(\0132\026.jpushim.s2b.SingleMsg\022(\n" +
+      "\tgroup_msg\030\004 \001(\0132\025.jpushim.s2b.GroupMsg\022" +
+      "*\n\nadd_friend\030\005 \001(\0132\026.jpushim.s2b.AddFri" +
+      "end\022*\n\ndel_friend\030\006 \001(\0132\026.jpushim.s2b.De" +
+      "lFriend\022,\n\013update_memo\030\007 \001(\0132\027.jpushim.s",
+      "2b.UpdateMemo\022.\n\014create_group\030\010 \001(\0132\030.jp" +
+      "ushim.s2b.CreateGroup\022*\n\nexit_group\030\t \001(" +
+      "\0132\026.jpushim.s2b.ExitGroup\0225\n\020add_group_m" +
+      "ember\030\n \001(\0132\033.jpushim.s2b.AddGroupMember" +
+      "\0225\n\020del_group_member\030\013 \001(\0132\033.jpushim.s2b" +
+      ".DelGroupMember\0227\n\021update_group_info\030\014 \001" +
+      "(\0132\034.jpushim.s2b.UpdateGroupInfo\022)\n\ncomm" +
+      "on_rep\030\024 \001(\0132\025.jpushim.s2b.Response\"Z\n\006P" +
+      "acket\022\'\n\004head\030\001 \001(\0132\031.jpushim.s2b.Protoc" +
+      "olHead\022\'\n\004body\030\002 \001(\0132\031.jpushim.s2b.Proto",
+      "colBody"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -12219,7 +12135,7 @@ public final class JpushimSdk2B {
           internal_static_jpushim_s2b_ProtocolHead_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_jpushim_s2b_ProtocolHead_descriptor,
-              new java.lang.String[] { "Cmd", "Ver", "Uid", "Cookie", });
+              new java.lang.String[] { "Cmd", "Ver", "Uid", "Appkey", "Cookie", });
           internal_static_jpushim_s2b_Response_descriptor =
             getDescriptor().getMessageTypes().get(2);
           internal_static_jpushim_s2b_Response_fieldAccessorTable = new
@@ -12231,13 +12147,13 @@ public final class JpushimSdk2B {
           internal_static_jpushim_s2b_Login_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_jpushim_s2b_Login_descriptor,
-              new java.lang.String[] { "Username", "Password", "Appkey", "Platform", });
+              new java.lang.String[] { "Username", "Password", "Platform", });
           internal_static_jpushim_s2b_Logout_descriptor =
             getDescriptor().getMessageTypes().get(4);
           internal_static_jpushim_s2b_Logout_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_jpushim_s2b_Logout_descriptor,
-              new java.lang.String[] { "Username", "Appkey", });
+              new java.lang.String[] { "Username", });
           internal_static_jpushim_s2b_MessageContent_descriptor =
             getDescriptor().getMessageTypes().get(5);
           internal_static_jpushim_s2b_MessageContent_fieldAccessorTable = new

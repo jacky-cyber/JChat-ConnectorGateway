@@ -369,6 +369,7 @@ public class ProtocolUtil {
 		int appkeyLen = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
 		String appkey = new String(in.readBytes(appkeyLen).array(),"utf-8");
 		int platform = ProtocolUtil.byteArrayToInt(in.readBytes(1).array());
+		in.discardReadBytes();
 		PushLoginRequestBean bean = new PushLoginRequestBean(from_resources, password, client_version, appkey, platform);
 		return bean;
 	}

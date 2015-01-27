@@ -1,6 +1,4 @@
-.webim-body {
-	
-}
+
 
 /** custom login button **/
 .flatbtn-blu {
@@ -99,9 +97,9 @@ a:hover {
 	width: 196px;
 	border: 1px #666666 solid;
 	height: auto;
-	margin: 0 auto;
+	margin: 0 auto; 
 	margin-top: 80px;
-	margin-left: 120px;
+	margin-left: 100px;
 	-webkit-border-radius: 3px;
 	-moz-border-radius: 3px;
 	border-radius: 3px;
@@ -378,12 +376,12 @@ a:hover {
 }
 
 .wl_faces_box {
-	background: url('../img/wlf_bg.png') repeat 0 0;
+	/* background: url('../img/wlf_bg.png') repeat 0 0; */
 	position: absolute;
-	width: 428px;
+	width: 417px;
 	height: 170px;
 	bottom: 22px;
-	left: -50px;
+	
 	display: none;
 }
 
@@ -391,26 +389,27 @@ a:hover {
 	background: #fff;
 	border: 1px #ccc solid;
 	width: 417px;
-	height: 160px;
+	height: 170px;
 	margin: 3px 4px;
 }
 
 .wl_faces_content .title {
-	background: url('../img/wlf_title_bg.jpg') repeat-x 0 0;
-	height: 40px;
+	/* background: url('../img/wlf_title_bg.jpg') repeat-x 0 0; */
+	height: 30px;
 	position: relative;
 }
 
 .wl_faces_content .title ul {
-	
+	float: left;
 }
 
 .wl_faces_content .title ul li {
 	position: absolute;
 	display: block;
+	float: left;
 }
 
-.wl_faces_content .title ul li.title_name {
+.wl_faces_content .title ul li.title_name_simbol {
 	background: url('../img/wlf_title_btn.jpg') no-repeat 0 0;
 	width: 82px;
 	height: 30px;
@@ -421,6 +420,23 @@ a:hover {
 	line-height: 32px;
 	font-weight: bold;
 	color: #333;
+	float: left;
+	cursor: pointer;
+}
+
+.wl_faces_content .title ul li.title_name_carton {
+	background: url('../img/wlf_title_btn.jpg') no-repeat 0 0;
+	width: 82px;
+	height: 30px;
+	bottom: 0;
+	_bottom: -2px;
+	left: 95px;
+	text-align: center;
+	line-height: 32px;
+	font-weight: bold;
+	color: #333;
+	float: left;
+	cursor: pointer;
 }
 
 .wl_faces_content .title ul li.wl_faces_close {
@@ -436,19 +452,18 @@ a:hover {
 	height: 15px;
 }
 
-.wl_faces_main {
+.wl_faces_main_simpol {
 	
 }
 
-.wl_faces_main ul {
+.wl_faces_main_simpol ul {
 	margin: 12px 28px;
 	overflow: hidden;
-	border-top: 1px #CCC solid;
-	border-left: 1px #CCC solid;
-	width: 360px;
+	
+	width: 340px;
 }
 
-.wl_faces_main ul li {
+.wl_faces_main_simpol ul li {
 	float: left;
 	/* border-right: 1px #CCC solid;
 	border-bottom: 1px #CCC solid; */
@@ -460,7 +475,35 @@ a:hover {
 	cursor: pointer;
 }
 
-.wl_faces_main ul li img {
+.wl_faces_main_simpol ul li img {
+	width: 22px;
+	height: 22px;
+}
+
+.wl_faces_main_carton {
+	display: none;
+}
+
+.wl_faces_main_carton ul {
+	margin: 12px 28px;
+	overflow: hidden;
+	
+	width: 340px;
+}
+
+.wl_faces_main_carton ul li {
+	float: left;
+	/* border-right: 1px #CCC solid;
+	border-bottom: 1px #CCC solid; */
+	height: 22px;
+	width: 26px;
+	margin: -1px 0 0 -1px;
+	padding: 4px 2px;
+	text-align: center;
+	cursor: pointer;
+}
+
+.wl_faces_main_carton ul li img {
 	width: 22px;
 	height: 22px;
 }
@@ -494,7 +537,7 @@ label.offline {
 	background: url('../img/status.gif') no-repeat 0 -11px;
 	bottom: 4px;
 	_top: 25px;
-	align: center
+	align: center;
 }
 
 .fade {
@@ -547,4 +590,9 @@ label.offline {
 	height: 26px;
 	width: 26px;
 	text-align: center;
+ }
+ 
+ .zoomOutPic {
+ 	position: relative;
+ 	display: block;
  }

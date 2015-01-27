@@ -36,6 +36,7 @@ import com.jpush.protocal.utils.ProtocolUtil;
 import com.jpush.webim.common.RedisClient;
 import com.jpush.webim.common.UidResourcesPool;
 import com.jpush.webim.server.WebImServer;
+import com.jpush.webim.server.WebImServer;
 import com.jpush.webim.socketio.bean.ChatObject;
 import com.jpush.webim.socketio.bean.ContracterObject;
 
@@ -116,7 +117,6 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 			String type = (String)content.get("type");
 			if("single".equals(type)){
 				SocketIOClient client = WebImServer.userNameToSessionCilentMap.get(content.get("target_uid"));	
-				log.info("get username's session client: "+client.getSessionId());
 				data.setToUserName(content.get("target_uid")+"");
 				data.setUserName(content.get("uid")+"");
 				data.setMessage(content.get("message")+"");
@@ -168,11 +168,22 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					log.info("login data, username: "+loginBean.getUsername().toStringUtf8()+", password: "+loginBean.getPassword().toStringUtf8());
 					Response loginResp = ProtocolUtil.getCommonResp(protocol);
 					log.info("login response data: code: "+loginResp.getCode()+", message: "+loginResp.getMessage().toStringUtf8());
+					//  向客户端返回登陆用户的 uid
+					SocketIOClient client = WebImServer.userNameToSessionCilentMap.get(loginBean.getUsername().toStringUtf8());	
+					long uid = protocol.getHead().getUid();
+					log.info("用户 IM 登陆后返回 UID： "+uid);
+					ChatObject data = new ChatObject();
+					data.setUid(uid);
+					if(client!=null){
+						client.sendEvent("loginevent", data);
+					} else {
+						log.info("该用户未登陆.");
+					}
 					break;
 				case Command.JPUSH_IM.LOGOUT:
 					log.info("im logout response...");
 					Logout logoutBean = ProtocolUtil.getLogout(protocol);
-					log.info("logout data, username: "+logoutBean.getUsername().toStringUtf8()+", appkey: "+logoutBean.getAppkey().toStringUtf8());
+					log.info("logout data, username: "+logoutBean.getUsername().toStringUtf8());
 					Response logoutResp = ProtocolUtil.getCommonResp(protocol);
 					log.info("logout response data: code: "+logoutResp.getCode()+", message: "+logoutResp.getMessage().toStringUtf8());
 					break;

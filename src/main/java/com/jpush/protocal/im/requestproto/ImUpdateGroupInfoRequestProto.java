@@ -10,8 +10,8 @@ import com.jpush.protocal.im.bean.UpdateGroupInfoRequestBean;
 public class ImUpdateGroupInfoRequestProto extends BaseProtobufRequest {
 
 	public ImUpdateGroupInfoRequestProto(int cmd, int version, long uid,
-			List cookie, Object bean) {
-		super(cmd, version, uid, cookie, bean);
+			String appkey, List cookie, Object bean) {
+		super(cmd, version, uid, appkey, cookie, bean);
 	}
 
 	@Override

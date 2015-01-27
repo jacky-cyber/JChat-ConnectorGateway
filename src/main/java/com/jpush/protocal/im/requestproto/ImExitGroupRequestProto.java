@@ -8,9 +8,9 @@ import com.jpush.protocal.im.bean.ExitGroupRequestBean;
 
 public class ImExitGroupRequestProto extends BaseProtobufRequest {
 
-	public ImExitGroupRequestProto(int cmd, int version, long uid, List cookie,
-			Object bean) {
-		super(cmd, version, uid, cookie, bean);
+	public ImExitGroupRequestProto(int cmd, int version, long uid,
+			String appkey, List cookie, Object bean) {
+		super(cmd, version, uid, appkey, cookie, bean);
 	}
 
 	@Override

@@ -10,9 +10,9 @@ import com.jpush.protocal.utils.Command;
 
 public class ImLoginRequestProto extends BaseProtobufRequest {
 
-	public ImLoginRequestProto(int cmd, int version, long uid, List cookie,
-			Object bean) {
-		super(cmd, version, uid, cookie, bean);
+	public ImLoginRequestProto(int cmd, int version, long uid, String appkey,
+			List cookie, Object bean) {
+		super(cmd, version, uid, appkey, cookie, bean);
 	}
 
 	@Override
@@ -22,7 +22,6 @@ public class ImLoginRequestProto extends BaseProtobufRequest {
 		JpushimSdk2B.Login.Builder loginBuilder = JpushimSdk2B.Login.newBuilder();
 		loginBuilder.setUsername(ByteString.copyFromUtf8(bean.getUsername()));
 		loginBuilder.setPassword(ByteString.copyFromUtf8(bean.getPassword()));
-		loginBuilder.setAppkey(ByteString.copyFromUtf8(bean.getAppkey()));
 		loginBuilder.setPlatform(Command.DEVICE_TYPE.ANDROID);  // need modify
 		bodyBuilder.setLogin(loginBuilder);
 		protocalBuilder.setBody(bodyBuilder);

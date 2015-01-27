@@ -1,74 +1,14 @@
-	/***** 缩略图处理  *****/
-	var allowExt = ['jpg', 'gif', 'bmp', 'png', 'jpeg']; 
-	var preivew = function(file, container){ 
-	    try{ 
-	        var pic =  new Picture(file, document.getElementById(container)); 
-	    }catch(e){ 
-	        alert(e); 
-	    } 
-	};
-	//缩略图类定义 
-	var Picture  = function(file, container){ 
-	    var height = 0, 
-	    widht  = 0, 
-	    ext    = '', 
-	    size   = 0, 
-	    name   = '', 
-	    path   =  ''; 
-	    var self   = this; 
-	    if(file){ 
-	        name = file.value; 
-	        if(window.navigator.userAgent.indexOf("MSIE")>=1){ 
-	            file.select(); 
-	            path = document.selection.createRange().text; 
-	        }else if(window.navigator.userAgent.indexOf("Firefox")>=1){  
-	            if(file.files){ 
-	                //path =  file.files.item(0).getAsDataURL(); 
-	                var path = window.URL.createObjectURL(file.files[0]);
-	            }else{ 
-	                path = file.value; 
-	            } 
-	        } 
-	    }else{ 
-	        throw '无效的文件'; 
-	    } 
-	   ext = name.substr(name.lastIndexOf("."), name.length); 
-	   if(container.tagName.toLowerCase() != 'img'){ 
-	        throw '不是一个有效的图片容器'; 
-	        container.visibility = 'hidden'; 
-	    } 
-	   container.src = path; 
-	   container.alt = name; 
-	   container.style.visibility = 'visible'; 
-	   height = container.height; 
-	   width  = container.width; 
-	   size   = container.fileSize; 
-	   this.get = function(name){ 
-	       return self[name]; 
-	    } 
-	   this.isValid = function(){ 
-	       if(allowExt.indexOf(self.ext) !== -1){ 
-	           throw '不允许上传该文件类型'; 
-	           return false; 
-	       } 
-	    } 
-	}; 
-	/*****************/
-	//  缩略图预览
-	/*$('#picfile').live('change', function(){
-		preivew(this, 'preview-pic');
-	});*/
-
 
 // 获取http请求参数
-function getUrlParam(name) {
+/*function getUrlParam(name) {
 	var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
 	var r = window.location.search.substr(1).match(reg);
 	if (r != null)
 		return unescape(r[2]);
 	return null;
-} 
+} */
 
+var uid = null;
 var curUserId = null;  //  当前用户id
 var curChatUserId = null;  //  当前聊天对象id
 var curChatGroupId = null;  // 当前聊天Group id
@@ -78,19 +18,43 @@ var preChatGroupId = null; // 前一个群组对象
 var msgCardDivId = "chat01";
 var talkToDivId = "talkTo";
 var isSingleOrGroup = "single";  //  区分是单聊还是群聊
-var user_name = getUrlParam("user_name");
-curUserId = user_name;
+var user_name = null;
 
+
+//绑定用户登陆处理
+$('#login_submit').click(function(){
+	var appkey = "appkey12345434";
+	user_name = $('#user_name').val();
+	var password = $('#password').val();
+	$('#loginPanel').css({"display":"none"});
+	$('#waitLoginmodal').css({"display":"block"});
+	socket.emit('loginevent', {appKey: appkey, userName: user_name, password: password});  // 连接成功后触发登陆
+});
 
 //  事件绑定
 //var socket = io.connect("http://127.0.0.1:9092", {'reconnect':true,'upgrade':true});
 var socket = io.connect("http://127.0.0.1:9092",{'transports':['websocket']});  //  websocket
 //var socket = io.connect("http://127.0.0.1:9092");  //  polling
+
+//  处理用户登陆返回的 uid
+socket.on('loginevent', function(data){
+	if(data!=null){
+		uid = data.uid;
+		curUserId = uid;
+	} else {
+		alert("获取数据失败.");
+	}
+	socket.emit('updateMap',{uid:uid, user_name:user_name});
+	socket.emit('getContracterList', {uid: uid});   // 获取联系人列表
+	socket.emit('getGroupsList', {uid: uid});   // 获取群组列表
+	$('#waitLoginmodal').css({"display":"none"});
+	$('#content').css({"display":"block"});
+});
+
+//  连接事件绑定
 socket.on('connect', function(){
 	var message = 'user:'+user_name+'login';
-	socket.emit('loginevent', {userName: user_name, message: message});  // 连接成功后触发登陆，发送登陆消息
-	socket.emit('getContracterList', {user_name: user_name});   // 获取联系人列表
-	socket.emit('getGroupsList', {user_name: user_name});   // 获取群组列表
+	
 });
 
 // 监听获取联系人
@@ -100,15 +64,16 @@ socket.on('getContracterList', function(data){
 	for (i = 0; i < data.length; i++) {
 		var lielem = document.createElement("li");
 		$(lielem).attr({
-			'id' : data[i].user_name,
-			'sessionId' : data[i].session_id,
+			'id' : data[i].uid,
+			'username' : data[i].username,
+			/*'sessionId' : data[i].session_id,*/
 			'class' : 'online',
 			'className' : 'online',
 			'chat' : 'chat',
-			'displayName' : data[i].user_name,
-			'online' : data[i].online
+			'displayName' : data[i].username,
+			/*'online' : data[i].online*/
 		});
-		if(data[i].online){
+		/*if(data[i].online){
 			$(lielem).css({
 				"background": "#B0C4DE"
 			});
@@ -116,7 +81,7 @@ socket.on('getContracterList', function(data){
 			$(lielem).css({
 				"background": "#708090"
 			});
-		}
+		}*/
 		lielem.onclick = function() {
 			chooseContactDivClick(this);
 		};
@@ -125,7 +90,7 @@ socket.on('getContracterList', function(data){
 		lielem.appendChild(imgelem);
 
 		var spanelem = document.createElement("span");
-		spanelem.innerHTML = data[i].user_name;
+		spanelem.innerHTML = data[i].username;
 		lielem.appendChild(spanelem);
 		uielem.appendChild(lielem);
 	}
@@ -137,7 +102,7 @@ socket.on('getContracterList', function(data){
 	contactlist.appendChild(uielem);
 	//  默认选择与第一个联系人聊天
 	if(data.length>0){
-		setCurrentContact(data[0].user_name);
+		setCurrentContact(data[0].uid);
 	}
 });
 
@@ -148,7 +113,7 @@ socket.on('getGroupsList', function(data){
 	for (i = 0; i < data.length; i++) {
 		var lielem = document.createElement("li");
 		$(lielem).attr({
-			'id' : data[i].group_id,
+			'id' : data[i].gid,
 			'chat' : 'chat',
 			'displayName' : data[i].group_name,
 		});
@@ -172,7 +137,7 @@ socket.on('getGroupsList', function(data){
 	}
 	grouplist.appendChild(uielem);
 	//  默认选择与第一个群组
-	curChatGroupId = data[0].group_id;
+	curChatGroupId = data[0].gid;
 	//createGroupChatDiv(curChatGroupId);
 	preChatGroupId = curChatGroupId;
 });
@@ -216,17 +181,20 @@ function stopDefault(e) {
     }  
     return false;  
 }  
-document.onkeydown=function(event){
+
+//  监听用户按键，处理回车键事件
+document.onkeydown = function(event){
 	var e = event || window.event || arguments.callee.caller.arguments[0];      
-   if(e && e.keyCode==13){ // enter
+   if(e && e.keyCode==13){ //enter
 	   stopDefault(e);
 	   var content = document.getElementById('talkInputId').value;
 	   if(content!=''){
 		   appendMsgSendByMe(content);
+		   var toUserName = $('#'+curChatUserId).attr('username');
 		   if(isSingleOrGroup=='single'){
-		   	socket.emit('chatevent', {userName: user_name, toUserName: curChatUserId, message: content, msgType:'single'});
+		   	socket.emit('chatevent', {uid: uid, toUid: curChatUserId, userName:user_name, toUserName: toUserName, message: content, msgType:'single'});
 		   } else if(isSingleOrGroup=='group'){
-		   	socket.emit('chatevent', {userName: user_name, toUserName: curChatGroupId, message: content, msgType:'group'});
+		   	socket.emit('chatevent', {uid: uid, toUid: curChatGroupId, userName:user_name, toUserName:toUserName, message: content, msgType:'group'});
 		    } 
 	   } else {
 		   alert('您还未输入.');
@@ -235,7 +203,7 @@ document.onkeydown=function(event){
     }
 }; 
 
-// 发送消息
+//  用户发送消息
 function sendText(){
 	 var content = document.getElementById('talkInputId').value;
 	 if(content==''){
@@ -244,24 +212,25 @@ function sendText(){
 	  }
  	 appendMsgSendByMe(content);
     document.getElementById('talkInputId').value = '';
+    var toUserName = $('#'+curChatUserId).attr('username');
     if(isSingleOrGroup=='single'){
-    	socket.emit('chatevent', {userName: user_name, toUserName: curChatUserId, message: content, msgType:'single'});
+    	socket.emit('chatevent', {uid: uid, toUid: curChatUserId, userName:user_name, toUserName: toUserName, message: content, msgType:'single'});
     } else if(isSingleOrGroup=='group'){
-    	socket.emit('chatevent', {userName: user_name, toUserName: curChatGroupId, message: content, msgType:'group'});
+    	socket.emit('chatevent', {uid: uid, toUid: curChatGroupId, userName:user_name, toUserName: toUserName, message: content, msgType:'group'});
      } 
 };
 	 
-//获取当前聊天记录的窗口div
+//  获取当前聊天记录的窗口div
 var getContactChatDiv = function(chatUserId) {
 	return document.getElementById(curUserId + "-" + chatUserId);
 };
 
-//获取当前群组聊天记录的窗口
+//  获取当前群组聊天记录的窗口
 var getGroupChatDiv = function(chatGroupId) {
 	return document.getElementById(curUserId + "-" + chatGroupId);
 };
 	
-// 创建一个联系人聊天窗口
+//  创建一个联系人聊天窗口
 var createContactChatDiv = function(chatUserId) {
 	var msgContentDivId = curUserId + "-" + chatUserId;
 	var newContent = document.createElement("div");
@@ -283,7 +252,7 @@ var createGroupChatDiv = function(chatGroupId) {
 	return newContent;
 };
 	
-// 创建联系人列表UI
+//  创建联系人列表UI
 var createContactlistUL = function() {
 	var uielem = document.createElement("ul");
 	$(uielem).attr({
@@ -294,7 +263,7 @@ var createContactlistUL = function() {
 	contactlist.appendChild(uielem);
 };
 
-//创建群组列表UI
+//  创建群组列表UI
 var createGroupslistUL = function() {
 	var uielem = document.createElement("ul");
 	$(uielem).attr({
@@ -305,7 +274,7 @@ var createGroupslistUL = function() {
 	contactlist.appendChild(uielem);
 };
 	
-// 设置当前联系人界面
+//  设置当前联系人界面
 var setCurrentContact = function(defaultUserId) {
 	showContactChatDiv(defaultUserId);
 	if (curChatUserId != null) {
@@ -319,7 +288,7 @@ var setCurrentContact = function(defaultUserId) {
 	preChatUserId = curChatUserId;
 };
 	
-// 显示与联系人聊天的窗口
+//  显示与联系人聊天的窗口
 var showContactChatDiv = function(chatUserId) {
 	var contentDiv = getContactChatDiv(chatUserId);
 	if (contentDiv == null) {
@@ -332,7 +301,8 @@ var showContactChatDiv = function(chatUserId) {
 		return;
 	}
 	contactLi.style.backgroundColor = "#B0E0E6";
-	var dispalyTitle = "与 " + chatUserId + " 聊天中";
+	var chatName = $('#'+chatUserId).attr('username');
+	var dispalyTitle = "与 " + chatName + " 聊天中";
 	document.getElementById(talkToDivId).children[0].innerHTML = dispalyTitle;
 };
 
@@ -381,7 +351,7 @@ var hiddenGroupChatDiv = function(chatGroupId) {
 // 切换联系人聊天窗口div
 var chooseContactDivClick = function(li) {
 	var chatUserId = li.id;
-	curChatUserSessionId = li.sessionId;
+	//curChatUserSessionId = li.sessionId;
 	if ((chatUserId != curChatUserId)) {
 		if (curChatUserId == null) {
 			createContactChatDiv(chatUserId);
@@ -401,7 +371,7 @@ var chooseContactDivClick = function(li) {
 	});*/
 	// 对前一个聊天用户的背景作处理
 	var preUser = $('#'+preChatUserId);
-	if(preUser.attr('online')=='true'){
+	/*if(preUser.attr('online')=='true'){
 		preUser.css({
 			"background": "#B0C4DE"
 		});
@@ -409,12 +379,12 @@ var chooseContactDivClick = function(li) {
 		preUser.css({
 			"background": "#708090"
 		});
-	}
+	}*/
 	isSingleOrGroup = "single";
 	preChatUserId = chatUserId;
 };
 
-//切换群组聊天窗口div
+//  切换群组聊天窗口div
 var chooseGroupDivClick = function(li) {
 	var chatGroupId = li.id;
 	if ((chatGroupId != curChatGroupId)) {
@@ -436,15 +406,15 @@ var chooseGroupDivClick = function(li) {
 	curChatGroupId = chatGroupId;
 	isSingleOrGroup = "group";
 };
-	
-// 添加对方发送的聊天信息到显示面板
+	 
+//   添加对方发送的聊天信息到显示面板
 var appendMsgSendByOthers = function(name, message, contact, chattype){
 	if(chattype=='single'){
 		var contactUL = document.getElementById("contactlistUL");
 		if (contactUL.children.length == 0) {
 			return null;
 		}
-		// 
+	
 		var contactDivId = name;
 		var contactLi = getContactLi(name);
 		var date = new Date();
@@ -547,7 +517,7 @@ var appendMsgSendByOthers = function(name, message, contact, chattype){
 	}
 };
 	
-// 添加自己发送的聊天信息到显示面板
+//  添加自己发送的聊天信息到显示面板
 var appendMsgSendByMe = function(message) {
 	var date = new Date();
 	var time = date.toLocaleTimeString();
@@ -600,6 +570,7 @@ var appendMsgSendByMe = function(message) {
 	return lineDiv;
 }; 
 
+//  添加自己发送的图片消息到消息面板
 var appendPicMsgSendByMe = function(message) {
 	var date = new Date();
 	var time = date.toLocaleTimeString();
@@ -652,31 +623,22 @@ var appendPicMsgSendByMe = function(message) {
 	return lineDiv;
 }; 
 	
-//选择联系人的处理
+//  选择联系人的处理
 var getContactLi = function(chatUserId) {
 	return document.getElementById(chatUserId);
 };
 
-var emotionFlag = false;
-
-// emoji 选择框
+//  emoji 选择框
 var showEmotionDialog = function() {
-	if (emotionFlag) {
-		$('#wl_faces_box').css({
-			"display" : "block"
-		});
-		return;
-	}
-	emotionFlag = true;
 	$('#wl_faces_box').css({
 		"display" : "block"
 	});
 	emojify.run();
 };
 
-//表情选择div的关闭方法
+//  表情选择div的关闭方法
 var turnoffFaces_box = function() {
-	$("#wl_faces_box").fadeOut("quick");
+	$("#wl_faces_box").css({'display':'none'});
 };
 
 //  选择emoji表情
@@ -688,7 +650,7 @@ var selectEmotionImg = function(selImg) {
 	$('#talkInputId').focus();
 };
 
-/****/
+/** emoji 相关配置  **/
 emojify.setConfig({
     emojify_tag_type : 'img',         
     only_crawl_id    : null,            
@@ -704,15 +666,30 @@ emojify.setConfig({
 emojify.run();
 /****/
 
+//  初始化 emoji 和 动画表情面板 
 (function(){
-	//设置表情的json数组
+	//设置基本表情的面板数据
 	var sjson = new Array(':bowtie:',':smile:',':laughing:',':blush:',':smiley:',':relaxed:',
 									':smirk:',':purple_heart:',':heart:',':green_heart:',':broken_heart:',
 									':heartbeat:',':heartpulse:',':two_hearts:',':revolving_hearts:',':cupid:',
-									':sparkling_heart:',':sparkles:'
+									':sparkling_heart:',':sparkles:', ':ribbon:', ':tophat:' ,':crown:' ,':womans_hat:',
+									':mans_shoe:', ':closed_umbrella:', ':briefcase:', ':handbag:', ':pouch:', ':purse:', ':eyeglasses:',
+									':fishing_pole_and_fish:', ':coffee:', ':tea:', ':sake:', ':baby_bottle:', ':beer:', 
+								   ':beers:', ':cocktail:', ':tropical_drink:' ,':wine_glass:' ,':fork_and_knife:'
 	);
-	for (var i=0; i<sjson.length; i++) {
+	for (var i=0; i<sjson.length; i++) {  
 		$("<li onclick='selectEmotionImg(this);' id="+sjson[i]+">"+sjson[i]+"</li>").appendTo($('#emotionUL'));
+	};
+	
+	//  设置动画表情的面板数据
+	var cartonjson = new Array(':arrow_double_down:', ':arrow_double_up:', ':arrow_down_small:', ':arrow_heading_down:', 
+										':arrow_heading_up:', ':leftwards_arrow_with_hook:', ':arrow_right_hook:', ':left_right_arrow:',
+										':arrow_up_down:', ':arrow_up_small:', ':arrows_clockwise:', ':arrows_counterclockwise:',
+											':rewind:', ':fast_forward:', ':information_source:', ':ok:', ':twisted_rightwards_arrows:', 
+												':repeat:', ':repeat_one:', ':new:', ':top:', ':up:', ':cool:', ':free:', ':ng:', ':cinema:', ':koko:'
+	);
+	for (var i=0; i<cartonjson.length; i++) {  
+		$("<li onclick='selectEmotionImg(this);' id="+cartonjson[i]+">"+cartonjson[i]+"</li>").appendTo($('#carton_emotionUL'));
 	};
 })();
 
@@ -721,12 +698,13 @@ var clearCurrentChat = function(){
 	console.log("clean the chat window.");
 }
 	
-//  发送图片
+//  选择图片
 var picfile;
 $('#picfileInput').on('change', function(){
 	picfile = this;
 });
 
+//  发送图片消息
 var sendPicFile = function(){
 	var myDate = new Date();
 	var mytime = myDate.getTime();
@@ -745,4 +723,36 @@ var zoomOut = function(obj){
 //  显示好友列表
 var showFriendsList = function(){
 	
+}
+
+//  表情面板切换---> 符号表情
+var changeSimbolPanel = function(){
+	$('#wl_faces_main_simpol').css({
+		'display':'block'
+	});
+	$('.title_name_simbol').css({
+		'background':'#A0A0A0'
+	});
+	$('.title_name_carton').css({
+		'background':''
+	});
+	$('#wl_faces_main_carton').css({
+		'display':'none'
+	});
+}
+
+//  表情面板切换---> 卡通表情
+var changeCartonPanel = function(){
+	$('#wl_faces_main_carton').css({
+		'display':'block'
+	});
+	$('.title_name_carton').css({
+		'background':'#A0A0A0'
+	});
+	$('.title_name_simbol').css({
+		'background':''
+	});
+	$('#wl_faces_main_simpol').css({
+		'display':'none'
+	});
 }

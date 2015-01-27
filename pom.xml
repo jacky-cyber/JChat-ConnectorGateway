@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.jpush</groupId>
   <artifactId>webim</artifactId>
-  <packaging>war</packaging>
+  <packaging>jar</packaging>
   <version>0.0.1-SNAPSHOT</version>
   <name>webim Maven Webapp</name>
   <url>http://maven.apache.org</url>
@@ -112,15 +112,65 @@
   <build>
     <finalName>webim</finalName>
     <plugins>  
-        <plugin>  
-            <groupId>org.apache.maven.plugins</groupId>  
-            <artifactId>maven-compiler-plugin</artifactId>  
-            <version>2.3.2</version>  
-            <configuration>  
-                <source>1.7</source>  
-                <target>1.7</target>  
-            </configuration>  
-        </plugin>  
+      <plugin>  
+      	<groupId>org.apache.maven.plugins</groupId>  
+         <artifactId>maven-compiler-plugin</artifactId>  
+         <version>2.3.2</version>  
+         <configuration>  
+         	<source>1.7</source>  
+            <target>1.7</target>  
+         </configuration>  
+      </plugin>  
+        
+        <!-- 打包 jar -->
+      <!-- <plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-jar-plugin</artifactId>
+			<configuration>
+				<archive>
+					<manifest>
+						<addClasspath>true</addClasspath>
+						<classpathPrefix>lib/</classpathPrefix>
+						<mainClass>com.jpush.protocal.common.JPushTcpServer</mainClass> 
+					</manifest>
+				</archive>
+			</configuration>
+		</plugin>
+		
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-dependency-plugin</artifactId>
+			<executions>
+				<execution>
+					<id>copy</id>
+					<phase>package</phase>
+					<goals>
+						<goal>copy-dependencies</goal>
+					</goals>
+					<configuration>
+						<outputDirectory>${project.build.directory}/lib</outputDirectory>
+					</configuration>
+				</execution>
+			</executions>
+		</plugin>
+		
+	 	<plugin>  
+      	<artifactId>maven-source-plugin</artifactId>  
+         <version>2.1</version>  
+         <configuration>  
+         	<attach>true</attach>  
+            <encoding>UTF-8</encoding>  
+         </configuration>  
+         <executions>  
+         	<execution>  
+            	<phase>package</phase>  
+            	<goals>  
+            		<goal>jar</goal>  
+            	</goals>  
+            </execution>  
+         </executions>  
+       </plugin> -->  
+        <!-- ........ -->
     </plugins>  
   </build>
 </project>

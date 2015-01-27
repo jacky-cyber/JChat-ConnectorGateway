@@ -1,6 +1,7 @@
 package com.jpush.webim.socketio.bean;
 
 public class ContracterObject {
+	private long uid;
 	private String user_name;
 	private String session_id;
 	private boolean isOnline;
@@ -21,6 +22,12 @@ public class ContracterObject {
 	}
 	public void setOnline(boolean isOnline) {
 		this.isOnline = isOnline;
+	}
+	public long getUid() {
+		return uid;
+	}
+	public void setUid(long uid) {
+		this.uid = uid;
 	}
 	
 }

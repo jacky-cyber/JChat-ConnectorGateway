@@ -1,5 +1,4 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<!-- <%@ page language="java"  pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" %> -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -8,8 +7,20 @@
 <link rel="stylesheet" type="text/css" href="../../res/css/bootstrap.css" />
 <link rel="stylesheet" type="text/css" href="../../res/css/emojify-emoticons.min.css" />
 </head>
-<body class="webim-body" style="background:#404449">
-	<div class="content" id="content" style="display: block">
+<body style="background:#404449">
+
+	<div class="container" id="loginPanel" style="width:300px;">
+        <h3 class="form-signin-heading">JPush IM</h3>
+        <input type="text" name="user_name" id="user_name" class="form-control" placeholder="用户名" required autofocus>
+        <input type="password" name="password" id="password" class="form-control" placeholder="密 码" >
+        <button class="btn btn-lg btn-primary btn-block" id="login_submit">进入聊天</button>
+    </div>
+    
+    <div id="waitLoginmodal" style="display:none;margin:0 auto;width:300px;" class="container">
+		<img src="../../res/img/waitting.gif">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;正在努力加载中...</img>
+	 </div>
+    
+	<div class="content" id="content" style="display: none">
 		<div class="leftcontact" id="leftcontact">
 			<div id="headerimg" class="leftheader">
 				<span> <img src="../../res/img/head/header2.jpg" alt="logo"
@@ -76,13 +87,18 @@
 						 <div class="wl_faces_content">
 							<div class="title">
 								<ul>
-									<li class="title_name">常用表情</li>
+									<li class="title_name_simbol" style="background:#A0A0A0" onclick="changeSimbolPanel();">符号表情</li>
+									<li class="title_name_carton" onclick="changeCartonPanel();">动画表情</li>
 									<li class="wl_faces_close"><span
 										onclick='turnoffFaces_box()'>&nbsp;</span></li>
 								</ul>
 							</div>
-							<div id="wl_faces_main" class="wl_faces_main">
+							<div id="wl_faces_main_simpol" class="wl_faces_main_simpol">
 								<ul id="emotionUL">
+								</ul>
+							</div>
+							<div id="wl_faces_main_carton" class="wl_faces_main_carton">
+								<ul id="carton_emotionUL">
 								</ul>
 							</div>
 						</div>
@@ -142,11 +158,13 @@
 				</div>
 			</div>
 			
-			<div id="zoomOutPicView" class="modal fade" tabindex="-1" role="dialog"
+			<div id="zoomOutPicView" class="modal fade text-center" tabindex="-1" role="dialog"
 				aria-hidden="true" data-backdrop="true">
-				<div class="modal-dialog">
-					<div class="modal-body">
-						<img id="zoomOutPic" alt="原图效果哦" />
+				<div class="modal-dialog" style="display: inline-block; width: auto;">
+					<div class="modal-content">
+						<div class="modal-body">
+							<img id="zoomOutPic" class="zoomOutPic" alt="原图效果哦" />
+						</div>
 					</div>
 				</div>
 			</div>
@@ -159,8 +177,9 @@
 <script type="text/javascript" src="../../res/js/jquery.js"></script>
 <script type='text/javascript' src='../../res/js/json2.js'></script>
 <script type="text/javascript" src="../../res/js/bootstrap.js"></script>
-<script type="text/javascript" src="../../res/js/socket.io.js"></script>
-<script type="text/javascript" src="../../res/js/emojify.js"></script>
+<script type="text/javascript" src="../../res/js/socket.io.js"></script>  <!-- internet connect 处理 -->
+<script type="text/javascript" src="../../res/js/emojify.js"></script> <!-- emoji 处理 -->
+<script type="text/javascript" src="../../res/js/im-utils.js"></script> <!-- im pic scale utils -->
 <script type="text/javascript" src="../../res/js/webim.js"></script>  <!-- im logic js -->
 </body>
 </html>

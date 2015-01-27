@@ -9,9 +9,9 @@ import com.jpush.protocal.im.bean.LogoutRequestBean;
 
 public class ImLogoutRequestProto extends BaseProtobufRequest {
 
-	public ImLogoutRequestProto(int cmd, int version, long uid, List cookie,
-			Object bean) {
-		super(cmd, version, uid, cookie, bean);
+	public ImLogoutRequestProto(int cmd, int version, long uid, String appkey,
+			List cookie, Object bean) {
+		super(cmd, version, uid, appkey, cookie, bean);
 	}
 
 	@Override
@@ -20,7 +20,6 @@ public class ImLogoutRequestProto extends BaseProtobufRequest {
 		LogoutRequestBean bean = (LogoutRequestBean) obj;
 		JpushimSdk2B.Logout.Builder logoutBuilder = JpushimSdk2B.Logout.newBuilder();
 		logoutBuilder.setUsername(ByteString.copyFromUtf8(bean.getUsername()));
-		logoutBuilder.setAppkey(ByteString.copyFromUtf8(bean.getAppkey()));
 		bodyBuilder.setLogout(logoutBuilder);
 		protocalBuilder.setBody(bodyBuilder);
 	}

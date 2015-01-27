@@ -5,6 +5,7 @@ import java.util.List;
 import jpushim.s2b.JpushimSdk2B;
 import jpushim.s2b.JpushimSdk2B.Packet;
 
+import com.google.protobuf.ByteString;
 import com.jpush.protocal.utils.Command;
 
 /*
@@ -14,14 +15,16 @@ public class BaseProtobufRequest {
 	private int cmd;
 	private int version;
 	private long uid;
+	private String appkey;
 	private List<Integer> cookie;
 	private Object bean;
 	protected Packet.Builder protocalBuilder = Packet.newBuilder();
-	public BaseProtobufRequest(int cmd, int version, long uid, List cookie, Object bean) {
+	public BaseProtobufRequest(int cmd, int version, long uid, String appkey, List cookie, Object bean) {
 		super();
 		this.cmd = cmd;
 		this.version = version;
 		this.uid = uid;
+		this.appkey = appkey;
 		this.cookie = cookie;
 		this.bean = bean;
 	}
@@ -39,6 +42,7 @@ public class BaseProtobufRequest {
 		headBuilder.setCmd(this.cmd);
 		headBuilder.setVer(this.version);
 		headBuilder.setUid(this.uid);
+		headBuilder.setAppkey(ByteString.copyFromUtf8(this.appkey));
 		JpushimSdk2B.Cookie.Builder cookieBuilder = JpushimSdk2B.Cookie.newBuilder();
 		for(int i=0; i<cookie.size(); i++){
 			cookieBuilder.addRes(cookie.get(i));

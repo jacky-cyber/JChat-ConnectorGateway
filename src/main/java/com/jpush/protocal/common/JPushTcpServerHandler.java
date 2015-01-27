@@ -91,7 +91,7 @@ public class JPushTcpServerHandler extends ChannelInboundHandlerAdapter {
 			if(Command.JPUSH_IM.LOGOUT==protocol.getHead().getCmd()){  // im logout
 				log.info("im logout request...");
 				Logout logoutBean = protocol.getBody().getLogout();
-				log.info("logout data, username: "+logoutBean.getUsername().toStringUtf8()+", appkey"+logoutBean.getAppkey().toStringUtf8());
+				log.info("logout data, username: "+logoutBean.getUsername().toStringUtf8());
 				protocol = new ImLogoutResponseProto(protocol).setMessage("logout success").getResponseProtocol();
 				ImResponse response = new ImResponse(1, 23, 23, protocol);
 				ctx.writeAndFlush(response);

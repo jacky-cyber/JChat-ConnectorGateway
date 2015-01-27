@@ -7,9 +7,10 @@ import jpushim.s2b.JpushimSdk2B;
 import com.jpush.protocal.im.bean.DeleteGroupMemberRequestBean;
 
 public class ImDeleteGroupMemberRequestProto extends BaseProtobufRequest {
+
 	public ImDeleteGroupMemberRequestProto(int cmd, int version, long uid,
-			List cookie, Object bean) {
-		super(cmd, version, uid, cookie, bean);
+			String appkey, List cookie, Object bean) {
+		super(cmd, version, uid, appkey, cookie, bean);
 	}
 
 	@Override
