@@ -419,7 +419,7 @@ var appendMsgSendByOthers = function(name, message, contact, chattype){
 		var contactLi = getContactLi(name);
 		var date = new Date();
 		var time = date.toLocaleTimeString();
-		var headstr = [ "<p1>" + name + "   <span></span>" + "   </p1>",
+		var headstr = [ "<p1>" + $('#'+name).attr('username') + "   <span></span>" + "   </p1>",
 				"<p2>" + time + "<b></b><br/></p2>" ];
 		var header = $(headstr.join(''))
 
@@ -472,7 +472,7 @@ var appendMsgSendByOthers = function(name, message, contact, chattype){
 		var contactLi = getContactLi(contact);
 		var date = new Date();
 		var time = date.toLocaleTimeString();
-		var headstr = [ "<p1>" + name + "   <span></span>" + "   </p1>",
+		var headstr = [ "<p1>" + $('#'+name).attr('displayname') + "   <span></span>" + "   </p1>",
 				"<p2>" + time + "<b></b><br/></p2>" ];
 		var header = $(headstr.join(''))
 
