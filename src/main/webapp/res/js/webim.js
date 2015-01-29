@@ -8,6 +8,7 @@
 	return null;
 } */
 
+var res_url = "http://jpushim.qiniudn.com";
 var uid = null;
 var curUserId = null;  //  当前用户id
 var curChatUserId = null;  //  当前聊天对象id
@@ -19,7 +20,7 @@ var msgCardDivId = "chat01";
 var talkToDivId = "talkTo";
 var isSingleOrGroup = "single";  //  区分是单聊还是群聊
 var user_name = null;
-
+var uploadToken = null;
 
 //绑定用户登陆处理
 $('#login_submit').click(function(){
@@ -50,6 +51,72 @@ socket.on('loginevent', function(data){
 	$('#waitLoginmodal').css({"display":"none"});
 	$('#content').css({"display":"block"});
 });
+
+
+socket.on('getUploadToken',function(data){
+	/*if(data.provider=='upyun'){
+		console.log('upload signature: '+data.signature+', provider: '+data.provider+', policy: '+data.policy);
+	} else if(data.provider=='qiniu'){
+		console.log('upload token: '+data.token+', provider: '+data.provider);
+	}*/
+	uploadToken = data;
+	var key = getResourceId(uid);
+	$('#token').val(uploadToken);
+	console.log('token: '+uploadToken);
+	var mediaId = 'image/'+key;
+	console.log('media id: '+mediaId);
+	$('#key').val(mediaId);
+	
+	
+	var uploader = Qiniu.uploader({
+        runtimes: 'html5,flash,html4',    
+        browse_button: 'fileChooseBtn',            
+        uptoken : uploadToken, 
+        url: 'http://upload.qiniu.com',
+        domain: 'http://jpushim.qiniudn.com/',
+        container: 'fileContainer',   
+        max_file_size: '100mb',   
+        flash_swf_url: './Moxie.swf',
+        max_retries: 3,                 
+        dragdrop: true,  
+        unique_names: false, 
+        save_key: false,
+        drop_element: 'container',   
+        chunk_size: '4mb',                
+        auto_start: true,               
+        init: {
+        	   'FilesAdded': function(up, files) {
+                   plupload.each(files, function(file) {
+                	   console.log(file);
+                   });
+               },
+            'Error': function(up, err, errTip) {
+                   console.log(err);
+            },
+            'UploadComplete': function() {
+                  console.log('upload done.');
+                  var src = res_url + '/' + mediaId + '?imageView2/2/h/100';
+               	appendPicMsgSendByMe("<img onclick='zoomOut(this)' src="+ src +" width='100px;' height='70px;' style='cursor:pointer'></img>");
+               	var toUserName = $('#'+curChatUserId).attr('username');
+               	socket.emit('chatevent', {uid: uid, toUid: curChatUserId, userName:user_name, toUserName: toUserName, message: src, msgType:'single'});
+            },
+            'Key': function(up, file) {
+                var key = mediaId;
+                return key
+            },
+            'FileUploaded': function(up, file, info) {
+            	
+            }
+        }
+    });
+});
+
+
+var showChooseFileDialog = function(){
+	$('#picFileModal').modal('show');
+	//  获取图片上传token
+	socket.emit('getUploadToken');
+}
 
 //  连接事件绑定
 socket.on('connect', function(){
@@ -700,7 +767,7 @@ var clearCurrentChat = function(){
 	
 //  选择图片
 var picfile;
-$('#picfileInput').on('change', function(){
+$('#file').on('change', function(){
 	picfile = this;
 });
 
@@ -710,13 +777,14 @@ var sendPicFile = function(){
 	var mytime = myDate.getTime();
 	appendPicMsgSendByMe("<img onclick='zoomOut(this)' id="+mytime+" width='100px;' height='70px;' style='cursor:pointer'></img>");
 	preivew(picfile, mytime);
-	$('#picfileInput').val('');
+	//$('#file').val('');
 }
 
 //  点击浏览原图
 var zoomOut = function(obj){
 	var src = $(obj).attr('src');
-	$('#zoomOutPic').attr('src', src);
+	var origin_src = src.split('?')[0];
+	$('#zoomOutPic').attr('src', origin_src);
 	$('#zoomOutPicView').modal('show');
 }
 

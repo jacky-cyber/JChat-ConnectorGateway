@@ -80,7 +80,7 @@
 				<div class="chat02_title">
 					<a class="chat02_title_btn ctb01" onclick="showEmotionDialog()"
 						title="选择表情"></a> <a class="chat02_title_btn ctb03" title="选择图片"
-						data-toggle="modal" data-target="#picFileModal"> </a> <a
+						data-toggle="modal" onclick="showChooseFileDialog()"> </a> <a
 						class="chat02_title_btn ctb02" data-toggle="modal" data-target="#audioFileModal"
 						title="选择语音"><span></span></a> <label id="chat02_title_t"></label>
 					<div id="wl_faces_box" class="wl_faces_box">
@@ -124,15 +124,18 @@
 								aria-hidden="true">&times;</button>
 							<h3>图片选择框</h3>
 						</div>
-						<div class="modal-body">
-							<input type='file' id="picfileInput" /> <input type='hidden'
-								id="sendfiletype" />
-							<div id="send-file-warning"></div>
-						</div>
-						<div class="modal-footer">
-							<button id="fileSend" class="btn btn-primary" onclick="sendPicFile();" data-dismiss="modal">发送</button>
-							<button id="cancelfileSend" class="btn" data-dismiss="modal">取消</button>
-						</div>
+						
+							<div id="fileContainer" class="modal-body">
+								<button id="fileChooseBtn" class="btn btn-primary">选择图片</button>
+								<!-- <input type="file" name="file" id="file" />
+								<input id="token" name="token" type="hidden"/>  
+								<input id="key" name="key" type="hidden"/>  -->
+							</div>
+							<!-- <div class="modal-footer">
+								<button id="fileSend" class="btn btn-primary" onclick="sendPicFile();" >发送</button>
+								<button id="cancelfileSend" class="btn" data-dismiss="modal">取消</button>
+							</div> -->
+						</form>
 					</div>
 				</div>
 			</div>
@@ -177,9 +180,14 @@
 <script type="text/javascript" src="../../res/js/jquery.js"></script>
 <script type='text/javascript' src='../../res/js/json2.js'></script>
 <script type="text/javascript" src="../../res/js/bootstrap.js"></script>
+<script type="text/javascript" src="../../res/js/UploadFileUtils.js"></script>
+<script type="text/javascript" src="../../res/js/moxie.js"></script>
+<script type="text/javascript" src="../../res/js/plupload.min.js"></script>
+<script type="text/javascript" src="../../res/js/qiniu.min.js"></script>
 <script type="text/javascript" src="../../res/js/socket.io.js"></script>  <!-- internet connect 处理 -->
 <script type="text/javascript" src="../../res/js/emojify.js"></script> <!-- emoji 处理 -->
 <script type="text/javascript" src="../../res/js/im-utils.js"></script> <!-- im pic scale utils -->
 <script type="text/javascript" src="../../res/js/webim.js"></script>  <!-- im logic js -->
+
 </body>
 </html>

@@ -5,6 +5,7 @@ import io.netty.channel.Channel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +21,7 @@ import cn.jpush.protocal.push.PushLoginRequest;
 import cn.jpush.protocal.push.PushLoginRequestBean;
 import cn.jpush.protocal.utils.APIProxy;
 import cn.jpush.protocal.utils.Command;
+import cn.jpush.protocal.utils.Configure;
 import cn.jpush.protocal.utils.HttpResponseWrapper;
 import cn.jpush.protocal.utils.SystemConfig;
 import cn.jpush.webim.common.UidResourcesPool;
@@ -31,6 +33,8 @@ import cn.jpush.webim.socketio.bean.User;
 import cn.jpush.webim.socketio.bean.UserList;
 
 import com.google.gson.Gson;
+import com.qiniu.api.auth.digest.Mac;
+import com.qiniu.api.rs.PutPolicy;
 import com.socketio.AckRequest;
 import com.socketio.Configuration;
 import com.socketio.SocketIOClient;
@@ -259,11 +263,33 @@ public class WebImServer {
 			 }
 		 });
 		 
+		 //  用户获取上传token
+		 server.addEventListener("getUploadToken", String.class, new DataListener<String>() {
+			@Override
+			public void onData(SocketIOClient client, String data,
+					AckRequest ackSender) throws Exception {
+				/*HttpResponseWrapper result = APIProxy.getQiUploadToken();
+				Map<String, String> resultMap = null;
+				if(result.isOK()){
+					resultMap = gson.fromJson(result.content, HashMap.class);
+					String token = resultMap.get("token");
+					String provider = resultMap.get("provider");
+				}*/
+				Mac mac = new Mac(Configure.QNCloudInterface.QN_ACCESS_KEY, Configure.QNCloudInterface.QN_SECRET_KEY);
+				PutPolicy putPolicy = new PutPolicy(Configure.QNCloudInterface.QN_BUCKETNAME);
+				putPolicy.expires = 14400;
+				String token = putPolicy.token(mac);
+				log.info("token: "+token);
+				client.sendEvent("getUploadToken", token);
+			}
+		 });
+		 
 		 server.start();
 		 Thread.sleep(Integer.MAX_VALUE);
 		 server.stop();
 	}
 	
+	 
 	/*public void run(){
 		log.info("启动 im server......");
 		WebImServer socketServer = new WebImServer();
