@@ -80,9 +80,9 @@
 				<div class="chat02_title">
 					<a class="chat02_title_btn ctb01" onclick="showEmotionDialog()"
 						title="选择表情"></a> <a class="chat02_title_btn ctb03" title="选择图片"
-						data-toggle="modal" onclick="showChooseFileDialog()"> </a> <a
+						data-toggle="modal" onclick="showChooseFileDialog()"> </a> <!-- <a
 						class="chat02_title_btn ctb02" data-toggle="modal" data-target="#audioFileModal"
-						title="选择语音"><span></span></a> <label id="chat02_title_t"></label>
+						title="选择语音"><span></span></a> --> <label id="chat02_title_t"></label>
 					<div id="wl_faces_box" class="wl_faces_box">
 						 <div class="wl_faces_content">
 							<div class="title">
@@ -106,7 +106,7 @@
 					</div>
 				</div>
 				<div id="input_content" class="chat02_content">
-					<textarea id="talkInputId" name="talkInputId" style="resize: none;"></textarea>
+					<textarea id="talkInputId" name="talkInputId" style="resize: none; wrap:hard;"></textarea>
 				</div>
 				<div class="chat02_bar">
 					<ul>
@@ -139,7 +139,7 @@
 					</div>
 				</div>
 			</div>
-			<div id="audioFileModal" class="modal fade" tabindex="-1" role="dialog"
+			<!-- <div id="audioFileModal" class="modal fade" tabindex="-1" role="dialog"
 				aria-hidden="true" data-backdrop="true">
 				<div class="modal-dialog">
     				<div class="modal-content">
@@ -159,7 +159,7 @@
 						</div>
 					</div>
 				</div>
-			</div>
+			</div> -->
 			
 			<div id="zoomOutPicView" class="modal fade text-center" tabindex="-1" role="dialog"
 				aria-hidden="true" data-backdrop="true">
@@ -180,7 +180,7 @@
 <script type="text/javascript" src="../../res/js/jquery.js"></script>
 <script type='text/javascript' src='../../res/js/json2.js'></script>
 <script type="text/javascript" src="../../res/js/bootstrap.js"></script>
-<script type="text/javascript" src="../../res/js/UploadFileUtils.js"></script>
+<script type="text/javascript" src="../../res/js/upload.file.utils.js"></script>
 <script type="text/javascript" src="../../res/js/moxie.js"></script>
 <script type="text/javascript" src="../../res/js/plupload.min.js"></script>
 <script type="text/javascript" src="../../res/js/qiniu.min.js"></script>

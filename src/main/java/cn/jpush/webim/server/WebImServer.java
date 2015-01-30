@@ -50,7 +50,7 @@ import com.socketio.listener.DisconnectListener;
  */
 public class WebImServer {
 	private static Logger log = (Logger) LoggerFactory.getLogger(WebImServer.class);
-	
+	private static final String APPKEY = SystemConfig.getProperty("jpush.appkey");
   	private static final String HOST_NAME = SystemConfig.getProperty("webim.server.host");  
 	private static final int PORT = SystemConfig.getIntProperty("webim.server.port");
 	public static HashMap<String, SocketIOClient> userNameToSessionCilentMap = new HashMap<String, SocketIOClient>();
@@ -80,6 +80,7 @@ public class WebImServer {
 			@Override
 			public void onConnect(SocketIOClient client) {
 				log.info("connect from client, session id: "+ client.getSessionId()+", 接入方式: "+client.getTransport());
+				client.sendEvent("connectSuccess", "");
 			}
 		 });
 		 
@@ -90,13 +91,13 @@ public class WebImServer {
 				log.error("disconnect from client: "+client.getSessionId()+" disconnect.");
 				// 处理缓存数据(管理在线用户列表)
 			
-				String user_name = sessionClientToUserNameMap.get(client);
+				String uid = sessionClientToUserNameMap.get(client);
 				sessionClientToUserNameMap.remove(client);
-				userNameToSessionCilentMap.remove(user_name);
-				Channel channel = userNameToPushChannelMap.get(user_name);
-				userNameToPushChannelMap.remove(user_name);
+				userNameToSessionCilentMap.remove(uid);
+				Channel channel = userNameToPushChannelMap.get(uid);
+				userNameToPushChannelMap.remove(uid);
 				pushChannelToUsernameMap.remove(channel);
-				channel.close();
+				channel.close();   //  断开与push server的长连接
 				// 向其他成员发送下线通知
 				// ...
 			}
@@ -111,10 +112,20 @@ public class WebImServer {
 				String appkey = data.getAppKey();
 				String user_name = data.getUserName();
 				String password = data.getPassword();
+				long uid = 0L;
+				
+				//  获取用户ID
+				HttpResponseWrapper resultWrapper = APIProxy.getUserInfo(APPKEY, user_name);
+				if(resultWrapper.isOK()){
+					User userInfo = gson.fromJson(resultWrapper.content, User.class);
+					uid = userInfo.getUid();
+					data.setUid(uid);
+					client.sendEvent("loginevent", data);  //  向客户端返回uid
+				}
 				
 				log.info("add user and session client to map.");
-				userNameToSessionCilentMap.put(user_name,	client);
-				sessionClientToUserNameMap.put(client, user_name);
+				userNameToSessionCilentMap.put(uid+"",	client);
+				sessionClientToUserNameMap.put(client, uid+"");
 				
 				// 获取uid
 				long juid = UidResourcesPool.getUid();
@@ -123,8 +134,8 @@ public class WebImServer {
 				log.info("build user connection to jpush.");
 				JPushTcpClient pushConnect = new JPushTcpClient();
 				Channel pushChannel = pushConnect.getChannel();
-				userNameToPushChannelMap.put(user_name, pushChannel);
-				pushChannelToUsernameMap.put(pushChannel, user_name);
+				userNameToPushChannelMap.put(uid+"", pushChannel);
+				pushChannelToUsernameMap.put(pushChannel, uid+"");
 				//  JPush login
 				PushLoginRequestBean pushLoginBean = new PushLoginRequestBean("web", password, 306010, appkey, 1);
 				PushLoginRequest pushLoginRequest = new PushLoginRequest(1, 1, 2, juid, pushLoginBean);
@@ -134,56 +145,33 @@ public class WebImServer {
 				List<Integer> cookie = new ArrayList<Integer>();
 				cookie.add(123);
 				ImLoginRequestProto req = null;
-				if("xMnTCP".equals(user_name))
-					req = new ImLoginRequestProto(Command.JPUSH_IM.LOGIN, 1, 87386, SystemConfig.getProperty("jpush.appkey"), cookie, bean);
-				if("2eav27".equals(user_name))
-					req = new ImLoginRequestProto(Command.JPUSH_IM.LOGIN, 1, 85841, SystemConfig.getProperty("jpush.appkey"), cookie, bean);
+				req = new ImLoginRequestProto(Command.JPUSH_IM.LOGIN, 1, uid, SystemConfig.getProperty("jpush.appkey"), cookie, bean);
 				pushChannel.writeAndFlush(req);  //  发送 IM 登陆请求
+					
 			}
 		 });
-		 
-		 //   改变map映射关系
-		 server.addEventListener("updateMap", HashMap.class, new DataListener<HashMap>() {
-			@Override
-			public void onData(SocketIOClient client, HashMap data,
-					AckRequest ackSender) throws Exception {
-				String uid = data.get("uid")+"";
-				String user_name = (String) data.get("user_name");
-				userNameToSessionCilentMap.put(uid, userNameToSessionCilentMap.get(user_name));
-				userNameToSessionCilentMap.remove(user_name);
-				userNameToPushChannelMap.put(uid, userNameToPushChannelMap.get(user_name));
-				userNameToPushChannelMap.remove(user_name);
-			}
-		});
 		 
 		 // 获取联系人列表
 		 server.addEventListener("getContracterList", ContracterObject.class, new DataListener<ContracterObject>() {
 			@Override
 			public void onData(SocketIOClient client, ContracterObject data,
 					AckRequest ackSender) throws Exception {
-				long uid = data.getUid();
-				if(uid==0 || data==null){
+				String user_name = data.getUser_name();
+				if(user_name==null || "".equals(user_name) || data==null){
 					log.error("client arguments error: no user name.");
 					return;
 				}
 				
 				List<User> contractersList = new ArrayList<User>();
 				
-				HttpResponseWrapper result = APIProxy.getGroupMemberList("123456");
-				if(result.isOK()){
-					String userListJson = result.content;
-					UserList userList = gson.fromJson(userListJson, UserList.class);
-					ArrayList<User> list = userList.getUids();
-					for(int i=0; i<list.size(); i++){
-						User user = (User) list.get(i);
-						long id = user.getUid();
-						HttpResponseWrapper userResult = APIProxy.getUserInfo(id+"");
-						if(userResult.isOK()){
-							User userInfo = gson.fromJson(userResult.content, User.class);
-							contractersList.add(userInfo);
-							log.info("userid: "+userInfo.getUid());
-						}
-					}   
+				for(int i=1; i<4; i++){
+					String username = "jpush00"+i;
+					HttpResponseWrapper userResult = APIProxy.getUserInfo(APPKEY, username);
+					if(userResult.isOK()){
+						User userInfo = gson.fromJson(userResult.content, User.class);
+						contractersList.add(userInfo);
+						log.info("userid: "+userInfo.getUid());
+					}
 				}
 				// 2eav27 //xMnTCP
 				client.sendEvent("getContracterList", contractersList);

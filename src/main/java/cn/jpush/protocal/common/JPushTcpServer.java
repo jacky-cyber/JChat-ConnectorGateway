@@ -43,7 +43,7 @@ public class JPushTcpServer {
              .childHandler(new ChannelInitializer<SocketChannel>() { 
                  @Override
                  public void initChannel(SocketChannel ch) throws Exception {
-                     ch.pipeline().addLast("idleStateHandler", new IdleStateHandler(30, 30, 0))
+                     ch.pipeline()/*.addLast("idleStateHandler", new IdleStateHandler(30, 30, 0))*/
                      				.addLast(new ImProtocalServerEncoder())
                      				.addLast(new ImProtocalServerDecoder())
                      				.addLast(new JPushTcpServerHandler());

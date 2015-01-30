@@ -42,6 +42,62 @@ public final class NativeHttpClient {
 		else
 			return request(url, null, GET, null);
 	}
+	
+	public static HttpResponseWrapper doGet(String url, String appkey, boolean isAddToHead)
+			throws Exception {
+		HttpURLConnection conn = null;
+		OutputStream out = null;
+		StringBuffer sb = new StringBuffer();
+		HttpResponseWrapper wrapper = new HttpResponseWrapper();
+
+		try {
+			URL aUrl = new URL(url);
+			conn = (HttpURLConnection) aUrl.openConnection();
+			conn.setConnectTimeout(DEFAULT_CONNECTION_TIMEOUT);
+			conn.setReadTimeout(DEFAULT_READ_TIMEOUT);
+			conn.setUseCaches(false);
+			conn.setRequestMethod(GET);
+			conn.setRequestProperty("User-Agent", USER_AGENT);
+			conn.setRequestProperty("Connection", "Keep-Alive");
+			conn.setRequestProperty("Accept-Charset", CHARSET);
+			conn.setRequestProperty("Charset", CHARSET);
+			conn.setRequestProperty("X-App-Key", appkey);
+         conn.setRequestProperty("Content-Type", CONTENT_TYPE);
+			
+			conn.setDoOutput(false);
+			
+			int status = conn.getResponseCode();
+			InputStream in;
+			if (status >= 200 && status < 300) {
+				in = conn.getInputStream();
+			} else {
+				in = conn.getErrorStream();
+			}
+			InputStreamReader reader = new InputStreamReader(in, CHARSET);
+			char[] buff = new char[1024];
+			int len;
+			while ((len = reader.read(buff)) > 0) {
+				sb.append(buff, 0, len);
+			}
+			String responseContent = sb.toString();
+			wrapper.httpCode = status;
+			wrapper.content = responseContent;
+		} catch (Exception e) {
+			throw new Exception("Connect fail, please try again later.", e);
+		} finally {
+			if (null != out) {
+				try {
+					out.close();
+				} catch (IOException e) {
+					
+				}
+			}
+			if (null != conn) {
+				conn.disconnect();
+			}
+		}
+		return wrapper;
+	}
 
 	public static HttpResponseWrapper doGet(String url, String content,
 			String authCode) throws Exception {

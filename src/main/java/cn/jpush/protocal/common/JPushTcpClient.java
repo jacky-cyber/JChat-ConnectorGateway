@@ -75,7 +75,7 @@ public class JPushTcpClient {
 		b.handler(new ChannelInitializer<SocketChannel>() {
 			@Override
 			protected void initChannel(SocketChannel ch) throws Exception {
-				ch.pipeline().addLast("idleStateHandler", new IdleStateHandler(50, 50, 0))
+				ch.pipeline()/*.addLast("idleStateHandler", new IdleStateHandler(50, 50, 0))*/
 								.addLast(new ImProtocalClientEncoder())
 								.addLast(new ImProtocalClientDecoder())
 								.addLast(new JPushTcpClientHandler());

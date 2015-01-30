@@ -286,11 +286,13 @@ a:hover {
 }
 
 .chat-content-p3 {
+	display: inline-block;
 	white-space: pre-wrap;
 	border-radius: 5px;
 	background-color: #C0C0C0;
 	position: relative;
 	padding: 5px 10px 5px 5px;
+	word-break: break-all;
 }
 .chat-content-pic {
 	white-space: pre-wrap;
@@ -595,4 +597,10 @@ label.offline {
  .zoomOutPic {
  	position: relative;
  	display: block;
+ }
+ 
+ .contractor-display-style{
+ 	display: inline-block;
+ 	margin-left: 10px;
+ 	font-size: 15px;
  }

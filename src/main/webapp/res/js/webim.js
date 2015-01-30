@@ -8,6 +8,7 @@
 	return null;
 } */
 
+var APPKEY = "57b59f7968cbaf9ee8dcde77";
 var res_url = "http://jpushim.qiniudn.com";
 var uid = null;
 var curUserId = null;  //  当前用户id
@@ -21,95 +22,214 @@ var talkToDivId = "talkTo";
 var isSingleOrGroup = "single";  //  区分是单聊还是群聊
 var user_name = null;
 var uploadToken = null;
+var socket = null;
+
+
+//  初始化消息监听
+var addEventListener = function(socket){
+	//连接事件绑定
+	socket.on('connectSuccess', function(){
+		console.log('resp connect.');
+		var message = 'user:'+user_name+'login';
+		user_name = $('#user_name').val();
+		var password = $('#password').val();
+		socket.emit('loginevent', {appKey: APPKEY, userName: user_name, password: password});  // 连接成功后触发登陆
+	});
+
+	//  事件绑定
+	//var socket = io.connect("http://127.0.0.1:9092", {'reconnect':true,'upgrade':true});
+	//var socket = io.connect("http://127.0.0.1:9092");  //  polling
+
+	//  处理用户登陆返回的 uid
+	socket.on('loginevent', function(data){
+		console.log('resp login event.');
+		if(data!=null){
+			uid = data.uid;
+			curUserId = uid;
+		} else {
+			alert("获取数据失败.");
+		}
+		socket.emit('getContracterList', {user_name: user_name});   // 获取联系人列表
+		socket.emit('getGroupsList', {uid: uid});   // 获取群组列表
+		$('#waitLoginmodal').css({"display":"none"});
+		$('#content').css({"display":"block"});
+	});
+
+
+	socket.on('getUploadToken',function(data){
+		/*if(data.provider=='upyun'){
+			console.log('upload signature: '+data.signature+', provider: '+data.provider+', policy: '+data.policy);
+		} else if(data.provider=='qiniu'){
+			console.log('upload token: '+data.token+', provider: '+data.provider);
+		}*/
+		uploadToken = data;
+		var key = getResourceId(uid);
+		$('#token').val(uploadToken);
+		console.log('token: '+uploadToken);
+		var mediaId = 'image/'+key;
+		console.log('media id: '+mediaId);
+		$('#key').val(mediaId);
+		
+		//  七牛上传图片
+		var uploader = Qiniu.uploader({
+	        runtimes: 'html5,flash,html4',    
+	        browse_button: 'fileChooseBtn',            
+	        uptoken : uploadToken, 
+	        url: 'http://upload.qiniu.com',
+	        domain: 'http://jpushim.qiniudn.com/',
+	        container: 'fileContainer',   
+	        max_file_size: '100mb',   
+	        flash_swf_url: './Moxie.swf',
+	        max_retries: 3,                 
+	        dragdrop: true,  
+	        unique_names: false, 
+	        save_key: false,
+	        drop_element: 'container',   
+	        chunk_size: '4mb',                
+	        auto_start: true,               
+	        init: {
+	        	   'FilesAdded': function(up, files) {
+	                   plupload.each(files, function(file) {
+	                	   console.log(file);
+	                   });
+	               },
+	            'Error': function(up, err, errTip) {
+	                   console.log(err);
+	            },
+	            'UploadComplete': function() {
+	                  console.log('upload done.');
+	                  var src = res_url + '/' + mediaId + '?imageView2/2/h/100';
+	               	appendPicMsgSendByMe("<img onclick='zoomOut(this)' src="+ src +" width='100px;' height='70px;' style='cursor:pointer'></img>");
+	               	var toUserName = $('#'+curChatUserId).attr('username');
+	               	socket.emit('chatevent', {uid: uid, toUid: curChatUserId, userName:user_name, toUserName: toUserName, message: src, msgType:'single'});
+	            },
+	            'Key': function(up, file) {
+	                var key = mediaId;
+	                return key
+	            },
+	            'FileUploaded': function(up, file, info) {
+	            	
+	            }
+	        }
+	    });
+	});
+	
+	// 监听获取联系人
+	socket.on('getContracterList', function(data){
+		console.log('resp getContracterList.');
+		createContactlistUL();  // 创建联系人列表UI
+		var uielem = document.getElementById("contactlistUL");
+		for (i = 0; i < data.length; i++) {
+			var lielem = document.createElement("li");
+			$(lielem).attr({
+				'id' : data[i].uid,
+				'username' : data[i].username,
+				/*'sessionId' : data[i].session_id,*/
+				'class' : 'online',
+				'className' : 'online',
+				'chat' : 'chat',
+				'displayName' : data[i].username,
+				/*'online' : data[i].online*/
+			});
+			/*if(data[i].online){
+				$(lielem).css({
+					"background": "#B0C4DE"
+				});
+			} else {
+				$(lielem).css({
+					"background": "#708090"
+				});
+			}*/
+			lielem.onclick = function() {
+				chooseContactDivClick(this);
+			};
+			var imgelem = document.createElement("img");
+			imgelem.setAttribute("src", "../../res/img/head/contact_normal.png");
+			lielem.appendChild(imgelem);
+
+			var spanelem = document.createElement("span");
+			$(spanelem).attr({
+				"class" : "contractor-display-style"
+			});
+			spanelem.innerHTML = data[i].username;
+			lielem.appendChild(spanelem);
+			uielem.appendChild(lielem);
+		}
+		var contactlist = document.getElementById('contractlist');
+		var children = contactlist.children;
+		if (children.length > 0) {
+			contactlist.removeChild(children[0]);
+		}
+		contactlist.appendChild(uielem);
+		//  默认选择与第一个联系人聊天
+		if(data.length>0){
+			setCurrentContact(data[0].uid);
+		}
+	});
+
+	//监听获取群组
+	socket.on('getGroupsList', function(data){
+		console.log('resp getGroupList.');
+		createGroupslistUL();  // 创建群组列表UI
+		var uielem = document.getElementById("grouplistUL");
+		for (i = 0; i < data.length; i++) {
+			var lielem = document.createElement("li");
+			$(lielem).attr({
+				'id' : data[i].gid,
+				'chat' : 'chat',
+				'displayName' : data[i].group_name,
+			});
+			
+			lielem.onclick = function() {
+				chooseGroupDivClick(this);
+			};
+			var imgelem = document.createElement("img");
+			imgelem.setAttribute("src", "../../res/img/head/group_normal.png");
+			lielem.appendChild(imgelem);
+
+			var spanelem = document.createElement("span");
+			$(spanelem).attr({
+				"class" : "contractor-display-style"
+			});
+			spanelem.innerHTML = data[i].group_name;
+			lielem.appendChild(spanelem);
+			uielem.appendChild(lielem);
+		}
+		var grouplist = document.getElementById('grouplist');
+		var children = grouplist.children;
+		if (children.length > 0) {
+			grouplist.removeChild(children[0]);
+		}
+		grouplist.appendChild(uielem);
+		//  默认选择与第一个群组
+		curChatGroupId = data[0].gid;
+		//createGroupChatDiv(curChatGroupId);
+		preChatGroupId = curChatGroupId;
+	});
+
+	//  监听用户聊天
+	socket.on('chatevent',function(data){
+		appendMsgSendByOthers(data.userName, data.message, data.toUserName, data.msgType);
+	});
+
+	//  监听用户断开
+	socket.on('disconnect',function(){
+		console.log('resp disconnect.');
+		console.log('disconnect to the server.');
+	});
+	
+} 
+
 
 //绑定用户登陆处理
 $('#login_submit').click(function(){
-	var appkey = "appkey12345434";
-	user_name = $('#user_name').val();
-	var password = $('#password').val();
+	console.log('user login submit.');
 	$('#loginPanel').css({"display":"none"});
 	$('#waitLoginmodal').css({"display":"block"});
-	socket.emit('loginevent', {appKey: appkey, userName: user_name, password: password});  // 连接成功后触发登陆
+	socket = io.connect("http://127.0.0.1:9092",{'transports':['websocket']});  //  websocket
+	addEventListener(socket);
 });
 
-//  事件绑定
-//var socket = io.connect("http://127.0.0.1:9092", {'reconnect':true,'upgrade':true});
-var socket = io.connect("http://127.0.0.1:9092",{'transports':['websocket']});  //  websocket
-//var socket = io.connect("http://127.0.0.1:9092");  //  polling
-
-//  处理用户登陆返回的 uid
-socket.on('loginevent', function(data){
-	if(data!=null){
-		uid = data.uid;
-		curUserId = uid;
-	} else {
-		alert("获取数据失败.");
-	}
-	socket.emit('updateMap',{uid:uid, user_name:user_name});
-	socket.emit('getContracterList', {uid: uid});   // 获取联系人列表
-	socket.emit('getGroupsList', {uid: uid});   // 获取群组列表
-	$('#waitLoginmodal').css({"display":"none"});
-	$('#content').css({"display":"block"});
-});
-
-
-socket.on('getUploadToken',function(data){
-	/*if(data.provider=='upyun'){
-		console.log('upload signature: '+data.signature+', provider: '+data.provider+', policy: '+data.policy);
-	} else if(data.provider=='qiniu'){
-		console.log('upload token: '+data.token+', provider: '+data.provider);
-	}*/
-	uploadToken = data;
-	var key = getResourceId(uid);
-	$('#token').val(uploadToken);
-	console.log('token: '+uploadToken);
-	var mediaId = 'image/'+key;
-	console.log('media id: '+mediaId);
-	$('#key').val(mediaId);
-	
-	
-	var uploader = Qiniu.uploader({
-        runtimes: 'html5,flash,html4',    
-        browse_button: 'fileChooseBtn',            
-        uptoken : uploadToken, 
-        url: 'http://upload.qiniu.com',
-        domain: 'http://jpushim.qiniudn.com/',
-        container: 'fileContainer',   
-        max_file_size: '100mb',   
-        flash_swf_url: './Moxie.swf',
-        max_retries: 3,                 
-        dragdrop: true,  
-        unique_names: false, 
-        save_key: false,
-        drop_element: 'container',   
-        chunk_size: '4mb',                
-        auto_start: true,               
-        init: {
-        	   'FilesAdded': function(up, files) {
-                   plupload.each(files, function(file) {
-                	   console.log(file);
-                   });
-               },
-            'Error': function(up, err, errTip) {
-                   console.log(err);
-            },
-            'UploadComplete': function() {
-                  console.log('upload done.');
-                  var src = res_url + '/' + mediaId + '?imageView2/2/h/100';
-               	appendPicMsgSendByMe("<img onclick='zoomOut(this)' src="+ src +" width='100px;' height='70px;' style='cursor:pointer'></img>");
-               	var toUserName = $('#'+curChatUserId).attr('username');
-               	socket.emit('chatevent', {uid: uid, toUid: curChatUserId, userName:user_name, toUserName: toUserName, message: src, msgType:'single'});
-            },
-            'Key': function(up, file) {
-                var key = mediaId;
-                return key
-            },
-            'FileUploaded': function(up, file, info) {
-            	
-            }
-        }
-    });
-});
 
 
 var showChooseFileDialog = function(){
@@ -118,106 +238,6 @@ var showChooseFileDialog = function(){
 	socket.emit('getUploadToken');
 }
 
-//  连接事件绑定
-socket.on('connect', function(){
-	var message = 'user:'+user_name+'login';
-	
-});
-
-// 监听获取联系人
-socket.on('getContracterList', function(data){
-	createContactlistUL();  // 创建联系人列表UI
-	var uielem = document.getElementById("contactlistUL");
-	for (i = 0; i < data.length; i++) {
-		var lielem = document.createElement("li");
-		$(lielem).attr({
-			'id' : data[i].uid,
-			'username' : data[i].username,
-			/*'sessionId' : data[i].session_id,*/
-			'class' : 'online',
-			'className' : 'online',
-			'chat' : 'chat',
-			'displayName' : data[i].username,
-			/*'online' : data[i].online*/
-		});
-		/*if(data[i].online){
-			$(lielem).css({
-				"background": "#B0C4DE"
-			});
-		} else {
-			$(lielem).css({
-				"background": "#708090"
-			});
-		}*/
-		lielem.onclick = function() {
-			chooseContactDivClick(this);
-		};
-		var imgelem = document.createElement("img");
-		imgelem.setAttribute("src", "../../res/img/head/contact_normal.png");
-		lielem.appendChild(imgelem);
-
-		var spanelem = document.createElement("span");
-		spanelem.innerHTML = data[i].username;
-		lielem.appendChild(spanelem);
-		uielem.appendChild(lielem);
-	}
-	var contactlist = document.getElementById('contractlist');
-	var children = contactlist.children;
-	if (children.length > 0) {
-		contactlist.removeChild(children[0]);
-	}
-	contactlist.appendChild(uielem);
-	//  默认选择与第一个联系人聊天
-	if(data.length>0){
-		setCurrentContact(data[0].uid);
-	}
-});
-
-//监听获取群组
-socket.on('getGroupsList', function(data){
-	createGroupslistUL();  // 创建群组列表UI
-	var uielem = document.getElementById("grouplistUL");
-	for (i = 0; i < data.length; i++) {
-		var lielem = document.createElement("li");
-		$(lielem).attr({
-			'id' : data[i].gid,
-			'chat' : 'chat',
-			'displayName' : data[i].group_name,
-		});
-		
-		lielem.onclick = function() {
-			chooseGroupDivClick(this);
-		};
-		var imgelem = document.createElement("img");
-		imgelem.setAttribute("src", "../../res/img/head/group_normal.png");
-		lielem.appendChild(imgelem);
-
-		var spanelem = document.createElement("span");
-		spanelem.innerHTML = data[i].group_name;
-		lielem.appendChild(spanelem);
-		uielem.appendChild(lielem);
-	}
-	var grouplist = document.getElementById('grouplist');
-	var children = grouplist.children;
-	if (children.length > 0) {
-		grouplist.removeChild(children[0]);
-	}
-	grouplist.appendChild(uielem);
-	//  默认选择与第一个群组
-	curChatGroupId = data[0].gid;
-	//createGroupChatDiv(curChatGroupId);
-	preChatGroupId = curChatGroupId;
-});
-
-//  监听用户聊天
-socket.on('chatevent',function(data){
-	appendMsgSendByOthers(data.userName, data.message, data.toUserName, data.msgType);
-});
-
-//  监听用户断开
-socket.on('disconnect',function(){
-	console.log('disconnect to the server.');
-});
 	
 //  左边栏tab处理
 $('#friendsTab').click(function(){
@@ -433,9 +453,9 @@ var chooseContactDivClick = function(li) {
 		hiddenGroupChatDiv(curChatGroupId);
 	}
 	curChatUserId = chatUserId;
-	/*$('#null-nouser').css({
+	$('#null-nouser').css({
 		"display" : "none"
-	});*/
+	});
 	// 对前一个聊天用户的背景作处理
 	var preUser = $('#'+preChatUserId);
 	/*if(preUser.attr('online')=='true'){
@@ -464,9 +484,9 @@ var chooseGroupDivClick = function(li) {
 	} else {
 		showGroupChatDiv(chatGroupId);
 	}
-	/*$('#null-nouser').css({
+	$('#null-nouser').css({
 		"display" : "none"
-	});*/
+	});
 	if(curChatUserId != null){
 		hiddenContactChatDiv(curChatUserId);
 	}

@@ -171,7 +171,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					Response loginResp = ProtocolUtil.getCommonResp(protocol);
 					log.info("login response data: code: "+loginResp.getCode()+", message: "+loginResp.getMessage().toStringUtf8());
 					//  向客户端返回登陆用户的 uid
-					SocketIOClient client = WebImServer.userNameToSessionCilentMap.get(loginBean.getUsername().toStringUtf8());	
+					/*SocketIOClient client = WebImServer.userNameToSessionCilentMap.get(loginBean.getUsername().toStringUtf8());	
 					long uid = protocol.getHead().getUid();
 					log.info("用户 IM 登陆后返回 UID： "+uid);
 					ChatObject data = new ChatObject();
@@ -180,7 +180,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 						client.sendEvent("loginevent", data);
 					} else {
 						log.info("该用户未登陆.");
-					}
+					}*/
 					break;
 				case Command.JPUSH_IM.LOGOUT:
 					log.info("im logout response...");
