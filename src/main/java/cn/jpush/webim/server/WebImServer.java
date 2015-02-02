@@ -14,9 +14,9 @@ import cn.jpush.protocal.common.JPushTcpClient;
 import cn.jpush.protocal.im.bean.LoginRequestBean;
 import cn.jpush.protocal.im.bean.SendGroupMsgRequestBean;
 import cn.jpush.protocal.im.bean.SendSingleMsgRequestBean;
-import cn.jpush.protocal.im.requestproto.ImLoginRequestProto;
-import cn.jpush.protocal.im.requestproto.ImSendGroupMsgRequestProto;
-import cn.jpush.protocal.im.requestproto.ImSendSingleMsgRequestProto;
+import cn.jpush.protocal.im.req.proto.ImLoginRequestProto;
+import cn.jpush.protocal.im.req.proto.ImSendGroupMsgRequestProto;
+import cn.jpush.protocal.im.req.proto.ImSendSingleMsgRequestProto;
 import cn.jpush.protocal.push.PushLoginRequest;
 import cn.jpush.protocal.push.PushLoginRequestBean;
 import cn.jpush.protocal.utils.APIProxy;
@@ -24,6 +24,14 @@ import cn.jpush.protocal.utils.Command;
 import cn.jpush.protocal.utils.Configure;
 import cn.jpush.protocal.utils.HttpResponseWrapper;
 import cn.jpush.protocal.utils.SystemConfig;
+import cn.jpush.socketio.AckRequest;
+import cn.jpush.socketio.Configuration;
+import cn.jpush.socketio.SocketIOClient;
+import cn.jpush.socketio.SocketIOServer;
+import cn.jpush.socketio.Transport;
+import cn.jpush.socketio.listener.ConnectListener;
+import cn.jpush.socketio.listener.DataListener;
+import cn.jpush.socketio.listener.DisconnectListener;
 import cn.jpush.webim.common.UidResourcesPool;
 import cn.jpush.webim.socketio.bean.ChatObject;
 import cn.jpush.webim.socketio.bean.ContracterObject;
@@ -35,14 +43,6 @@ import cn.jpush.webim.socketio.bean.UserList;
 import com.google.gson.Gson;
 import com.qiniu.api.auth.digest.Mac;
 import com.qiniu.api.rs.PutPolicy;
-import com.socketio.AckRequest;
-import com.socketio.Configuration;
-import com.socketio.SocketIOClient;
-import com.socketio.SocketIOServer;
-import com.socketio.Transport;
-import com.socketio.listener.ConnectListener;
-import com.socketio.listener.DataListener;
-import com.socketio.listener.DisconnectListener;
 
 /**
  * Web Im 业务 Server
@@ -97,7 +97,8 @@ public class WebImServer {
 				Channel channel = userNameToPushChannelMap.get(uid);
 				userNameToPushChannelMap.remove(uid);
 				pushChannelToUsernameMap.remove(channel);
-				channel.close();   //  断开与push server的长连接
+				if(channel!=null)
+					channel.close();   //  断开与push server的长连接
 				// 向其他成员发送下线通知
 				// ...
 			}
@@ -108,7 +109,7 @@ public class WebImServer {
 			@Override
 			public void onData(SocketIOClient client, ChatObject data,
 					AckRequest ackSender) throws Exception {
-				log.info("user: "+data.getUserName()+" login success");
+				log.info("user: "+data.getUserName()+" begin login");
 				String appkey = data.getAppKey();
 				String user_name = data.getUserName();
 				String password = data.getPassword();
@@ -121,6 +122,12 @@ public class WebImServer {
 					uid = userInfo.getUid();
 					data.setUid(uid);
 					client.sendEvent("loginevent", data);  //  向客户端返回uid
+					log.info("user login success.");
+				} else {
+					data.setUid(0);
+					client.sendEvent("loginevent", data);
+					log.info("user login failed.");
+					return;
 				}
 				
 				log.info("add user and session client to map.");
@@ -164,6 +171,7 @@ public class WebImServer {
 				
 				List<User> contractersList = new ArrayList<User>();
 				
+				//  模拟用户列表
 				for(int i=1; i<4; i++){
 					String username = "jpush00"+i;
 					HttpResponseWrapper userResult = APIProxy.getUserInfo(APPKEY, username);
@@ -173,7 +181,7 @@ public class WebImServer {
 						log.info("userid: "+userInfo.getUid());
 					}
 				}
-				// 2eav27 //xMnTCP
+	
 				client.sendEvent("getContracterList", contractersList);
 				
 			}	 

@@ -22,8 +22,8 @@ import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 import ch.qos.logback.classic.Logger;
+import cn.jpush.protocal.im.resp.proto.ImLoginResponseProto;
 import cn.jpush.protocal.im.response.ImLoginResponse;
-import cn.jpush.protocal.im.responseproto.ImLoginResponseProto;
 import cn.jpush.protocal.push.HeartBeatRequest;
 import cn.jpush.protocal.push.PushLoginResponseBean;
 import cn.jpush.protocal.push.PushLogoutResponseBean;
@@ -33,6 +33,7 @@ import cn.jpush.protocal.utils.APIProxy;
 import cn.jpush.protocal.utils.Command;
 import cn.jpush.protocal.utils.HttpResponseWrapper;
 import cn.jpush.protocal.utils.ProtocolUtil;
+import cn.jpush.socketio.SocketIOClient;
 import cn.jpush.webim.common.RedisClient;
 import cn.jpush.webim.common.UidResourcesPool;
 import cn.jpush.webim.server.WebImServer;
@@ -42,7 +43,6 @@ import cn.jpush.webim.socketio.bean.User;
 import cn.jpush.webim.socketio.bean.UserList;
 
 import com.google.gson.Gson;
-import com.socketio.SocketIOClient;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;

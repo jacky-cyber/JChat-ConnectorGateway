@@ -1,15 +1,6 @@
 
-// 获取http请求参数
-/*function getUrlParam(name) {
-	var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
-	var r = window.location.search.substr(1).match(reg);
-	if (r != null)
-		return unescape(r[2]);
-	return null;
-} */
 
-var APPKEY = "57b59f7968cbaf9ee8dcde77";
-var res_url = "http://jpushim.qiniudn.com";
+var APPKEY = "521c83e1ac1d4c4800961540";
 var uid = null;
 var curUserId = null;  //  当前用户id
 var curChatUserId = null;  //  当前聊天对象id
@@ -20,6 +11,7 @@ var preChatGroupId = null; // 前一个群组对象
 var msgCardDivId = "chat01";
 var talkToDivId = "talkTo";
 var isSingleOrGroup = "single";  //  区分是单聊还是群聊
+var res_url = "http://jpushim.qiniudn.com";
 var user_name = null;
 var uploadToken = null;
 var socket = null;
@@ -43,11 +35,14 @@ var addEventListener = function(socket){
 	//  处理用户登陆返回的 uid
 	socket.on('loginevent', function(data){
 		console.log('resp login event.');
-		if(data!=null){
+		if(data!=null && data.uid!=0){
 			uid = data.uid;
 			curUserId = uid;
 		} else {
-			alert("获取数据失败.");
+			$('#waitLoginmodal').css({"display":"none"});
+			alert('登陆失败，可能您的帐号不对.');
+			location.reload();
+			return;
 		}
 		socket.emit('getContracterList', {user_name: user_name});   // 获取联系人列表
 		socket.emit('getGroupsList', {uid: uid});   // 获取群组列表
@@ -57,11 +52,7 @@ var addEventListener = function(socket){
 
 
 	socket.on('getUploadToken',function(data){
-		/*if(data.provider=='upyun'){
-			console.log('upload signature: '+data.signature+', provider: '+data.provider+', policy: '+data.policy);
-		} else if(data.provider=='qiniu'){
-			console.log('upload token: '+data.token+', provider: '+data.provider);
-		}*/
+		
 		uploadToken = data;
 		var key = getResourceId(uid);
 		$('#token').val(uploadToken);
@@ -91,6 +82,7 @@ var addEventListener = function(socket){
 	        	   'FilesAdded': function(up, files) {
 	                   plupload.each(files, function(file) {
 	                	   console.log(file);
+	                	   $('#picFileModal').modal('hide');
 	                   });
 	               },
 	            'Error': function(up, err, errTip) {
