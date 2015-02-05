@@ -17,7 +17,6 @@ import com.qiniu.api.rs.PutPolicy;
 public final class APIProxy {
 	private final static String APPKEY = SystemConfig.getProperty("jpush.appkey");
 	private final static String API_URL = SystemConfig.getProperty("http.api.server.url");
-	private final static String QINIU_TOKEN_URL = SystemConfig.getProperty("http.qiniu.uploadtoken.url");
 	private static Gson gson = new Gson();
 	public APIProxy(){};
 	
@@ -36,7 +35,7 @@ public final class APIProxy {
 	
 	//  获取用户信息
 	public static HttpResponseWrapper getUserInfo(String appkey, String username) throws Exception{
-		String url = API_URL + "/users/" + username;
+		String url = API_URL + "/users/" + username + "?idtype=username";
 		HttpResponseWrapper result = NativeHttpClient.doGet(url, appkey, true);
 		return result;
 	}
@@ -62,16 +61,11 @@ public final class APIProxy {
 		return result;
 	}
 	
-	public static HttpResponseWrapper getQiUploadToken() throws Exception{
-		String url = QINIU_TOKEN_URL;
-		HttpResponseWrapper result = NativeHttpClient.doGet(url, "");
-		return result;
-	}
 	
 	public static void main(String[] argus) throws Exception{
 		HttpResponseWrapper result = null;
-		//result = APIProxy.register(APPKEY, "jpush004", "j001pwd"); 
-		result = APIProxy.getUserInfo(APPKEY, "jpush003");
+		//result = APIProxy.register(APPKEY, "jpush001", "j001pwd"); 
+		result = APIProxy.getUserInfo(APPKEY, "jpush002");
 		//result = APIProxy.getGroupInfo("123456");
 		//result = APIProxy.getGroupList("85841");
 	   //result = APIProxy.getGroupMemberList("123456");

@@ -30,7 +30,7 @@
 					class="leftheader-font" href="#"></a>
 				</span> 
 				<span>
-					<div class="btn-group" style="margin-left: 5px;">
+					<div class="btn-group" style="margin-left: 20px;">
 						<button class="btn btn-inverse dropdown-toggle" data-toggle="dropdown">
 							<span class="caret"></span>
 						</button>
@@ -47,12 +47,14 @@
 			<div id="leftmiddle">
 			
 				<div class="row">	
-					<a id="friendsTab" class="im-left-tab" >好友</a>
-  					<a id="groupsTab" class="im-left-tab right-tab">群组</a>
+					<a id="conversionTab" class="im-conversion-tab" >会话</a>
+					<a id="friendsTab" class="im-friend-tab" >好友</a>
+  					<a id="groupsTab" class="im-group-tab">群组</a>
 				</div>
 				
 			</div>
-			<div id="contractlist" style="height: 493px; overflow-y: auto; overflow-x: auto; background:#F5F5F5"></div>
+			<div id="conversionlist" style="height: 493px; overflow-y: auto; overflow-x: auto; background:#F5F5F5"></div>
+			<div id="contractlist" style="height: 493px; overflow-y: auto; overflow-x: auto; background:#F5F5F5; display:none;"></div>
 			<div id="grouplist" style="height: 493px; overflow-y: auto; overflow-x: auto; background:#F5F5F5; display:none;"></div>
 		</div>
 		<!-- 聊天页面 -->
@@ -62,9 +64,9 @@
 				<div class="chat01_title">
 					<ul class="talkTo">
 						<li id="talkTo"><a href="#"></a></li>
-						<li id="recycle" style="float: right;"><img
+						<!-- <li id="recycle" style="float: right;"><img
 							src="../../res/img/recycle.png" onclick="clearCurrentChat();"
-							style="margin-right: 15px; cursor: hand; width: 18px;" title="清屏" /></li>
+							style="margin-right: 15px; cursor: hand; width: 18px;" title="清屏" /></li> -->
 						<li id="roomInfo" style="float: right;"><img
 							id="roomMemberImg"
 							src="../../res/img/head/find_more_friend_addfriend_icon.png"

@@ -94,12 +94,12 @@ a:hover {
 
 .leftcontact {
 	float: left;
-	width: 196px;
+	width: 233px;
 	border: 1px #666666 solid;
 	height: auto;
 	margin: 0 auto; 
 	margin-top: 80px;
-	margin-left: 100px;
+	margin-left: 50px;
 	-webkit-border-radius: 3px;
 	-moz-border-radius: 3px;
 	border-radius: 3px;
@@ -113,8 +113,8 @@ a:hover {
 	border-radius: 3px;
 	z-index: 1000;
 	position: relative;
-	width: 196px;
-	height: 30px;
+	width: 233px;
+	height: 35px;
 	background-color: #5D6978;
 }
 
@@ -253,6 +253,11 @@ a:hover {
 	overflow-y: auto;
 	position: relative;
 	resize: none;
+}
+
+.chat03_content_ul li {
+	padding: 5px 0px 5px 5px;
+	cursor: pointer;
 }
 
 .chat03_content {
@@ -555,23 +560,51 @@ label.offline {
 }
 
 /*********************/
-.im-left-tab{
+.im-conversion-tab{
 	font-size:13px;
 	text-decoration:none;
 	display:inline-block;
 	text-align: center;
-	width:97px;
+	width:77px;
 	height: 30px;
 	margin-left:15px;
 	padding-top:5px;
 	background-color: #EEF1F4;
 }
-.im-left-tab:HOVER{
+
+.im-friend-tab{
+	font-size:13px;
+	text-decoration:none;
+	display:inline-block;
+	text-align: center;
+	width:77px;
+	height: 30px;
+	margin-left:-3px;
+	padding-top:5px;
+	background-color: #EEF1F4;
+}
+.im-group-tab{
+	font-size:13px;
+	text-decoration:none;
+	display:inline-block;
+	text-align: center;
+	width:77px;
+	height: 30px;
+	margin-left:-3px;
+	padding-top:5px;
+	background-color: #EEF1F4;
+}
+.im-conversion-tab:HOVER{
 	text-decoration: none;
 	cursor: pointer;
 }
-.right-tab{
-	margin-left: -3px;
+.im-friend-tab:HOVER{
+	text-decoration: none;
+	cursor: pointer;
+}
+.im-group-tab:HOVER{
+	text-decoration: none;
+	cursor: pointer;
 }
 
 /* #picFileModal {
@@ -599,8 +632,24 @@ label.offline {
  	display: block;
  }
  
+ .unread-msg {
+ 	
+ }
+ 
  .contractor-display-style{
  	display: inline-block;
- 	margin-left: 10px;
+ 	margin-left: 20px;
+ 	margin-top:10px;
  	font-size: 15px;
+ }
+ 
+ .rect-msg-display-style{
+ 	display: block;
+ 	width: 100px;
+ 	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+ 	margin-left:77px;
+ 	margin-top: -10px;
+ 	font-size: 11px;
  }

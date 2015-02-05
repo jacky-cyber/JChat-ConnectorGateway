@@ -1,4 +1,8 @@
 
+//  im 全局配置
+var JPushIM = {
+		
+}
 
 var APPKEY = "521c83e1ac1d4c4800961540";
 var uid = null;
@@ -44,13 +48,14 @@ var addEventListener = function(socket){
 			location.reload();
 			return;
 		}
+		createConversionlistUL();  //  创建会话列表
 		socket.emit('getContracterList', {user_name: user_name});   // 获取联系人列表
 		socket.emit('getGroupsList', {uid: uid});   // 获取群组列表
 		$('#waitLoginmodal').css({"display":"none"});
 		$('#content').css({"display":"block"});
 	});
 
-
+	//   监听获取上传token
 	socket.on('getUploadToken',function(data){
 		
 		uploadToken = data;
@@ -61,7 +66,7 @@ var addEventListener = function(socket){
 		console.log('media id: '+mediaId);
 		$('#key').val(mediaId);
 		
-		//  七牛上传图片
+		//  上传图片到七牛
 		var uploader = Qiniu.uploader({
 	        runtimes: 'html5,flash,html4',    
 	        browse_button: 'fileChooseBtn',            
@@ -119,6 +124,7 @@ var addEventListener = function(socket){
 				/*'sessionId' : data[i].session_id,*/
 				'class' : 'online',
 				'className' : 'online',
+				'onclick': 'chooseContactDivClick(this)',
 				'chat' : 'chat',
 				'displayName' : data[i].username,
 				/*'online' : data[i].online*/
@@ -132,19 +138,34 @@ var addEventListener = function(socket){
 					"background": "#708090"
 				});
 			}*/
-			lielem.onclick = function() {
+			/*lielem.onclick = function() {
 				chooseContactDivClick(this);
-			};
+			};*/
 			var imgelem = document.createElement("img");
 			imgelem.setAttribute("src", "../../res/img/head/contact_normal.png");
+			imgelem.setAttribute("style", "border-radius: 50%;");
+			
+			var unreadelem = document.createElement("img");
+			unreadelem.setAttribute("src", "../../res/img/msg_unread.png");
+			unreadelem.setAttribute("class", "unread");
+			unreadelem.setAttribute("style", "visibility:hidden");
 			lielem.appendChild(imgelem);
+			lielem.appendChild(unreadelem);
 
 			var spanelem = document.createElement("span");
 			$(spanelem).attr({
 				"class" : "contractor-display-style"
 			});
 			spanelem.innerHTML = data[i].username;
+			
+//			var recr_msg_elem = document.createElement("span");
+//			$(recr_msg_elem).attr({
+//				"class" : "rect-msg-display-style"
+//			});
+//			recr_msg_elem.innerHTML = '最新消息...';
+			
 			lielem.appendChild(spanelem);
+//			lielem.appendChild(recr_msg_elem);
 			uielem.appendChild(lielem);
 		}
 		var contactlist = document.getElementById('contractlist');
@@ -169,14 +190,16 @@ var addEventListener = function(socket){
 			$(lielem).attr({
 				'id' : data[i].gid,
 				'chat' : 'chat',
+				'onclick': 'chooseGroupDivClick(this)',
 				'displayName' : data[i].group_name,
 			});
 			
-			lielem.onclick = function() {
+			/*lielem.onclick = function() {
 				chooseGroupDivClick(this);
-			};
+			};*/
 			var imgelem = document.createElement("img");
 			imgelem.setAttribute("src", "../../res/img/head/group_normal.png");
+			imgelem.setAttribute("style", "border-radius: 50%;");
 			lielem.appendChild(imgelem);
 
 			var spanelem = document.createElement("span");
@@ -194,7 +217,8 @@ var addEventListener = function(socket){
 		}
 		grouplist.appendChild(uielem);
 		//  默认选择与第一个群组
-		curChatGroupId = data[0].gid;
+		if(data.length>0)
+			curChatGroupId = data[0].gid;
 		//createGroupChatDiv(curChatGroupId);
 		preChatGroupId = curChatGroupId;
 	});
@@ -208,6 +232,7 @@ var addEventListener = function(socket){
 	socket.on('disconnect',function(){
 		console.log('resp disconnect.');
 		console.log('disconnect to the server.');
+		alert('您已经与服务器断开，请重新连接.');
 	});
 	
 } 
@@ -217,7 +242,7 @@ var addEventListener = function(socket){
 $('#login_submit').click(function(){
 	console.log('user login submit.');
 	$('#loginPanel').css({"display":"none"});
-	$('#waitLoginmodal').css({"display":"block"});
+	$('#waitLoginmodal').css({"display":"block"}); 
 	socket = io.connect("http://127.0.0.1:9092",{'transports':['websocket']});  //  websocket
 	addEventListener(socket);
 });
@@ -231,10 +256,24 @@ var showChooseFileDialog = function(){
 }
 
 	
-//  左边栏tab处理
+//  左边栏仿tab处理
+$('#conversionTab').click(function(){
+	$("#conversionlist").css({
+		display:"block"
+	});
+	$("#contractlist").css({
+		display:"none"
+	});
+	$('#grouplist').css({
+		display:"none"
+	});
+});
 $('#friendsTab').click(function(){
 	$("#contractlist").css({
 		display:"block"
+	});
+	$("#conversionlist").css({
+		display:"none"
 	});
 	$('#grouplist').css({
 		display:"none"
@@ -244,6 +283,9 @@ $('#friendsTab').click(function(){
 $('#groupsTab').click(function(){
 	$('#grouplist').css({
 		display:"block"
+	});
+	$("#conversionlist").css({
+		display:"none"
 	});
 	$("#contractlist").css({
 		display:"none"
@@ -271,8 +313,12 @@ document.onkeydown = function(event){
 		   appendMsgSendByMe(content);
 		   var toUserName = $('#'+curChatUserId).attr('username');
 		   if(isSingleOrGroup=='single'){
+			   addToConversionList(curChatUserId);  //   添加该会话到会话列表
+			   updateConversionRectMsg(curChatUserId, content);
 		   	socket.emit('chatevent', {uid: uid, toUid: curChatUserId, userName:user_name, toUserName: toUserName, message: content, msgType:'single'});
 		   } else if(isSingleOrGroup=='group'){
+			   addToConversionList(curChatGroupId);  //   添加该会话到会话列表
+			   updateConversionRectMsg(curChatGroupId, content);
 		   	socket.emit('chatevent', {uid: uid, toUid: curChatGroupId, userName:user_name, toUserName:toUserName, message: content, msgType:'group'});
 		    } 
 	   } else {
@@ -288,17 +334,62 @@ function sendText(){
 	 if(content==''){
 		  alert('您还未输入.');
 		  return;
-	  }
+	  } 
  	 appendMsgSendByMe(content);
     document.getElementById('talkInputId').value = '';
     var toUserName = $('#'+curChatUserId).attr('username');
     if(isSingleOrGroup=='single'){
+    	addToConversionList(curChatUserId);  //   添加该会话到会话列表
+    	updateConversionRectMsg(curChatUserId, content);
     	socket.emit('chatevent', {uid: uid, toUid: curChatUserId, userName:user_name, toUserName: toUserName, message: content, msgType:'single'});
     } else if(isSingleOrGroup=='group'){
+    	addToConversionList(curChatGroupId);  //   添加该会话到会话列表
+    	updateConversionRectMsg(curChatGroupId, content);
     	socket.emit('chatevent', {uid: uid, toUid: curChatGroupId, userName:user_name, toUserName: toUserName, message: content, msgType:'group'});
      } 
 };
 	 
+//   添加会话到会话列表中
+var addToConversionList = function(id){
+	var length = $("#conversionlistUL li").length;
+	for(var i=0; i<length; i++){  //  检查是否添加重复项
+		 var lielem = $("#conversionlistUL li")[i];
+		 var lid = $(lielem).attr('id');
+		 if(lid=='conversion-'+id)
+			 return;
+	}
+	
+	var node = $('#'+id).clone(true);
+	var newId = 'conversion-'+$(node).attr('id');
+	$(node).attr('id', newId);
+	
+	//  添加显示最近的消息
+	var recr_msg_elem = document.createElement("span");
+	$(recr_msg_elem).attr({
+		'id' : id+'-rect-msg',
+		"class" : "rect-msg-display-style"
+	});
+	
+	/*if(isSingleOrGroup=='single'){
+		node.onclick = function(){
+			chooseConversionSingleDivClick(this);
+		};
+	} else if(isSingleOrGroup=='group'){
+		node.onclick = function(){
+			chooseConversionGroupDivClick(this);
+		};
+	}*/
+	$('#conversionlistUL').prepend(node);
+	$('#'+newId).append(recr_msg_elem);
+}
+
+//  更新会话列表中的最近消息状态
+var updateConversionRectMsg = function(id, msg){
+	$('#'+id+'-rect-msg').html(msg);
+	emojify.run();
+}
+
+
 //  获取当前聊天记录的窗口div
 var getContactChatDiv = function(chatUserId) {
 	return document.getElementById(curUserId + "-" + chatUserId);
@@ -352,6 +443,17 @@ var createGroupslistUL = function() {
 	var contactlist = document.getElementById("grouplist");
 	contactlist.appendChild(uielem);
 };
+
+//   创建会话列表UI
+var createConversionlistUL = function() {
+	var uielem = document.createElement("ul");
+	$(uielem).attr({
+		"id" : "conversionlistUL",
+		"class" : "chat03_content_ul"
+	});
+	var contactlist = document.getElementById("conversionlist");
+	contactlist.appendChild(uielem);
+};
 	
 //  设置当前联系人界面
 var setCurrentContact = function(defaultUserId) {
@@ -376,10 +478,16 @@ var showContactChatDiv = function(chatUserId) {
 	}
 	contentDiv.style.display = "block";
 	var contactLi = document.getElementById(chatUserId);
-	if (contactLi == null) {
+	var conversionLi = document.getElementById('conversion-'+chatUserId);
+	//var contactLi = $('[id='+chatUserId+']');
+	if(contactLi == null){
 		return;
 	}
+	if(conversionLi!=null){
+		conversionLi.style.backgroundColor = "#B0E0E6";
+	}
 	contactLi.style.backgroundColor = "#B0E0E6";
+	//contactLi.css({'background-color':'#B0E0E6'});
 	var chatName = $('#'+chatUserId).attr('username');
 	var dispalyTitle = "与 " + chatName + " 聊天中";
 	document.getElementById(talkToDivId).children[0].innerHTML = dispalyTitle;
@@ -394,20 +502,32 @@ var showGroupChatDiv = function(chatGroupId) {
 	}
 	contentDiv.style.display = "block";
 	var contactLi = document.getElementById(chatGroupId);
-	if (contactLi == null) {
+	var conversionLi = document.getElementById('conversion-'+chatGroupId);
+	//var contactLi = $('[id='+chatGroupId+']');
+	if(contactLi==null){
 		return;
 	}
+	if(conversionLi){
+		conversionLi.style.backgroundColor = "#B0E0E6";
+	}
 	contactLi.style.backgroundColor = "#B0E0E6";
+	//contactLi.css({'background-color':'#B0E0E6'});
 	var group_name = $('#'+chatGroupId).attr("displayName");
-	var dispalyTitle = "正在 " + group_name + " 群里愉快的聊天中";
+	var dispalyTitle = "正在 " + group_name + " 群里聊天中";
 	document.getElementById(talkToDivId).children[0].innerHTML = dispalyTitle;
 };
 	
 //对上一个联系人的聊天窗口做隐藏处理
 var hiddenContactChatDiv = function(chatUserId) {
 	var contactLi = document.getElementById(chatUserId);
+	var conversionLi = document.getElementById('conversion-'+chatUserId);
+	//var contactLi = $('[id='+chatUserId+']');
 	if (contactLi) {
 		contactLi.style.backgroundColor = "";
+		//contactLi.css({'background-color':''});
+	}
+	if(conversionLi){
+		conversionLi.style.backgroundColor = "";
 	}
 	var contentDiv = getContactChatDiv(chatUserId);
 	if (contentDiv) {
@@ -418,8 +538,12 @@ var hiddenContactChatDiv = function(chatUserId) {
 //对上一个群组的聊天窗口做隐藏处理
 var hiddenGroupChatDiv = function(chatGroupId) {
 	var contactLi = document.getElementById(chatGroupId);
+	var conversionLi = document.getElementById('conversion-'+chatGroupId);
 	if (contactLi) {
 		contactLi.style.backgroundColor = "";
+	}
+	if(conversionLi){
+		conversionLi.style.backgroundColor = "";
 	}
 	var contentDiv = getGroupChatDiv(chatGroupId);
 	if (contentDiv) {
@@ -430,6 +554,11 @@ var hiddenGroupChatDiv = function(chatGroupId) {
 // 切换联系人聊天窗口div
 var chooseContactDivClick = function(li) {
 	var chatUserId = li.id;
+	var indexPos = chatUserId.indexOf("conversion");
+	if(indexPos!=-1){
+		chatUserId = li.id.split('-')[1];
+		hideUnreadMsgMark(chatUserId);
+	}
 	//curChatUserSessionId = li.sessionId;
 	if ((chatUserId != curChatUserId)) {
 		if (curChatUserId == null) {
@@ -466,6 +595,11 @@ var chooseContactDivClick = function(li) {
 //  切换群组聊天窗口div
 var chooseGroupDivClick = function(li) {
 	var chatGroupId = li.id;
+	var indexPos = chatGroupId.indexOf("conversion");
+	if(indexPos!=-1){
+		chatGroupId = li.id.split('-')[1];
+		hideUnreadMsgMark(chatGroupId);
+	}
 	if ((chatGroupId != curChatGroupId)) {
 		if (curChatGroupId == null) {
 			createGroupChatDiv(chatGroupId);
@@ -493,9 +627,12 @@ var appendMsgSendByOthers = function(name, message, contact, chattype){
 		if (contactUL.children.length == 0) {
 			return null;
 		}
-	
 		var contactDivId = name;
-		var contactLi = getContactLi(name);
+		var contactLi = getContactLi('conversion-'+name);
+		if(contactLi==null){
+			addToConversionList(contactDivId);
+			contactLi = getContactLi('conversion-'+name);
+		}
 		var date = new Date();
 		var time = date.toLocaleTimeString();
 		var headstr = [ "<p1>" + $('#'+name).attr('username') + "   <span></span>" + "   </p1>",
@@ -522,7 +659,9 @@ var appendMsgSendByOthers = function(name, message, contact, chattype){
 		}
 					
 		//if (curChatUserId.indexOf(contact) < 0) {
-			contactLi.style.backgroundColor = "#FF4500";
+			showUnreadMsgMark(name);
+			//contactLi.style.backgroundColor = "#FF4500";
+			//contactLi.css({'background-color':'#FF4500'});
 		//}
 			 
 		var msgContentDiv = getContactChatDiv(contactDivId);
@@ -538,6 +677,7 @@ var appendMsgSendByOthers = function(name, message, contact, chattype){
 			document.getElementById(msgCardDivId).appendChild(msgContentDiv);
 		}
 		msgContentDiv.scrollTop = msgContentDiv.scrollHeight;
+		updateConversionRectMsg(contactDivId, message);  //  更新会话列表中最新的消息
 		emojify.run();
 		return lineDiv;
 	}
@@ -546,9 +686,13 @@ var appendMsgSendByOthers = function(name, message, contact, chattype){
 		if (groupUL.children.length == 0) {
 			return null;
 		}
-		// 
+		
 		var contactDivId = contact;
-		var contactLi = getContactLi(contact);
+		var contactLi = getContactLi('conversion-'+contact);
+		if(contactLi==null){
+			addToConversionList(contactDivId);
+			contactLi = getContactLi('conversion-'+name);
+		}
 		var date = new Date();
 		var time = date.toLocaleTimeString();
 		var headstr = [ "<p1>" + $('#'+name).attr('displayname') + "   <span></span>" + "   </p1>",
@@ -575,7 +719,9 @@ var appendMsgSendByOthers = function(name, message, contact, chattype){
 		}
 					
 		//if (curChatGroupId.indexOf(contact) < 0) {
-			contactLi.style.backgroundColor = "#FF4500";
+			showUnreadMsgMark(name);
+			//contactLi.style.backgroundColor = "#FF4500";
+			//contactLi.css({'background-color':'#FF4500'});
 		//}
 			 
 		var msgContentDiv = getGroupChatDiv(contactDivId);
@@ -591,11 +737,22 @@ var appendMsgSendByOthers = function(name, message, contact, chattype){
 			document.getElementById(msgCardDivId).appendChild(msgContentDiv);
 		}
 		msgContentDiv.scrollTop = msgContentDiv.scrollHeight;
+		updateConversionRectMsg(contactDivId, message);  //  更新会话列表中最新的消息
 		emojify.run();
 		return lineDiv;
 	}
 };
 	
+//  显示未读消息标记
+var showUnreadMsgMark = function(id){
+	$('#conversionlist'+' li#conversion-'+id+' img.unread').css("visibility","visible");
+}
+
+//	取消未读消息标记
+var hideUnreadMsgMark = function(id){
+	$('#conversionlist'+' li#conversion-'+id+' img.unread').css("visibility","hidden");
+}
+
 //  添加自己发送的聊天信息到显示面板
 var appendMsgSendByMe = function(message) {
 	var date = new Date();
@@ -700,11 +857,12 @@ var appendPicMsgSendByMe = function(message) {
 	msgContentDiv.scrollTop = msgContentDiv.scrollHeight;
 	emojify.run();
 	return lineDiv;
-}; 
-	
+};
+ 	
 //  选择联系人的处理
 var getContactLi = function(chatUserId) {
 	return document.getElementById(chatUserId);
+	//return $('[id='+chatUserId+']');
 };
 
 //  emoji 选择框

@@ -394,12 +394,14 @@ public class ProtocolUtil {
 		int session_key_len = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
 		String session_key = new String(in.readBytes(session_key_len).array(),"utf-8");
 		int server_time = ProtocolUtil.byteArrayToInt(in.readBytes(4).array());
+		in.discardReadBytes();
 		PushLoginResponseBean bean = new PushLoginResponseBean(code, sid, server_version, session_key, server_time);
 		return bean;
 	}
 	
 	public static PushLogoutResponseBean getPushLogoutResponseBean(ByteBuf in) throws UnsupportedEncodingException{
 		int code = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
+		in.discardReadBytes();
 		PushLogoutResponseBean bean = new PushLogoutResponseBean(code);
 		return bean;
 	}
@@ -410,6 +412,7 @@ public class ProtocolUtil {
 		int msgid = ProtocolUtil.byteArrayToInt(in.readBytes(8).array());
 		int message_len = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
 		String message = new String(in.readBytes(message_len).array(),"utf-8");
+		in.discardReadBytes();
 		PushMessageRequestBean bean = new PushMessageRequestBean(msgtype, msgid, message);
 		return bean;
 	}

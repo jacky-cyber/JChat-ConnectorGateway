@@ -41,6 +41,7 @@ import cn.jpush.webim.socketio.bean.User;
 import cn.jpush.webim.socketio.bean.UserList;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.qiniu.api.auth.digest.Mac;
 import com.qiniu.api.rs.PutPolicy;
 
@@ -206,8 +207,9 @@ public class WebImServer {
 				if(result.isOK()){
 					String groupListJson = result.content;
 					log.info("group list: "+groupListJson);
-					GroupList groupList = gson.fromJson(groupListJson, GroupList.class);
-					ArrayList<Long> list = groupList.getGroups();
+					//GroupList groupList = gson.fromJson(groupListJson, GroupList.class);
+					//ArrayList<Long> list = groupList.getGroups();
+					ArrayList<Long> list = gson.fromJson(groupListJson, new TypeToken<ArrayList<Long>>(){}.getType());
 					for(Long gid:list){
 						log.info("gid: "+gid);
 						HttpResponseWrapper groupResult = APIProxy.getGroupInfo(gid+"");
