@@ -115,14 +115,14 @@ public class JPushTcpClient {
 			log.info("success to connect the server.");
 			Channel channel = client.getChannel();
 			//PushLoginRequestBean req = new PushLoginRequestBean("android", "sdfqw23", 1, "appkey:123d32", 5);
-			//PushRegRequestBean req = new PushRegRequestBean("ssfe", "1.0.1", "web im", "service token232", 1, 2, 5, "null ext");
+			PushRegRequestBean req = new PushRegRequestBean("ssfe", "1.0.1", "web im", "service token232", 1, 2, 5, "null ext");
 			//PushLogoutRequest req = new PushLogoutRequest(1, 23, 123, 43);
 			/******  im 业务     *********/
 			//  login
 			LoginRequestBean bean = new LoginRequestBean("walter","password123");
 			List<Integer> cookie = new ArrayList<Integer>();
 			cookie.add(123);
-			ImLoginRequestProto req = new ImLoginRequestProto(Command.JPUSH_IM.LOGIN, 1, 2324, SystemConfig.getProperty("jpush.appkey"), cookie, bean);
+			//ImLoginRequestProto req = new ImLoginRequestProto(Command.JPUSH_IM.LOGIN, 1, 2324, SystemConfig.getProperty("jpush.appkey"), cookie, bean);
 			// logout
 		   /*LogoutRequestBean bean = new LogoutRequestBean("walter");
 			List<Integer> cookie = new ArrayList<Integer>();
