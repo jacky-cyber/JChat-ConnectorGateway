@@ -1,5 +1,6 @@
-
-
+.jpush-im-body {
+	
+}
 /** custom login button **/
 .flatbtn-blu {
 	-webkit-box-sizing: border-box;
@@ -60,6 +61,7 @@
 	border: none;
 	font-size: 12px;
 	text-align: left;
+	font-family:Georgia,Serif;
 }
 
 ul {
@@ -142,6 +144,7 @@ a:hover {
 	-webkit-border-radius: 3px;
 	-moz-border-radius: 3px;
 	border-radius: 3px;
+	filter:alpha(opacity=80);-moz-opacity:0.8;-khtml-opacity:0.8;opacity:0.8; 
 }
 
 .chat01_title {
@@ -191,16 +194,19 @@ a:hover {
 
 .chat01 {
 	background: #F5F5F5;
+	filter:alpha(opacity=80);-moz-opacity:0.8;-khtml-opacity:0.8;opacity:0.8; 
 }
 
 .chat02 {
 	background: #F5F5F5;
+	filter:alpha(opacity=80);-moz-opacity:0.8;-khtml-opacity:0.8;opacity:0.8; 
 }
 
 .chat02_title {
 	background: url('../img/chat_title_bg.jpg') repeat-x 0 0;
 	height: 25px;
 	position: relative;
+	filter:alpha(opacity=80);-moz-opacity:0.8;-khtml-opacity:0.8;opacity:0.8; 
 }
 
 .chat02_bar {
@@ -208,6 +214,7 @@ a:hover {
 	height: 35px;
 	position: relative;
 	margin-bottom: 0px;
+	filter:alpha(opacity=80);-moz-opacity:0.8;-khtml-opacity:0.8;opacity:0.8; 
 }
 
 .chat02_bar ul {
@@ -239,10 +246,14 @@ a:hover {
 	overflow-y: auto;
 	background: #F5F5F5;
 	border-style:none;
+	font-family: Georgia,Serif;
+	font-size: 15px;
+	/* filter:alpha(opacity=60);-moz-opacity:0.6;-khtml-opacity:0.6;opacity:0.6; */
 }
 
 .chat02_content {
 	height: auto;
+	filter:alpha(opacity=80);-moz-opacity:0.8;-khtml-opacity:0.8;opacity:0.8; 
 }
 
 .chat03_content_ul {
@@ -298,6 +309,8 @@ a:hover {
 	position: relative;
 	padding: 5px 10px 5px 5px;
 	word-break: break-all;
+	font-family: Georgia,Serif;
+	font-size: 15px;
 }
 .chat-content-pic {
 	white-space: pre-wrap;
@@ -579,7 +592,7 @@ label.offline {
 	text-align: center;
 	width:77px;
 	height: 30px;
-	margin-left:-3px;
+	margin-left:-6px;
 	padding-top:5px;
 	background-color: #EEF1F4;
 }
@@ -590,7 +603,7 @@ label.offline {
 	text-align: center;
 	width:77px;
 	height: 30px;
-	margin-left:-3px;
+	margin-left:-6px;
 	padding-top:5px;
 	background-color: #EEF1F4;
 }
@@ -638,8 +651,8 @@ label.offline {
  
  .contractor-display-style{
  	display: inline-block;
- 	margin-left: 20px;
- 	margin-top:10px;
+ 	margin-left: 10px;
+ 	margin-top:3px;
  	font-size: 15px;
  }
  
@@ -649,7 +662,8 @@ label.offline {
  	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
- 	margin-left:77px;
- 	margin-top: -10px;
+ 	margin-left:67px;
+ 	margin-top:-7px;
  	font-size: 11px;
+ 	height: 24px;
  }

@@ -11,7 +11,7 @@ import com.google.protobuf.ByteString;
 public class ImLoginRequestProto extends BaseProtobufRequest {
 
 	public ImLoginRequestProto(int cmd, int version, long uid, String appkey,
-			List cookie, Object bean) {
+			List<Integer> cookie, Object bean) {
 		super(cmd, version, uid, appkey, cookie, bean);
 	}
 

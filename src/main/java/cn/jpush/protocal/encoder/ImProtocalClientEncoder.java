@@ -47,13 +47,14 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 		if (msg instanceof PushRegRequestBean) {  // push reg protocal
 			log.info("push reg request...");
 			PushRegRequestBean bean = (PushRegRequestBean) msg;
-			PushRegRequest request = new PushRegRequest(1, 12, 342, 342, bean);
+			PushRegRequest request = new PushRegRequest(7, 1, 0, 0, bean);
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 		}
-		if (msg instanceof PushLoginRequest) {  // push login protocal
+		if (msg instanceof PushLoginRequestBean) {  // push login protocal
 			log.info("push login request...");
-			PushLoginRequest request = (PushLoginRequest) msg;
+			PushLoginRequestBean reqBean = (PushLoginRequestBean)msg;
+			PushLoginRequest request = new PushLoginRequest(7, 1, 0, reqBean.getUid(), reqBean);
 			byte[] data = request.getRequestPackage();
 			log.info("jpush login pkg size: "+data.length);
 			out.writeBytes(data);
@@ -74,7 +75,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			log.info("im login request...");
 			ImLoginRequestProto req = (ImLoginRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
-			ImRequest request = new ImRequest(1, 12, 342, 343, reqProtobuf);
+			ImRequest request = new ImRequest(1, 1, 2092, req.getUid(), reqProtobuf);
 			byte[] data = request.getRequestPackage();
 			log.info("im login pkg size: "+data.length);
 			out.writeBytes(data);
@@ -107,7 +108,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			log.info("im create group message request...");
 			ImCreateGroupRequestProto req = (ImCreateGroupRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
-			ImRequest request = new ImRequest(1, 12, 342, 343, reqProtobuf);
+			ImRequest request = new ImRequest(1, 1, 2092, req.getUid(), reqProtobuf);
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 		}

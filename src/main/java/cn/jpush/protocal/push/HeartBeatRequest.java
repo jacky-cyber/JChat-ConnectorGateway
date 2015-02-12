@@ -5,7 +5,7 @@ import cn.jpush.protocal.utils.Command;
 
 public class HeartBeatRequest extends BaseRequest {
 
-	public HeartBeatRequest(int version, long rid, int sid, long juid, int ver) {
+	public HeartBeatRequest(int version, long rid, int sid, long juid) {
 		super(version, rid, sid, juid);
 		this.command = Command.KKPUSH_HEARTBEAT.COMMAND;
 	}

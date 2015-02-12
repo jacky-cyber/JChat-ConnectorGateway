@@ -37,6 +37,7 @@ import cn.jpush.socketio.SocketIOClient;
 import cn.jpush.webim.common.RedisClient;
 import cn.jpush.webim.common.UidResourcesPool;
 import cn.jpush.webim.server.WebImServer;
+import cn.jpush.webim.socketio.bean.ChatMessage;
 import cn.jpush.webim.socketio.bean.ChatObject;
 import cn.jpush.webim.socketio.bean.ContracterObject;
 import cn.jpush.webim.socketio.bean.User;
@@ -106,7 +107,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 		if(msg instanceof PushLoginResponseBean){
 			PushLoginResponseBean bean = (PushLoginResponseBean) msg;
 			log.info("客户端解析push login response后的结果为：");
-			log.info(bean.getResponse_code()+","+bean.getServer_time()+","+bean.getServer_version()+", "+bean.getSession_key());
+			log.info("code: "+bean.getResponse_code()+", server-time: "+bean.getServer_time()+", server-version: "+bean.getServer_version());
 		}
 		if(msg instanceof PushLogoutResponseBean){
 			PushLogoutResponseBean bean = (PushLogoutResponseBean) msg;
@@ -117,22 +118,29 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 			Gson gson = new Gson();
 			PushMessageRequestBean bean = (PushMessageRequestBean) msg;
 			String json_content = bean.getMessage();
-			Map content = gson.fromJson(json_content, HashMap.class);
+			Map<String, String> map = gson.fromJson(json_content, HashMap.class);
+			json_content = map.get("message");
+			ChatMessage content = gson.fromJson(json_content, ChatMessage.class);
 			ChatObject data = new ChatObject();
-			String type = (String)content.get("type");
+			String type = (String)content.getTarget_type();
 			if("single".equals(type)){
-				SocketIOClient client = WebImServer.userNameToSessionCilentMap.get(content.get("target_uid"));	
-				data.setToUserName(content.get("target_uid")+"");
-				data.setUserName(content.get("uid")+"");
-				data.setMessage(content.get("message")+"");
+				SocketIOClient client = WebImServer.userNameToSessionCilentMap.get(content.getTarget_id()+"");	
+				data.setToUserName(content.getTarget_id()+"");
+				data.setUserName(content.getFrom_id()+"");
+				data.setMessage(content.getMsg_body().getContent());
 				data.setMsgType("single");
+				if("text".endsWith(content.getMsg_type())){
+					data.setContentType("text");
+				} else if("image".endsWith(content.getMsg_type())){
+					data.setContentType("image");
+				}
 				if(client!=null){
-					client.sendEvent("chatevent", data);  // send message to web client
+					client.sendEvent("chatEvent", data);
 				} else {
 					log.info("该用户此时不在线.");
 				}
 			} else if("group".equals(type)){
-				String gid = (String)content.get("target_gid");
+				String gid = content.getTarget_id()+"";
 				HttpResponseWrapper result = APIProxy.getGroupMemberList(gid);
 				if(result.isOK()){
 					String userListJson = result.content;
@@ -141,14 +149,14 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					for(int i=0; i<list.size(); i++){
 						User user = (User) list.get(i);
 						long id = user.getUid();
-						if(id!=Long.parseLong((String)content.get("uid"))){
+						if(id!=content.getFrom_id()){
 							SocketIOClient client = WebImServer.userNameToSessionCilentMap.get(id+"");	
 							data.setToUserName(gid);
-							data.setUserName(content.get("uid")+"");
-							data.setMessage(content.get("message")+"");
+							data.setUserName(content.getFrom_id()+"");
+							data.setMessage(content.getMsg_body().getContent());
 							data.setMsgType("group");
 							if(client!=null){
-								client.sendEvent("chatevent", data);  // send message to web client
+								client.sendEvent("chatEvent", data);  // send message to web client
 							} else {
 								log.info("该用户此时不在线.");
 							}
@@ -205,7 +213,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					singleMsgdata.setUserName(protocol.getHead().getUid()+"");
 					singleMsgdata.setMessage(singleMsgBean.getContent().getContent().toStringUtf8());
 					singleMsgdata.setMsgType("single");
-					sessionClient.sendEvent("chatevent", singleMsgdata);
+					sessionClient.sendEvent("chatEvent", singleMsgdata);
 					break;
 				case Command.JPUSH_IM.SENDMSG_GROUP:
 					log.info("im send group msg response...");
@@ -228,7 +236,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					    		groupMsgdata.setUserName(protocol.getHead().getUid()+"");
 					    		groupMsgdata.setMessage(groupMsgBean.getContent().getContent().toStringUtf8());
 					    		groupMsgdata.setMsgType("group");
-								userClient.sendEvent("chatevent", groupMsgdata);
+								userClient.sendEvent("chatEvent", groupMsgdata);
 					    	}
 					    }
 					} catch (JedisConnectionException e) {
@@ -294,7 +302,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 			if(e.state()==IdleState.WRITER_IDLE){
 				log.info("client heartbeat...client write idle...channel:"+ctx.channel().toString());
 				// 太长时间没发数据，发送心跳避免连接被断开
-				HeartBeatRequest request = new HeartBeatRequest(2, 32, 23, 34, 43);
+				HeartBeatRequest request = new HeartBeatRequest(2, 32, 23, 34);
 				ctx.channel().writeAndFlush(request);
 			}
 		}

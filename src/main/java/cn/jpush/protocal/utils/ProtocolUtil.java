@@ -355,6 +355,7 @@ public class ProtocolUtil {
 		int platform = ProtocolUtil.byteArrayToInt(in.readBytes(1).array());
 		int strKeyExtLen = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
 		String strKeyExt = new String(in.readBytes(strKeyExtLen).array(),"utf-8");
+		int bussiness = ProtocolUtil.byteArrayToInt(in.readBytes(1).array());
 		in.discardReadBytes();
 		PushRegRequestBean bean = new PushRegRequestBean(strKey, strApkVersion, strClientInfo, strDeviceToken, build_type, aps_type, platform, strKeyExt);
 		return bean;
@@ -369,17 +370,17 @@ public class ProtocolUtil {
 		String appkey = new String(in.readBytes(appkeyLen).array(),"utf-8");
 		int platform = ProtocolUtil.byteArrayToInt(in.readBytes(1).array());
 		in.discardReadBytes();
-		PushLoginRequestBean bean = new PushLoginRequestBean(from_resources, password, client_version, appkey, platform);
+		PushLoginRequestBean bean = new PushLoginRequestBean(11, from_resources, password, client_version, appkey, platform);
 		return bean;
 	}
 	
 	public static PushRegResponseBean getPushRegResponseBean(ByteBuf in) throws UnsupportedEncodingException{
 		int code = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
-		long uid = ProtocolUtil.byteArrayToLong(in.readBytes(8).array());
+		long uid = ProtocolUtil.byteArrayToLong(in.readBytes(8).array());//1153535375
 		int passwd_len = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
-		String passwd = new String(in.readBytes(passwd_len).array(),"utf-8");
+		String passwd = new String(in.readBytes(passwd_len).array(),"utf-8");//756371956
 		int regid_len = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
-		String regid = new String(in.readBytes(regid_len).array(),"utf-8");
+		String regid = new String(in.readBytes(regid_len).array(),"utf-8");//030670a7908
 		int deviceid_len = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
 		String deviceid = new String(in.readBytes(deviceid_len).array(),"utf-8");
 		in.discardReadBytes();
@@ -389,7 +390,7 @@ public class ProtocolUtil {
 	
 	public static PushLoginResponseBean getPushLoginResponseBean(ByteBuf in) throws UnsupportedEncodingException{
 		int code = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
-		int sid = ProtocolUtil.byteArrayToInt(in.readBytes(4).array());
+		int sid = ProtocolUtil.byteArrayToInt(in.readBytes(4).array());//2092
 		int server_version = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
 		int session_key_len = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
 		String session_key = new String(in.readBytes(session_key_len).array(),"utf-8");

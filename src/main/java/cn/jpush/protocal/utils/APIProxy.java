@@ -64,11 +64,11 @@ public final class APIProxy {
 	
 	public static void main(String[] argus) throws Exception{
 		HttpResponseWrapper result = null;
-		//result = APIProxy.register(APPKEY, "jpush001", "j001pwd"); 
-		result = APIProxy.getUserInfo(APPKEY, "jpush002");
+		//result = APIProxy.register(APPKEY, "jpush003", "j001pwd");
+		//result = APIProxy.getUserInfo(APPKEY, "jpush002");
 		//result = APIProxy.getGroupInfo("123456");
-		//result = APIProxy.getGroupList("85841");
-	   //result = APIProxy.getGroupMemberList("123456");
+		result = APIProxy.getGroupList("10000020");
+	   //result = APIProxy.getGroupMemberList("10000004");
 		System.out.println("result: "+result.isOK()+", "+result.content);
 	}
 	

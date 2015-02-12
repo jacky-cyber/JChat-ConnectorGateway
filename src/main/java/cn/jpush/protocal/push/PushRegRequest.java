@@ -27,6 +27,7 @@ public class PushRegRequest extends BaseRequest {
 			bos.write(ProtocolUtil.intToByteArray(content.getAps_type(), 1));
 			bos.write(ProtocolUtil.intToByteArray(content.getPlatform(), 1));
 			this.writeTLV2(bos, content.getStrKeyExt());
+			bos.write(ProtocolUtil.intToByteArray(1, 1));
 			this.mBody = bos.toByteArray();
 		} catch (Exception e) {
 			try {

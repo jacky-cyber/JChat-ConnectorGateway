@@ -26,10 +26,12 @@ import cn.jpush.protocal.im.req.proto.ImLogoutRequestProto;
 import cn.jpush.protocal.im.req.proto.ImSendGroupMsgRequestProto;
 import cn.jpush.protocal.im.req.proto.ImSendSingleMsgRequestProto;
 import cn.jpush.protocal.im.req.proto.ImUpdateGroupInfoRequestProto;
+import cn.jpush.protocal.push.HeartBeatRequest;
 import cn.jpush.protocal.push.PushLoginRequestBean;
 import cn.jpush.protocal.push.PushLogoutRequest;
 import cn.jpush.protocal.push.PushRegRequestBean;
 import cn.jpush.protocal.utils.Command;
+import cn.jpush.protocal.utils.ProtocolUtil;
 import cn.jpush.protocal.utils.SystemConfig;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -53,7 +55,10 @@ public class JPushTcpClient {
 	private static final int PORT = SystemConfig.getIntProperty("jpush.server.port"); 
 	private static final String HOST = SystemConfig.getProperty("jpush.server.host");
 	
-	private Bootstrap b; 
+	//private static final int PORT = SystemConfig.getIntProperty("im.server.port"); 
+	//private static final String HOST = SystemConfig.getProperty("im.server.host");
+	
+	private Bootstrap b;
 	private EventLoopGroup workGroup;
 
 	public JPushTcpClient(){
@@ -113,16 +118,19 @@ public class JPushTcpClient {
 		try {
 			//client.init();
 			log.info("success to connect the server.");
-			Channel channel = client.getChannel();
-			//PushLoginRequestBean req = new PushLoginRequestBean("android", "sdfqw23", 1, "appkey:123d32", 5);
-			PushRegRequestBean req = new PushRegRequestBean("ssfe", "1.0.1", "web im", "service token232", 1, 2, 5, "null ext");
-			//PushLogoutRequest req = new PushLogoutRequest(1, 23, 123, 43);
+			Channel channel = client.getChannel(); 
+			//PushLoginRequestBean req = new PushLoginRequestBean(1153535375, "a", ProtocolUtil.md5Encrypt("756371956"), 10800, "ebbd49c14a649e0fa4f01f3f", 0);
+			//PushRegRequestBean req = new PushRegRequestBean("b095c7a18792bd8b$$ $$com.android.mypushdemo180src$$ebbd49c14a649e0fa4f01f3f",
+			//																"1.8.0", "4.4.2,19$$SCH-I959$$I959KEUHND6$$ja3gduosctc$$developer-default$$1.8.0$$0$$1080*1920", 
+			//																"", 0, 0, 0, "1$$a72007a3fb00024bde5191f4f7c27702$$00000000$$b095c7a18792bd8b$$CC:3A:61:BD:CB:3D");
+			//PushLogoutRequest req = new PushLogoutRequest(7, 1, 0, 1153535375);
+			//HeartBeatRequest req = new HeartBeatRequest(2, 1, 0, 1153535375);
 			/******  im 业务     *********/
 			//  login
-			LoginRequestBean bean = new LoginRequestBean("walter","password123");
+			LoginRequestBean bean = new LoginRequestBean("1153535375","756371956");
 			List<Integer> cookie = new ArrayList<Integer>();
 			cookie.add(123);
-			//ImLoginRequestProto req = new ImLoginRequestProto(Command.JPUSH_IM.LOGIN, 1, 2324, SystemConfig.getProperty("jpush.appkey"), cookie, bean);
+			ImLoginRequestProto req = new ImLoginRequestProto(Command.JPUSH_IM.LOGIN, 1, 1153535375, "ebbd49c14a649e0fa4f01f3f", cookie, bean);
 			// logout
 		   /*LogoutRequestBean bean = new LogoutRequestBean("walter");
 			List<Integer> cookie = new ArrayList<Integer>();
@@ -139,10 +147,10 @@ public class JPushTcpClient {
 			cookie.add(123);
 			ImSendGroupMsgRequestProto req = new ImSendGroupMsgRequestProto(Command.JPUSH_IM.SENDMSG_GROUP, 1, 2312, SystemConfig.getProperty("jpush.appkey"), cookie, bean);*/
 			//* create group request
-			/*CreateGroupRequestBean bean = new CreateGroupRequestBean("group_001", "Jpush Group", 1, 2);
-			List<Integer> cookie = new ArrayList<Integer>();
-			cookie.add(123);
-			ImCreateGroupRequestProto req = new ImCreateGroupRequestProto(Command.JPUSH_IM.CREATE_GROUP, 1, 23332, SystemConfig.getProperty("jpush.appkey"), cookie, bean);*/
+			//CreateGroupRequestBean bean = new CreateGroupRequestBean("group_001", "Jpush Group", 1, 2);
+			//List<Integer> cookie = new ArrayList<Integer>();
+			//cookie.add(123);
+			//ImCreateGroupRequestProto req = new ImCreateGroupRequestProto(Command.JPUSH_IM.CREATE_GROUP, 1, 1153535375, "ebbd49c14a649e0fa4f01f3f", cookie, bean);
 			//* exit group message
 			/*ExitGroupRequestBean bean = new ExitGroupRequestBean(123456);
 			List<Integer> cookie = new ArrayList<Integer>();

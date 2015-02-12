@@ -7,12 +7,12 @@
 <link rel="stylesheet" type="text/css" href="../../res/css/bootstrap.css" />
 <link rel="stylesheet" type="text/css" href="../../res/css/emojify-emoticons.min.css" />
 </head>
-<body style="background:#404449">
+<body class="jpush-im-body" style="background-image:url('../../res/img/bg/imbg002.png') ;background-attachment:fixed;background-repeat:no-repeat;background-size:cover;-moz-background-size:cover;-webkit-background-size:cover;">
 
 	<div class="container" id="loginPanel" style="width:300px;">
         <h3 class="form-signin-heading">JPush IM</h3>
-        <input type="text" name="user_name" id="user_name" class="form-control" placeholder="用户名" required autofocus>
-        <input type="password" name="password" id="password" class="form-control" placeholder="密 码" >
+        <input type="text" name="user_name" id="user_name" class="form-control" placeholder="用户名" required autofocus/>
+        <input type="password" name="password" id="password" class="form-control" placeholder="密 码" />
         <button class="btn btn-lg btn-primary btn-block" id="login_submit">进入聊天</button>
     </div>
     
@@ -51,12 +51,13 @@
 					<a id="friendsTab" class="im-friend-tab" >好友</a>
   					<a id="groupsTab" class="im-group-tab">群组</a>
 				</div>
-				
+			
 			</div>
 			<div id="conversionlist" style="height: 493px; overflow-y: auto; overflow-x: auto; background:#F5F5F5"></div>
 			<div id="contractlist" style="height: 493px; overflow-y: auto; overflow-x: auto; background:#F5F5F5; display:none;"></div>
 			<div id="grouplist" style="height: 493px; overflow-y: auto; overflow-x: auto; background:#F5F5F5; display:none;"></div>
 		</div>
+	
 		<!-- 聊天页面 -->
 		<div style="height: 78px;" id="righttop"></div>
 		<div class="chatRight">
@@ -108,7 +109,7 @@
 					</div>
 				</div>
 				<div id="input_content" class="chat02_content">
-					<textarea id="talkInputId" name="talkInputId" style="resize: none; wrap:hard;"></textarea>
+					<textarea id="talkInputId" name="talkInputId" style="resize: none; wrap:hard; font-family:Georgia,Serif; font-size:16px;"></textarea>
 				</div>
 				<div class="chat02_bar">
 					<ul>

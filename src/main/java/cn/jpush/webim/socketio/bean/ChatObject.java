@@ -9,6 +9,7 @@ public class ChatObject {
 	private long toUid;
 	private String message;
 	private String msgType;
+	private String contentType;
 	public ChatObject(){};
 	public ChatObject(String userName, String message){
 		this.userName = userName;
@@ -62,5 +63,12 @@ public class ChatObject {
 	public void setToUid(long toUid) {
 		this.toUid = toUid;
 	}
+	public String getContentType() {
+		return contentType;
+	}
+	public void setContentType(String contentType) {
+		this.contentType = contentType;
+	}
+	
 	
 }	

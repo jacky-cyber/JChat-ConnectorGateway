@@ -77,6 +77,10 @@ public class ImProtocalClientDecoder extends ByteToMessageDecoder {
 						out.add(protocol);
 						break;
 						
+					case Command.JPUSH_ACK_RESP.COMMAND:
+						log.info("Jpush 心跳响应");
+						String message = new String(in.readBytes(pkg_len-20).array(),"utf-8");
+						break;
 					default:
 						log.info("未定义的消息类型.");
 						break;

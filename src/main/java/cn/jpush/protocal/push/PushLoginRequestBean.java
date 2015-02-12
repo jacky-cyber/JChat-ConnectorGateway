@@ -1,19 +1,28 @@
 package cn.jpush.protocal.push;
 
 public class PushLoginRequestBean {
+	private long uid;
 	private String from_resource;
 	private String passwdmd5;
 	private int client_version;
 	private String appkey;
 	private int playform;
 	public PushLoginRequestBean(){}
-	public PushLoginRequestBean(String from_resource, String passwdmd5,
+	public PushLoginRequestBean(long uid, String from_resource, String passwdmd5,
 			int client_version, String appkey, int playform) {
+		this.uid = uid;
 		this.from_resource = from_resource;
 		this.passwdmd5 = passwdmd5;
 		this.client_version = client_version;
 		this.appkey = appkey;
 		this.playform = playform;
+	}
+	
+	public long getUid() {
+		return uid;
+	}
+	public void setUid(long uid) {
+		this.uid = uid;
 	}
 	public String getFrom_resource() {
 		return from_resource;

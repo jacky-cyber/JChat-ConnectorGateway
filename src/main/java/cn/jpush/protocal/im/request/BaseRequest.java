@@ -17,7 +17,7 @@ public class BaseRequest {
 	protected long rid;         // 8B
 	protected int sid;          // 4B
 	protected long juid;        // 8B
-	protected int platform = 5;  // 表示平台
+	protected int platform = 0;  // 表示平台
 	
 	protected byte[] mHeader;
 	protected byte[] mBody;
