@@ -61,7 +61,7 @@
 	border: none;
 	font-size: 12px;
 	text-align: left;
-	font-family:Georgia,Serif;
+	font-family:"微软雅黑","Helvetica Neue",Helvetica,Arial,sans-serif;;
 }
 
 ul {
@@ -194,27 +194,29 @@ a:hover {
 
 .chat01 {
 	background: #F5F5F5;
-	filter:alpha(opacity=80);-moz-opacity:0.8;-khtml-opacity:0.8;opacity:0.8; 
+	background: rgba(255,255,255,0.1);
 }
 
 .chat02 {
 	background: #F5F5F5;
-	filter:alpha(opacity=80);-moz-opacity:0.8;-khtml-opacity:0.8;opacity:0.8; 
+	background: rgba(255,255,255,0.1);
 }
 
 .chat02_title {
 	background: url('../img/chat_title_bg.jpg') repeat-x 0 0;
-	height: 25px;
+	height: 50px;
 	position: relative;
-	filter:alpha(opacity=80);-moz-opacity:0.8;-khtml-opacity:0.8;opacity:0.8; 
+	background-color:black; 
+	background: rgba(255,255,255,0.6);
+	/* filter:alpha(opacity=80);-moz-opacity:0.8;-khtml-opacity:0.8;opacity:0.8; */
 }
-
+/* 
 .chat02_bar {
 	background: url('../img/chat_bar_bg.jpg') repeat-x 0 0;
 	height: 35px;
 	position: relative;
 	margin-bottom: 0px;
-	filter:alpha(opacity=80);-moz-opacity:0.8;-khtml-opacity:0.8;opacity:0.8; 
+	filter:alpha(opacity=80);-moz-opacity:0.8;-khtml-opacity:0.8;opacity:0.8;
 }
 
 .chat02_bar ul {
@@ -224,7 +226,7 @@ a:hover {
 
 .chat02_bar li {
 	position: absolute;
-}
+} */
 
 .chat03_title_t {
 	background: url('../img/icon.png') no-repeat 0px -370px;
@@ -240,21 +242,22 @@ a:hover {
 }
 
 .chat01_content {
-	height: 356px;
+	height: 466px;
 	width: 555px;
 	overflow-x: none;
 	overflow-y: auto;
 	background: #F5F5F5;
 	border-style:none;
-	font-family: Georgia,Serif;
+	font-family: "微软雅黑","Helvetica Neue",Helvetica,Arial,sans-serif;;
 	font-size: 15px;
+	background: rgba(255,255,255,0.1);
 	/* filter:alpha(opacity=60);-moz-opacity:0.6;-khtml-opacity:0.6;opacity:0.6; */
 }
 
-.chat02_content {
+/* .chat02_content {
 	height: auto;
-	filter:alpha(opacity=80);-moz-opacity:0.8;-khtml-opacity:0.8;opacity:0.8; 
-}
+	filter:alpha(opacity=60);-moz-opacity:0.6;-khtml-opacity:0.6;opacity:0.6; 
+} */
 
 .chat03_content_ul {
 	text-align: left;
@@ -282,15 +285,36 @@ a:hover {
 	resize: vertical;
 }
 
+.talkInputId {
+	width: 400px;
+	height: 36px;
+	color: black;
+	border: medium none;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+	display: block;
+	font-weight:bold;
+	font-size: 16px;
+	overflow-y: auto;
+	float:left;
+	padding: 5px;
+	resize: none;
+}
+/* 
 .chat02_content textarea {
+	color: black;
 	border: medium none;
 	display: block;
+	font-weight:bold;
+	font-size: 16px;
 	width: 552px;
-	height: 96px;
+	height: 50px;
 	overflow-y: auto;
 	padding: 5px;
 	resize: vertical;
-}
+	background: rgba(255,255,255,0.1);
+} */
 
 .chat03_name {
 	color: #333;
@@ -309,7 +333,7 @@ a:hover {
 	position: relative;
 	padding: 5px 10px 5px 5px;
 	word-break: break-all;
-	font-family: Georgia,Serif;
+	font-family: "微软雅黑","Helvetica Neue",Helvetica,Arial,sans-serif;;
 	font-size: 15px;
 }
 .chat-content-pic {
@@ -354,9 +378,9 @@ a:hover {
 	cursor: pointer;
 	float: left;
 	display: block;
-	width: 15px;
-	height: 15px;
-	margin: 5px 6px;
+	width: 25px;
+	height: 25px;
+	margin: 15px 6px;
 }
 
 .ctb01 {
@@ -397,16 +421,17 @@ a:hover {
 
 .wl_faces_box {
 	/* background: url('../img/wlf_bg.png') repeat 0 0; */
-	position: absolute;
+	position: relative;
 	width: 417px;
 	height: 170px;
 	bottom: 22px;
-	
+	margin-top: -190px;
+	margin-left: -4px;
 	display: none;
 }
 
 .wl_faces_content {
-	background: #fff;
+	background: #D0D4D5;
 	border: 1px #ccc solid;
 	width: 417px;
 	height: 170px;
@@ -528,7 +553,7 @@ a:hover {
 	height: 22px;
 }
 
-.wlf_icon {
+/* .wlf_icon {
 	background: url('../img/layer_arrow.png') no-repeat 0 0;
 	position: absolute;
 	width: 22px;
@@ -536,7 +561,7 @@ a:hover {
 	bottom: -4px;
 	_bottom: -11px;
 	left: 61px;
-}
+} */
 
 .chat03_content li label {
 	display: block;
@@ -592,7 +617,7 @@ label.offline {
 	text-align: center;
 	width:77px;
 	height: 30px;
-	margin-left:-6px;
+	margin-left:-3px;
 	padding-top:5px;
 	background-color: #EEF1F4;
 }
@@ -603,7 +628,7 @@ label.offline {
 	text-align: center;
 	width:77px;
 	height: 30px;
-	margin-left:-6px;
+	margin-left:-4px;
 	padding-top:5px;
 	background-color: #EEF1F4;
 }

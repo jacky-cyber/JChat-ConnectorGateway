@@ -7,10 +7,10 @@
 <link rel="stylesheet" type="text/css" href="../../res/css/bootstrap.css" />
 <link rel="stylesheet" type="text/css" href="../../res/css/emojify-emoticons.min.css" />
 </head>
-<body class="jpush-im-body" style="background-image:url('../../res/img/bg/imbg002.png') ;background-attachment:fixed;background-repeat:no-repeat;background-size:cover;-moz-background-size:cover;-webkit-background-size:cover;">
+<body class="jpush-im-body" style="background-image:url('../../res/img/bg/imbg001.png') ;background-attachment:fixed;background-repeat:no-repeat;background-size:cover;-moz-background-size:cover;-webkit-background-size:cover;">
 
 	<div class="container" id="loginPanel" style="width:300px;">
-        <h3 class="form-signin-heading">JPush IM</h3>
+        <h3 class="form-signin-heading">JPush IM</h3><br/>
         <input type="text" name="user_name" id="user_name" class="form-control" placeholder="用户名" required autofocus/>
         <input type="password" name="password" id="password" class="form-control" placeholder="密 码" />
         <button class="btn btn-lg btn-primary btn-block" id="login_submit">进入聊天</button>
@@ -82,10 +82,15 @@
 			<div class="chat02">
 				<div class="chat02_title">
 					<a class="chat02_title_btn ctb01" onclick="showEmotionDialog()"
-						title="选择表情"></a> <a class="chat02_title_btn ctb03" title="选择图片"
-						data-toggle="modal" onclick="showChooseFileDialog()"> </a> <!-- <a
+						title="选择表情"></a>
+					<a class="chat02_title_btn ctb03" title="选择图片"
+						data-toggle="modal" onclick="showChooseFileDialog()"></a> <!-- <a
 						class="chat02_title_btn ctb02" data-toggle="modal" data-target="#audioFileModal"
 						title="选择语音"><span></span></a> --> <label id="chat02_title_t"></label>
+						<div>
+							<textarea id="talkInputId" name="talkInputId" class="talkInputId"></textarea>
+							<button type="button" class="btn btn-info" onclick="sendText()">发送</button>
+						</div>
 					<div id="wl_faces_box" class="wl_faces_box">
 						 <div class="wl_faces_content">
 							<div class="title">
@@ -105,43 +110,20 @@
 								</ul>
 							</div>
 						</div>
-						<div class="wlf_icon"></div>
 					</div>
+					
 				</div>
-				<div id="input_content" class="chat02_content">
-					<textarea id="talkInputId" name="talkInputId" style="resize: none; wrap:hard; font-family:Georgia,Serif; font-size:16px;"></textarea>
+				<!-- <div id="input_content" class="chat02_content">
+					<textarea id="talkInputId" name="talkInputId" class="talkInputId"></textarea>
 				</div>
 				<div class="chat02_bar">
 					<ul>
 						<li style="right: 5px; top: 5px;"><img src="../../res/img/send_btn.jpg"
 							onclick="sendText()" /></li>
 					</ul>
-				</div>
+				</div> -->
 			</div>
-			<div id="picFileModal" class="modal fade" tabindex="-1" role="dialog"
-				aria-hidden="true" data-backdrop="true">
-				<div class="modal-dialog">
-    				<div class="modal-content">
-						<div class="modal-header">
-							<button type="button" class="close" data-dismiss="modal"
-								aria-hidden="true">&times;</button>
-							<h3>图片选择框</h3>
-						</div>
-						
-							<div id="fileContainer" class="modal-body">
-								<button id="fileChooseBtn" class="btn btn-primary">选择图片</button>
-								<!-- <input type="file" name="file" id="file" />
-								<input id="token" name="token" type="hidden"/>  
-								<input id="key" name="key" type="hidden"/>  -->
-							</div>
-							<!-- <div class="modal-footer">
-								<button id="fileSend" class="btn btn-primary" onclick="sendPicFile();" >发送</button>
-								<button id="cancelfileSend" class="btn" data-dismiss="modal">取消</button>
-							</div> -->
-						</form>
-					</div>
-				</div>
-			</div>
+			
 			<!-- <div id="audioFileModal" class="modal fade" tabindex="-1" role="dialog"
 				aria-hidden="true" data-backdrop="true">
 				<div class="modal-dialog">
@@ -176,7 +158,32 @@
 			</div>
 			
 		</div>
-
+		
+		<div id="picFileModal" class="modal fade" tabindex="-1" role="dialog"
+				aria-hidden="true" data-backdrop="true">
+				<div class="modal-dialog">
+    				<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal"
+								aria-hidden="true">&times;</button>
+							<h3>图片选择框</h3>
+						</div>
+						
+							<div id="fileContainer" class="modal-body">
+								<button id="fileChooseBtn" class="btn btn-primary">选择图片</button>
+								<!-- <input type="file" name="file" id="file" />
+								<input id="token" name="token" type="hidden"/>  
+								<input id="key" name="key" type="hidden"/>  -->
+							</div>
+							<!-- <div class="modal-footer">
+								<button id="fileSend" class="btn btn-primary" onclick="sendPicFile();" >发送</button>
+								<button id="cancelfileSend" class="btn" data-dismiss="modal">取消</button>
+							</div> -->
+						</form>
+					</div>
+				</div>
+		</div>
+		
 	</div> 
 	
 	

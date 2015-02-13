@@ -99,14 +99,12 @@ JPush.IM.getUploadTokenResp(function(data){
                    console.log(err);
             	},
             'UploadComplete': function() {
-                  console.log('upload done.');
                   var src = config.mediaUrl + '/' + mediaId + '?imageView2/2/h/100';
                	appendPicMsgSendByMe("<img onclick='zoomOut(this)' src="+ src +" width='100px;' height='70px;' style='cursor:pointer'></img>");
                	var toUserName = $('#'+curChatUserId).attr('username');
                	var message =  JPush.IM.buildMessageContent("single", "image", curChatUserId, toUserName,
 											uid, user_name, "time..", src);
                	JPush.IM.chatEvent(message);
-               	//JPush.IM.chatEvent({uid: uid, toUid: curChatUserId, userName:user_name, toUserName: toUserName, message: src, msgType:'single'});
             	},
             'Key': function(up, file) {
                 var key = mediaId;
@@ -239,62 +237,6 @@ $('#login_submit').click(function(){
 	JPush.IM.sendLoginEvent(options);
 });
 
-/*-----------------  一些工具函数 -----------------------*/
-var allowExt = ['jpg', 'gif', 'bmp', 'png', 'jpeg']; 
-var preivew = function(file, container){ 
-    try{ 
-        var pic =  new Picture(file, document.getElementById(container)); 
-    }catch(e){ 
-        alert(e); 
-    } 
-};
-//缩略图类定义 
-var Picture  = function(file, container){ 
-    var height = 0, 
-    widht  = 0, 
-    ext    = '', 
-    size   = 0, 
-    name   = '', 
-    path   =  ''; 
-    var self   = this; 
-    if(file){ 
-        name = file.value; 
-        if(window.navigator.userAgent.indexOf("MSIE")>=1){ 
-            file.select(); 
-            path = document.selection.createRange().text; 
-        }else if(window.navigator.userAgent.indexOf("Firefox")>=1){  
-            if(file.files){ 
-                //path =  file.files.item(0).getAsDataURL(); 
-                var path = window.URL.createObjectURL(file.files[0]);
-            }else{ 
-                path = file.value; 
-            } 
-        } 
-    }else{ 
-        throw '无效的文件'; 
-    } 
-   ext = name.substr(name.lastIndexOf("."), name.length); 
-   if(container.tagName.toLowerCase() != 'img'){ 
-        throw '不是一个有效的图片容器'; 
-        container.visibility = 'hidden'; 
-    } 
-   container.src = path; 
-   container.alt = name; 
-   container.style.visibility = 'visible'; 
-   height = container.height; 
-   width  = container.width; 
-   size   = container.fileSize; 
-   this.get = function(name){ 
-       return self[name]; 
-    } 
-   this.isValid = function(){ 
-       if(allowExt.indexOf(self.ext) !== -1){ 
-           throw '不允许上传该文件类型'; 
-           return false; 
-       } 
-    } 
-}; 
-/*----------------------------------------------------*/
 
 var showChooseFileDialog = function(){
 	//  获取图片上传token
@@ -709,6 +651,7 @@ var appendMsgSendByOthers = function(name, message, contact, chattype, contentTy
 			ele[0].setAttribute("class", "chat-content-p3");
 			ele[0].setAttribute("className", "chat-content-p3");
 			ele[0].style.backgroundColor = "#9EB867";
+			updateConversionRectMsg(contactDivId, message);  //  更新会话列表中最新的消息
 		} else if('image'==contentType){
 			message = "<img onclick='zoomOut(this)' src="+message+" width='100px;' height='70px;' style='cursor:pointer'></img>";
 			var eletext = "<p3 >" + message + "</p3>";
@@ -716,6 +659,7 @@ var appendMsgSendByOthers = function(name, message, contact, chattype, contentTy
 			ele[0].setAttribute("class", "chat-content-pic");
 			ele[0].setAttribute("className", "chat-content-pic");
 			ele[0].style.backgroundColor = "#9EB867";
+			updateConversionRectMsg(contactDivId, "图片文件");  //  更新会话列表中最新的消息
 		}
 		
 		
@@ -742,7 +686,6 @@ var appendMsgSendByOthers = function(name, message, contact, chattype, contentTy
 			document.getElementById(msgCardDivId).appendChild(msgContentDiv);
 		}
 		msgContentDiv.scrollTop = msgContentDiv.scrollHeight;
-		updateConversionRectMsg(contactDivId, message);  //  更新会话列表中最新的消息
 		emojify.run();
 		return lineDiv;
 	}
@@ -773,11 +716,23 @@ var appendMsgSendByOthers = function(name, message, contact, chattype, contentTy
 			lineDiv.appendChild(ele);
 		}
 			
-		var eletext = "<p3>" + message + "</p3>";
-		var ele = $(eletext);
-		ele[0].setAttribute("class", "chat-content-p3");
-		ele[0].setAttribute("className", "chat-content-p3");
-		ele[0].style.backgroundColor = "#9EB867";
+		var ele;
+		if('text'==contentType){
+			var eletext = "<p3>" + message + "</p3>";
+			ele = $(eletext);
+			ele[0].setAttribute("class", "chat-content-p3");
+			ele[0].setAttribute("className", "chat-content-p3");
+			ele[0].style.backgroundColor = "#9EB867";
+			updateConversionRectMsg(contactDivId, message);  //  更新会话列表中最新的消息
+		} else if('image'==contentType){
+			message = "<img onclick='zoomOut(this)' src="+message+" width='100px;' height='70px;' style='cursor:pointer'></img>";
+			var eletext = "<p3 >" + message + "</p3>";
+			ele = $(eletext);
+			ele[0].setAttribute("class", "chat-content-pic");
+			ele[0].setAttribute("className", "chat-content-pic");
+			ele[0].style.backgroundColor = "#9EB867";
+			updateConversionRectMsg(contactDivId, "图片文件");  //  更新会话列表中最新的消息
+		}
 		
 		for ( var j = 0; j < ele.length; j++) {
 			lineDiv.appendChild(ele[j]);
@@ -802,7 +757,6 @@ var appendMsgSendByOthers = function(name, message, contact, chattype, contentTy
 			document.getElementById(msgCardDivId).appendChild(msgContentDiv);
 		}
 		msgContentDiv.scrollTop = msgContentDiv.scrollHeight;
-		updateConversionRectMsg(contactDivId, message);  //  更新会话列表中最新的消息
 		emojify.run();
 		return lineDiv;
 	}
@@ -901,8 +855,10 @@ var appendPicMsgSendByMe = function(message) {
 	var msgContentDiv;
 	if(isSingleOrGroup=='single'){
 		msgContentDiv = getContactChatDiv(curChatUserId); 
+		updateConversionRectMsg(curChatUserId, "图片文件");
 	} else if(isSingleOrGroup=='group'){
 		msgContentDiv = getGroupChatDiv(curChatGroupId); 
+		updateConversionRectMsg(curChatGroupId, "图片文件");
 	}
 	lineDiv.style.textAlign = "right";
 	
@@ -1007,13 +963,13 @@ $('#file').on('change', function(){
 });
 
 //  发送图片消息
-var sendPicFile = function(){
+/*var sendPicFile = function(){
 	var myDate = new Date();
 	var mytime = myDate.getTime();
 	appendPicMsgSendByMe("<img onclick='zoomOut(this)' id="+mytime+" width='100px;' height='70px;' style='cursor:pointer'></img>");
 	preivew(picfile, mytime);
 	//$('#file').val('');
-}
+}*/
 
 //  点击浏览原图
 var zoomOut = function(obj){
