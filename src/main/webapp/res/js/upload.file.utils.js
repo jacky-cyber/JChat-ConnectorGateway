@@ -4,12 +4,12 @@
 var getFileType = function(file){
 	 var f = document.getElementById(file).files;  
      //名称  
-    console.log('name: '+f[0].name);  
+    //console.log('name: '+f[0].name);  
      //大小 字节  
-    console.log('size: '+f[0].size);  
+    //console.log('size: '+f[0].size);  
      //类型  
     var type = f[0].type.split('/')[0];
-    console.log('type: '+type);  
+    //console.log('type: '+type);  
 };
 
 var getResourceId = function(uid){

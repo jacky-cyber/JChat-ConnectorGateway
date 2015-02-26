@@ -252,6 +252,18 @@ a:hover {
 	/* filter:alpha(opacity=60);-moz-opacity:0.6;-khtml-opacity:0.6;opacity:0.6; */
 }
 
+.groupinfo_content {
+	height: 520px;
+	width: 555px;
+	overflow-x: none;
+	overflow-y: auto;
+	background: #F5F5F5;
+	border-style:none;
+	font-family: "微软雅黑","Helvetica Neue",Helvetica,Arial,sans-serif;;
+	font-size: 15px;
+	background: rgba(255,255,255,0.1);
+}
+
 /* .chat02_content {
 	height: auto;
 	filter:alpha(opacity=60);-moz-opacity:0.6;-khtml-opacity:0.6;opacity:0.6; 
@@ -596,51 +608,34 @@ label.offline {
 }
 
 /*********************/
-.im-conversion-tab{
-	font-size:13px;
-	text-decoration:none;
-	display:inline-block;
-	text-align: center;
-	width:77px;
-	height: 30px;
-	margin-left:15px;
-	padding-top:5px;
-	background-color: #EEF1F4;
+
+.im-conversion-tab:hover{
+	text-decoration: none;
+	cursor: pointer;
+}
+.im-friend-tab:hover{
+	text-decoration: none;
+	cursor: pointer;
+}
+.im-group-tab:hover{
+	text-decoration: none;
+	cursor: pointer;
 }
 
-.im-friend-tab{
-	font-size:13px;
-	text-decoration:none;
-	display:inline-block;
-	text-align: center;
-	width:77px;
+.listDetail {
+	display: block;
+	width: 260px;
 	height: 30px;
-	margin-left:-3px;
-	padding-top:5px;
-	background-color: #EEF1F4;
-}
-.im-group-tab{
-	font-size:13px;
-	text-decoration:none;
-	display:inline-block;
+	padding: 5px 10px 5px 0px;
+	background: none repeat scroll 0% 0%;
+	cursor: pointer;
+	color: #666;		
+   font: 14px/1.5 Helvetica,"微软雅黑","黑体",Arial,Tahoma;
 	text-align: center;
-	width:77px;
-	height: 30px;
-	margin-left:-4px;
-	padding-top:5px;
-	background-color: #EEF1F4;
 }
-.im-conversion-tab:HOVER{
-	text-decoration: none;
-	cursor: pointer;
-}
-.im-friend-tab:HOVER{
-	text-decoration: none;
-	cursor: pointer;
-}
-.im-group-tab:HOVER{
-	text-decoration: none;
-	cursor: pointer;
+
+.listDetail:hover {
+	background-color: #CED7DC;
 }
 
 /* #picFileModal {

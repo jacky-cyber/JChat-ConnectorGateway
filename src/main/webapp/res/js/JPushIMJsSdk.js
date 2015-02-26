@@ -7064,8 +7064,6 @@
                 },
 
                 replace: emojifyString,
-
-                // Main method
                 run: run
             };
         })();
@@ -7175,11 +7173,9 @@ JPushIM = (function() {
 	    };
 
 	    //  上传多媒体文件
-	    JPushIM.uploadMediaFile = function(uid, uploadToken, fileContainerId, browerButtonId, FilesAddedFunc, UploadCompleteFunc){
+	    JPushIM.uploadMediaFile = function(uid, uploadToken, fileContainerId, browerButtonId, FilesAddedFunc, UploadProgressFunc, UploadCompleteFunc){
 	    	var key = getResourceId(uid);
 	    	var mediaId = 'image/'+key;
-	    	console.log('media id: '+mediaId);
-	    	
 	    	//  上传图片到七牛
 	    	var uploader = Qiniu.uploader({
 	            runtimes: 'html5,flash,html4',    
@@ -7198,21 +7194,36 @@ JPushIM = (function() {
 	            chunk_size: '4mb',                
 	            auto_start: true,               
 	            init: {
-	            	   'FilesAdded': function(up, files) {
-	            		   FilesAddedFunc(files);
+	            	'BeforeUpload': function(up, files){
+	            			//  设置附带的参数
+	            		/*up.setOption({
+	            			'url': 'http://up.qiniu.com/',
+	            			'multipart': true,
+	            			'chunk_size': undefined,
+	            			'headers': {
+									'Authorization': 'UpToken ' + that.token
+								},
+	            			'multipart_params': multipart_params_obj
+	            			});*/
+	            		},
+	            	'FilesAdded': function(up, files) {
+	            		FilesAddedFunc(files);
 	            	    },
-	            	    'Error': function(up, err, errTip) {
-	                       console.log(err);
+	            	'UploadProgress': function(up, file) {
+	            	   UploadProgressFunc(file.percent);
+	        			},
+	            	'Error': function(up, err, errTip) {
+	                  console.log(err);
 	                	},
-	                	'UploadComplete': function() {
-	                     var src = JPushIM.mediaUrl + '/' + mediaId + '?imageView2/2/h/100';
-	                		UploadCompleteFunc(src);
+	               'UploadComplete': function() {
+	            	   var src = JPushIM.mediaUrl + '/' + mediaId + '?imageView2/2/h/100';
+	                	UploadCompleteFunc(src);
 	                	},
-	                	'Key': function(up, file) {
-	                    var key = mediaId;
-	                    return key
+	               'Key': function(up, file) {
+	            	   var key = mediaId;
+	                  return key
 	                	},
-	                	'FileUploaded': function(up, file, info) {
+	               'FileUploaded': function(up, file, info) {
 	                	
 	                	}
 	            	}
@@ -7257,7 +7268,7 @@ JPushIM = (function() {
 				':repeat:', ':repeat_one:', ':new:', ':top:', ':up:', ':cool:', ':free:', ':ng:', ':cinema:', ':koko:'
 		);
 		
-		/* emoji 相关配置  */
+		// emoji 相关配置  
 		emojify.setConfig({
 		    emojify_tag_type : 'img',         
 		    only_crawl_id    : null,            

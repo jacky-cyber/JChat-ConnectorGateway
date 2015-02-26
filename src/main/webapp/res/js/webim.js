@@ -10,6 +10,7 @@ var curChatUserSessionId  = null;  // websocket connection sessionId
 var msgCardDivId = "chat01";
 var talkToDivId = "talkTo";
 var isSingleOrGroup = "single";  //  标识是单聊还是群聊
+var curChatPanelId = null;
 var user_name = null;
 var uploadToken = null;
 
@@ -81,9 +82,14 @@ var loginResp = function(data){
 //上传多媒体文件时的响应函数
 var filesAddedFunc = function(files){
 	plupload.each(files, function(file) {
- 	   console.log(file);
+ 	   //console.log(file);
  	   $('#picFileModal').modal('hide');
 	});
+};
+
+var uploadProgressFunc = function(progress){
+	console.log('上传文件进度： '+progress);
+	//  添加自己想要的上传进度处理方式
 };
 
 var uploadCompleteFunc = function(src){
@@ -99,7 +105,7 @@ var uploadCompleteFunc = function(src){
 var getUploadTokenResp = function(data){
 	$('#picFileModal').modal('show');
 	uploadToken = data;
-	JPushIM.uploadMediaFile(uid, uploadToken, 'fileContainer', 'fileChooseBtn', filesAddedFunc, uploadCompleteFunc);
+	JPushIM.uploadMediaFile(uid, uploadToken, 'fileContainer', 'fileChooseBtn', filesAddedFunc, uploadProgressFunc, uploadCompleteFunc);
 };
 
 //   联系人响应处理
@@ -239,6 +245,9 @@ $('#conversionTab').click(function(){
 	$('#grouplist').css({
 		display:"none"
 	});
+	$(this).parent().attr('class', 'active');
+	$("#friendsTab").parent().attr('class', '');
+	$('#groupsTab').parent().attr('class', '');
 });
 $('#friendsTab').click(function(){
 	$("#contractlist").css({
@@ -250,6 +259,9 @@ $('#friendsTab').click(function(){
 	$('#grouplist').css({
 		display:"none"
 	});
+	$(this).parent().attr('class', 'active');
+	$("#conversionTab").parent().attr('class', '');
+	$('#groupsTab').parent().attr('class', '');
 });
 
 $('#groupsTab').click(function(){
@@ -262,7 +274,34 @@ $('#groupsTab').click(function(){
 	$("#contractlist").css({
 		display:"none"
 	});
+	$(this).parent().attr('class', 'active');
+	$("#conversionTab").parent().attr('class', '');
+	$('#friendsTab').parent().attr('class', '');
 });
+
+//  发起聊天 好友选择列表切换
+var showFriendsListPanel = function(obj){
+	$(obj).parent().attr('class', 'active');
+	$(obj).parent().siblings().attr('class', '');
+	$('#startChatGroupsList').css({
+		display: "none"
+	});
+	$('#startChatFriendsList').css({
+		display: "block"
+	});
+}
+
+//  发起聊天  群组选择列表切换
+var showGroupsListPanel = function(obj){
+	$(obj).parent().attr('class', 'active');
+	$(obj).parent().siblings().attr('class', '');
+	$('#startChatFriendsList').css({
+		display: "none"
+	});
+	$('#startChatGroupsList').css({
+		display: "block"
+	});
+}
 
 //  回车键发送消息
 function stopDefault(e) {  
@@ -317,12 +356,12 @@ function sendText(){
     	addToConversionList(curChatUserId);  //   添加该会话到会话列表
     	updateConversionRectMsg(curChatUserId, content);
     	var message =  JPushIM.buildMessageContent("single", "text", curChatUserId, toUserName,
-					uid, user_name, "time..", content);
+					uid, user_name, "time..", content);	
     	JPushIM.chatEvent(message);
     } else if(isSingleOrGroup=='group'){
     	addToConversionList(curChatGroupId);  //   添加该会话到会话列表
     	updateConversionRectMsg(curChatGroupId, content);
-    	var message =  JPushIM.buildMessageContent("group", "text", curChatGroupId, toUserName,
+    	var message = JPushIM.buildMessageContent("group", "text", curChatGroupId, toUserName,
 				uid, user_name, "time..", content);
     	JPushIM.chatEvent(message);
      } 
@@ -911,8 +950,37 @@ var zoomOut = function(obj){
 	$('#zoomOutPicView').modal('show');
 }
 
-//  显示好友列表
-var showFriendsList = function(){
+//  查看群成员,显示群成员面板
+var showGroupMembers = function(){
+	$('.chat01').hide();
+	$('.chat02').hide();
+	$('#groupInfo')
+}
+
+//  隐藏群成员信息，显示之前的聊天面板
+var backToChat = function(){
+	$('#groupInfo')
+	$('.chat01').show();
+	$('.chat02').show();
+}
+
+//  添加好友
+var addNewFriends = function(){
+	$('#addNewFriendModal').modal('show');
+}
+
+//  发送添加好友请求
+var sendAddFriendCmd = function(){
+// add friend logic
+}
+
+//  发起聊天
+var startNewChat = function(){
+	$('#startNewChatModal').modal('show');
+}
+
+// 发送发起聊天请求
+var sendStartNewChatCmd = function(){
 	
 }
 
