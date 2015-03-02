@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>WebIM-JPush</title>
+<title>JPushIM 网页版</title>
 <link rel="stylesheet" type="text/css" href="../../res/css/webim.css" />
 <link rel="stylesheet" type="text/css" href="../../res/css/bootstrap.css" />
 <link rel="stylesheet" type="text/css" href="../../res/css/emojify-emoticons.min.css" />
@@ -47,7 +47,7 @@
 			</div>
 			<div id="leftmiddle">
   				<ul class="nav nav-tabs nav-justified">
-					<li role="presentation" class="active"><a id="conversionTab" class="im-conversion-tab" >会话<span class="badge">42</span></a></li>
+					<li role="presentation" class="active"><a id="conversionTab" class="im-conversion-tab" >会话<span class="badge"></span></a></li>
   					<li role="presentation"><a id="friendsTab" class="im-friend-tab" >好友</a></li>
   					<li role="presentation"><a id="groupsTab" class="im-group-tab">群组</a></li>
 				</ul>
@@ -62,15 +62,15 @@
 				    </li>
 				</ul>
 			</div>
-			<div id="conversionlist" style="height: 450px; overflow-y: auto; overflow-x: auto; background:#F5F5F5"></div>
-			<div id="contractlist" style="height: 450px; overflow-y: auto; overflow-x: auto; background:#F5F5F5; display:none;"></div>
-			<div id="grouplist" style="height: 450px; overflow-y: auto; overflow-x: auto; background:#F5F5F5; display:none;"></div>
+			<div id="conversionlist" style="height: 450px; overflow-y: auto; overflow-x: auto; background-image: url('../../res/img/bg/tabbg.jpg')"></div>
+			<div id="contractlist" style="height: 450px; overflow-y: auto; overflow-x: auto;  display:none;"></div>
+			<div id="grouplist" style="height: 450px; overflow-y: auto; overflow-x: auto; display:none;"></div>
 		</div>
 	
 		<!-- 聊天页面 -->
 		<div style="height: 78px;" id="righttop"></div>
 		<div class="chatRight">
-			<!--  -->
+			<!-- 群组信息显示面板  -->
 			<div id="groupInfo" class="chat01" style="display: none;">
 				<div class="chat01_title">
 					<ul class="talkTo">
@@ -82,10 +82,24 @@
 					</ul>
 				</div>
 				<div id="groupMemberInfoPanel" class="groupinfo_content">
-					显示群信息
+					<div class="input-group">
+					  <span class="input-group-addon" id="basic-addon1">群组名称</span>
+					  <input type="text" class="form-control" placeholder="这里显示群聊名称" aria-describedby="basic-addon1"/>
+					</div>
+					<div id="groupMemberInfoList" class="groupMemberInfoList">
+						<ul id="groupMemberInfoListUL">
+							<li id='user001' onclick="showMemberInfo();"><img src="../../res/img/head/header2.jpg"/><p class="profileName">成员1</p></li>
+							<li id='user002' onclick="showMemberInfo();"><img src="../../res/img/head/header.jpg"/><p class="profileName">成员2</p></li>
+							<li id='user003' onclick="showMemberInfo();"><img src="../../res/img/head/contact_normal.png"/><p class="profileName">成员3</p></li>
+							<li id='user004' onclick="showMemberInfo();"><img src="../../res/img/head/header2.jpg"/><p class="profileName">成员4</p></li>
+							<li id='user005' onclick="showMemberInfo();"><img src="../../res/img/head/header2.jpg"/><p class="profileName">成员5</p></li>
+							<li id='user006' onclick="showMemberInfo();"><img src="../../res/img/head/header2.jpg"/><p class="profileName">成员6</p></li>
+							<li id='user007' onclick="addNewMember();"><img src="../../res/img/head/add.png"/><p class="profileName">加人</p></li>
+						</ul>
+					</div>
 				</div>
 			</div>
-			<!--  -->
+			<!--  end of group info  -->
 			<div id="chat01" class="chat01">
 				<div class="chat01_title">
 					<ul class="talkTo">
@@ -254,6 +268,58 @@
 						<div class="modal-footer">
 							<button id="startNewChatConfirm" class="btn btn-primary" onclick="sendStartNewChatCmd();" data-dismiss="modal">确定</button>
 							<button id="cancelfileSend" class="btn" data-dismiss="modal">取消</button>
+						</div>
+					</div>
+				</div>
+		</div>
+		
+		<div id="addNewGroupMembersModal" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog"
+				aria-hidden="true" data-backdrop="true">
+				<div class="modal-dialog modal-sm">
+    				<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal"
+								aria-hidden="true">&times;</button>
+							<h3>添加参与人</h3>
+						</div>
+						<div class="modal-body">
+							<div class="row" style="height:200px; overflow-y:scroll;">
+  								<div id="startChatFriendsList" class="col-md-5">
+  								 	<span class="listDetail"><input type="checkbox"/> 测试用户1</span>
+									<span class="listDetail"><input type="checkbox"/> 测试用户2</span>
+									<span class="listDetail"><input type="checkbox"/> 测试用户3</span>
+									<span class="listDetail"><input type="checkbox"/> 测试用户4</span>
+									<span class="listDetail"><input type="checkbox"/> 测试用户5</span>
+									<span class="listDetail"><input type="checkbox"/> 测试用户6</span>
+  								</div>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button id="startNewChatConfirm" class="btn btn-primary" onclick="sendStartNewChatCmd();" data-dismiss="modal">确定</button>
+							<button id="cancelfileSend" class="btn" data-dismiss="modal">取消</button>
+						</div>
+					</div>
+				</div>
+		</div>
+		
+		<div id="showGroupMemberDetailInfoModal" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog"
+				aria-hidden="true" data-backdrop="true">
+				<div class="modal-dialog modal-sm">
+    				<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal"
+								aria-hidden="true">&times;</button>
+							<h3>详细资料</h3>
+						</div>
+						<div class="modal-body">
+							<div class="row">
+								<img class='groupMemberDetailAvator' src="../../res/img/head/header2.jpg"/>
+								<p class="groupMemberDetailName">成员1</p><br/>
+								<p class="groupMemberDetailLocation">广东 深圳</p>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button id="startNewChatConfirm" class="btn btn-primary" onclick="addToContracterCmd();" data-dismiss="modal">保存到通讯录</button>
 						</div>
 					</div>
 				</div>

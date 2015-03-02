@@ -13,6 +13,7 @@ var isSingleOrGroup = "single";  //  标识是单聊还是群聊
 var curChatPanelId = null;
 var user_name = null;
 var uploadToken = null;
+var unreadMsgCount = 0;
 
 //   建立连接
 JPushIM.connect();
@@ -202,6 +203,7 @@ var getGroupsList = function(data){
 
 //  聊天消息处理
 var chatEventResp = function(data){
+	updateAddUnreadMsgInfo();
 	appendMsgSendByOthers(data.userName, data.message, data.toUserName, data.msgType, data.contentType);
 };
 
@@ -212,7 +214,7 @@ var disconnectResp = function(data){
 };
 
 //   自定义相关的业务逻辑函数
-//绑定用户登陆处理
+//   绑定用户登陆处理
 $('#login_submit').click(function(){
 	console.log('user login submit.');
 	$('#loginPanel').css({"display":"none"});
@@ -236,9 +238,10 @@ var showChooseFileDialog = function(){
 	
 //  左边栏仿tab处理
 $('#conversionTab').click(function(){
-	$("#conversionlist").css({
+	/*$("#conversionlist").css({
 		display:"block"
-	});
+	});*/
+	$("#conversionlist").fadeIn('normal');
 	$("#contractlist").css({
 		display:"none"
 	});
@@ -250,9 +253,10 @@ $('#conversionTab').click(function(){
 	$('#groupsTab').parent().attr('class', '');
 });
 $('#friendsTab').click(function(){
-	$("#contractlist").css({
+	/*$("#contractlist").css({
 		display:"block"
-	});
+	});*/
+	$("#contractlist").fadeIn('normal');
 	$("#conversionlist").css({
 		display:"none"
 	});
@@ -265,9 +269,10 @@ $('#friendsTab').click(function(){
 });
 
 $('#groupsTab').click(function(){
-	$('#grouplist').css({
+	/*$('#grouplist').css({
 		display:"block"
-	});
+	});*/
+	$('#grouplist').fadeIn('normal');
 	$("#conversionlist").css({
 		display:"none"
 	});
@@ -369,6 +374,7 @@ function sendText(){
 	 
 //   添加会话到会话列表中
 var addToConversionList = function(id){
+	$('#conversionlist').css('background-image', '');
 	var length = $("#conversionlistUL li").length;
 	for(var i=0; i<length; i++){  //  检查是否添加重复项
 		 var lielem = $("#conversionlistUL li")[i];
@@ -380,7 +386,7 @@ var addToConversionList = function(id){
 	var node = $('#'+id).clone(true);
 	var newId = 'conversion-'+$(node).attr('id');
 	$(node).attr('id', newId);
-	
+	$(node).attr('unreadcount', 0);
 	//  添加显示最近的消息
 	var recr_msg_elem = document.createElement("span");
 	$(recr_msg_elem).attr({
@@ -571,6 +577,7 @@ var hiddenGroupChatDiv = function(chatGroupId) {
 
 // 切换联系人聊天窗口div
 var chooseContactDivClick = function(li) {
+	hideGroupInfoPanel();
 	var chatUserId = li.id;
 	var indexPos = chatUserId.indexOf("conversion");
 	if(indexPos!=-1){
@@ -771,15 +778,27 @@ var appendMsgSendByOthers = function(name, message, contact, chattype, contentTy
 		return lineDiv;
 	}
 };
+
+//  隐藏群组信息面板
+var hideGroupInfoPanel = function(){
+	$('#groupInfo').css('display', 'none');
+	$('#chat01.chat01').slideDown();
+	$('.chat02').slideDown();
+}
 	
 //  显示未读消息标记
 var showUnreadMsgMark = function(id){
 	$('#conversionlist'+' li#conversion-'+id+' img.unread').css("visibility","visible");
+	var count = +$('#conversionlist'+' li#conversion-'+id).attr('unreadcount');
+	$('#conversionlist'+' li#conversion-'+id).attr('unreadcount', ++count);
 }
 
 //	取消未读消息标记
 var hideUnreadMsgMark = function(id){
 	$('#conversionlist'+' li#conversion-'+id+' img.unread').css("visibility","hidden");
+	var count = +$('#conversionlist'+' li#conversion-'+id).attr('unreadcount');
+	updateReduceUnreadMsgInfo(count);
+	$('#conversionlist'+' li#conversion-'+id).attr('unreadcount', 0);
 }
 
 //  添加自己发送的聊天信息到显示面板
@@ -841,7 +860,7 @@ var appendPicMsgSendByMe = function(message) {
 	var time = date.toLocaleTimeString();
 	var headstr = [ "<p1> 我 <span></span>" + "   </p1>",
 			"<p2>" + time + "<b></b><br/></p2>" ];
-	var header = $(headstr.join(''))
+	var header = $(headstr.join(''));
 
 	var lineDiv = document.createElement("div");
 	var lineDivStyle = document.createAttribute("style");
@@ -952,16 +971,16 @@ var zoomOut = function(obj){
 
 //  查看群成员,显示群成员面板
 var showGroupMembers = function(){
-	$('.chat01').hide();
-	$('.chat02').hide();
-	$('#groupInfo')
+	$('#chat01.chat01').slideUp();
+	$('.chat02').slideUp();
+	$('#groupInfo').slideDown();
 }
-
+ 
 //  隐藏群成员信息，显示之前的聊天面板
 var backToChat = function(){
-	$('#groupInfo')
-	$('.chat01').show();
-	$('.chat02').show();
+	$('#groupInfo').slideUp();
+	$('#chat01.chat01').slideDown();
+	$('.chat02').slideDown();
 }
 
 //  添加好友
@@ -982,6 +1001,54 @@ var startNewChat = function(){
 // 发送发起聊天请求
 var sendStartNewChatCmd = function(){
 	
+}
+
+//  添加群组新成员
+var addNewMember = function(){
+	$('#addNewGroupMembersModal').modal('show');
+}
+
+//  显示群成员信息
+var showMemberInfo = function(){
+	$('#showGroupMemberDetailInfoModal').modal('show');
+}
+
+//  更新未读消息数显示(增加未读消息数量)
+var updateAddUnreadMsgInfo = function(){
+	$('.badge').html(++unreadMsgCount);
+	notifyUnreadMsg();
+}
+
+//  更新未读消息数显示(减少未读消息数量)
+var updateReduceUnreadMsgInfo = function(count){
+	unreadMsgCount -= count;
+	if(unreadMsgCount != 0){
+		$('.badge').html(unreadMsgCount);
+	} else {
+		$('.badge').html('');
+	}
+}
+
+//  未读消息滚动提示
+var step=0;
+var _title=document.title;
+var intervalId;
+var flashTitle = function(){
+	if(unreadMsgCount==0){
+		clearInterval(intervalId);
+		document.title=_title;
+		return;
+	}
+	var space='【有'+unreadMsgCount+'条未读消息】';
+	step++;  
+	if (step==3) {step=1}  
+	if (step==1) {document.title=space}  
+	if (step==2) {document.title=_title} 
+}
+
+//  消息提示
+var notifyUnreadMsg = function(){ 
+	intervalId = setInterval("flashTitle()",1500);
 }
 
 //  表情面板切换---> 符号表情
