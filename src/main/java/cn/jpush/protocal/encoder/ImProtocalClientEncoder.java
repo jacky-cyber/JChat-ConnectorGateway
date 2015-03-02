@@ -75,9 +75,11 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			log.info("im login request...");
 			ImLoginRequestProto req = (ImLoginRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
-			ImRequest request = new ImRequest(1, 1, 2092, req.getUid(), reqProtobuf);
+			ImRequest request = new ImRequest(1, 1, 2092, 2570, reqProtobuf);
 			byte[] data = request.getRequestPackage();
 			log.info("im login pkg size: "+data.length);
+			log.info("im login pkg head data, cmd: "+request.getCommand()+", juid:"+request.getJuid());
+			log.info("im login protobuf data, cmd: "+req.getCmd()+", uid: "+req.getUid());
 			out.writeBytes(data);
 		}
 		if(msg instanceof ImLogoutRequestProto){  // im logout

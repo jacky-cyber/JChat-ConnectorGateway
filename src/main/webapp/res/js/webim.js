@@ -40,6 +40,9 @@ JPushIM.init({
 	onChatEvent : function(data){
 		chatEventResp(data);
 	},
+	onAddFriendCmd : function(data){
+		addFriendCmdResp(data);
+	},
 	onDisConnect : function(data){
 		disconnectResp(data);
 	},
@@ -206,6 +209,11 @@ var chatEventResp = function(data){
 	updateAddUnreadMsgInfo();
 	appendMsgSendByOthers(data.userName, data.message, data.toUserName, data.msgType, data.contentType);
 };
+
+//  处理添加好友请求的响应
+var addFriendCmdResp = function(data){
+	// to do
+}
 
 //  网络断开处理
 var disconnectResp = function(data){
@@ -971,6 +979,8 @@ var zoomOut = function(obj){
 
 //  查看群成员,显示群成员面板
 var showGroupMembers = function(){
+	//  拉取群成员信息
+	// curChatGroupId
 	$('#chat01.chat01').slideUp();
 	$('.chat02').slideUp();
 	$('#groupInfo').slideDown();
@@ -990,7 +1000,8 @@ var addNewFriends = function(){
 
 //  发送添加好友请求
 var sendAddFriendCmd = function(){
-// add friend logic
+	var friend_name = $('#friend_username').val();
+	JPushIM.addFriendCmd({'from':curUserId, 'to':friend_name});
 }
 
 //  发起聊天

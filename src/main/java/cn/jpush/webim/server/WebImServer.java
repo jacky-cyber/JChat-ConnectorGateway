@@ -33,6 +33,7 @@ import cn.jpush.socketio.listener.ConnectListener;
 import cn.jpush.socketio.listener.DataListener;
 import cn.jpush.socketio.listener.DisconnectListener;
 import cn.jpush.webim.common.UidResourcesPool;
+import cn.jpush.webim.socketio.bean.AddFriendCmd;
 import cn.jpush.webim.socketio.bean.ChatMessage;
 import cn.jpush.webim.socketio.bean.ChatObject;
 import cn.jpush.webim.socketio.bean.ContracterObject;
@@ -282,6 +283,24 @@ public class WebImServer {
 				client.sendEvent("getUploadToken", token);
 			}
 		 });
+		 
+		 //  添加好友事件
+		 server.addEventListener("addFriendCmd", AddFriendCmd.class, new DataListener<AddFriendCmd>(){
+			@Override
+			public void onData(SocketIOClient client, AddFriendCmd data,
+					AckRequest ackSender) throws Exception {
+				log.info("add new friend cmd, from: "+data.getFrom()+", to: "+data.getTo());
+			}
+		 });
+		 
+		//  获取群组成员
+		server.addEventListener("getGroupMemberEvent", String.class, new DataListener<String>(){
+		@Override
+			public void onData(SocketIOClient client, String data,
+					AckRequest ackSender) throws Exception {
+				log.info("get group member info, group id: "+data);
+			}
+		});
 		 
 		 server.start();
 		 Thread.sleep(Integer.MAX_VALUE);

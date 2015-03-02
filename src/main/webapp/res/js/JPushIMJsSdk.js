@@ -7120,6 +7120,10 @@ JPushIM = (function() {
 			  options.onChatEvent(data);
 			  emojify.run();
 		  });
+		  this.socket.on('addFriendCmd', function(data){
+			  options.onAddFriendCmd(data);
+		  });
+		  
 		  this.socket.on('disconnect', function(data){
 			  options.onDisConnect(data);
 		  });
@@ -7167,6 +7171,9 @@ JPushIM = (function() {
 	   JPushIM.chatEvent = function(options) {
 		   this.socket.emit('chatEvent', options);
 		   emojify.run();
+	    };
+	   JPushIM.addFriendCmd = function(options){
+		   this.socket.emit('addFriendCmd', options);
 	    };
 	   JPushIM.disconnectEvent = function(options) {
 	        //  待定

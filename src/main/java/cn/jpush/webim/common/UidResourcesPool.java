@@ -116,7 +116,9 @@ class ProduceUidResourcesThread implements Runnable{
 		channel = jpushClient.getChannel();
 		// send jpush reg quest batch
 		for(int i=0; i<UidResourcesPool.DEFAULT_CAPACITY; i++){
-			PushRegRequestBean request = new PushRegRequestBean("ssfe", "1.0.1", "web im", "service token232", 1, 2, 5, "null ext");
+			PushRegRequestBean request = new PushRegRequestBean("b095c7a18792bd8b$$ $$com.android.mypushdemo180src$$ebbd49c14a649e0fa4f01f3f",
+					"1.8.0", "4.4.2,19$$SCH-I959$$I959KEUHND6$$ja3gduosctc$$developer-default$$1.8.0$$0$$1080*1920", 
+					"", 0, 0, 0, "1$$a72007a3fb00024bde5191f4f7c27702$$00000000$$b095c7a18792bd8b$$CC:3A:61:BD:CB:3D");
 			channel.writeAndFlush(request);
 		}
 		/*try {

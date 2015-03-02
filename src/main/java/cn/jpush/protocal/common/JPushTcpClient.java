@@ -33,6 +33,7 @@ import cn.jpush.protocal.push.PushRegRequestBean;
 import cn.jpush.protocal.utils.Command;
 import cn.jpush.protocal.utils.ProtocolUtil;
 import cn.jpush.protocal.utils.SystemConfig;
+import cn.jpush.webim.common.UidResourcesPool;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -52,11 +53,11 @@ import io.netty.handler.timeout.IdleStateHandler;
 public class JPushTcpClient {
 	private static Logger log = (Logger) LoggerFactory.getLogger(JPushTcpClient.class);
 	//private static final String HOST = "183.232.38.229";
-	private static final int PORT = SystemConfig.getIntProperty("jpush.server.port"); 
-	private static final String HOST = SystemConfig.getProperty("jpush.server.host");
+	//private static final int PORT = SystemConfig.getIntProperty("jpush.server.port"); 
+	//private static final String HOST = SystemConfig.getProperty("jpush.server.host");
 	
-	//private static final int PORT = SystemConfig.getIntProperty("im.server.port"); 
-	//private static final String HOST = SystemConfig.getProperty("im.server.host");
+	private static final int PORT = SystemConfig.getIntProperty("im.server.port"); 
+	private static final String HOST = SystemConfig.getProperty("im.server.host");
 	
 	private Bootstrap b;
 	private EventLoopGroup workGroup;
@@ -122,15 +123,16 @@ public class JPushTcpClient {
 			//PushLoginRequestBean req = new PushLoginRequestBean(1153535375, "a", ProtocolUtil.md5Encrypt("756371956"), 10800, "ebbd49c14a649e0fa4f01f3f", 0);
 			//PushRegRequestBean req = new PushRegRequestBean("b095c7a18792bd8b$$ $$com.android.mypushdemo180src$$ebbd49c14a649e0fa4f01f3f",
 			//																"1.8.0", "4.4.2,19$$SCH-I959$$I959KEUHND6$$ja3gduosctc$$developer-default$$1.8.0$$0$$1080*1920", 
-			//																"", 0, 0, 0, "1$$a72007a3fb00024bde5191f4f7c27702$$00000000$$b095c7a18792bd8b$$CC:3A:61:BD:CB:3D");
+			//															"", 0, 0, 0, "1$$a72007a3fb00024bde5191f4f7c27702$$00000000$$b095c7a18792bd8b$$CC:3A:61:BD:CB:3D");
+			//UidResourcesPool.getUid();
 			//PushLogoutRequest req = new PushLogoutRequest(7, 1, 0, 1153535375);
 			//HeartBeatRequest req = new HeartBeatRequest(2, 1, 0, 1153535375);
 			/******  im 业务     *********/
 			//  login
-			LoginRequestBean bean = new LoginRequestBean("1153535375","756371956");
+			LoginRequestBean bean = new LoginRequestBean("kkk","kkk");
 			List<Integer> cookie = new ArrayList<Integer>();
-			cookie.add(123);
-			ImLoginRequestProto req = new ImLoginRequestProto(Command.JPUSH_IM.LOGIN, 1, 1153535375, "ebbd49c14a649e0fa4f01f3f", cookie, bean);
+			//cookie.add(123);
+			ImLoginRequestProto req = new ImLoginRequestProto(Command.JPUSH_IM.LOGIN, 1, 0, "4f7aef34fb361292c566a1cd", cookie, bean);
 			// logout
 		   /*LogoutRequestBean bean = new LogoutRequestBean("walter");
 			List<Integer> cookie = new ArrayList<Integer>();
