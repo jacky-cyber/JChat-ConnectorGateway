@@ -28,7 +28,7 @@ public final class APIProxy {
 		data.put("password", password);
 	   data.put("appkey", appkey);
 		String content = gson.toJson(data);
-		String url = API_URL+"/users/";
+		String url = API_URL+"/users";
 		HttpResponseWrapper result = NativeHttpClient.doPost(url, content);
 		return result;
 	}
@@ -64,10 +64,10 @@ public final class APIProxy {
 	
 	public static void main(String[] argus) throws Exception{
 		HttpResponseWrapper result = null;
-		//result = APIProxy.register(APPKEY, "jpush003", "j001pwd");
-		//result = APIProxy.getUserInfo(APPKEY, "jpush002");
-		//result = APIProxy.getGroupInfo("123456");
-		result = APIProxy.getGroupList("10000020");
+		//result = APIProxy.register(APPKEY, "jpush003", "jpush003");
+		//result = APIProxy.getUserInfo(APPKEY, "jpush001");
+		result = APIProxy.getGroupInfo("72");
+		//result = APIProxy.getGroupList("55");
 	   //result = APIProxy.getGroupMemberList("10000004");
 		System.out.println("result: "+result.isOK()+", "+result.content);
 	}

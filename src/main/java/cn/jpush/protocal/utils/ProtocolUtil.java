@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.Random;
 
 import jpushim.s2b.JpushimSdk2B.AddGroupMember;
+import jpushim.s2b.JpushimSdk2B.ChatMsgSync;
 import jpushim.s2b.JpushimSdk2B.CreateGroup;
 import jpushim.s2b.JpushimSdk2B.DelGroupMember;
 import jpushim.s2b.JpushimSdk2B.ExitGroup;
@@ -467,6 +468,11 @@ public class ProtocolUtil {
 	public static UpdateGroupInfo getUpdateGroupInfo(Packet protocol){
 		UpdateGroupInfo updateGroupInfoBean = protocol.getBody().getUpdateGroupInfo();
 		return updateGroupInfoBean;
+	}
+	
+	public static ChatMsgSync getChatMsgSync(Packet protocol){
+		ChatMsgSync chatMsgSync = protocol.getBody().getChatMsg();
+		return chatMsgSync;
 	}
 	
 }

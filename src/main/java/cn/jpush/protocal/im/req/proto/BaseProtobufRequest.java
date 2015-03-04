@@ -79,5 +79,21 @@ public class BaseProtobufRequest {
 	public void setCookie(List<Integer> cookie) {
 		this.cookie = cookie;
 	}
+
+	public String getAppkey() {
+		return appkey;
+	}
+
+	public void setAppkey(String appkey) {
+		this.appkey = appkey;
+	}
+
+	public Object getBean() {
+		return bean;
+	}
+
+	public void setBean(Object bean) {
+		this.bean = bean;
+	}
 	
 }

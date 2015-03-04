@@ -19,7 +19,9 @@ public class ImSendSingleMsgRequest extends BaseRequest {
 	public void buidRequestBody() {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		try{
-			bos.write(this.protobuf.toByteArray());
+			byte[] bodyBytes = this.protobuf.toByteArray();
+			bos.write(ProtocolUtil.intToByteArray(bodyBytes.length, 2));
+			bos.write(bodyBytes);
 			this.mBody = bos.toByteArray();
 		} catch (Exception e) {
 			try {

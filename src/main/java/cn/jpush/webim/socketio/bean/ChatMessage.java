@@ -2,9 +2,11 @@ package cn.jpush.webim.socketio.bean;
 
 public class ChatMessage {
 	private String version;
+	private int sid;
+	private long juid;
 	private String show_type;
 	private String target_type;
-	private long target_id;
+	private String target_id;
 	private String target_name;
 	private String from_type;
 	private long from_id;
@@ -32,10 +34,10 @@ public class ChatMessage {
 	public void setTarget_type(String target_type) {
 		this.target_type = target_type;
 	}
-	public long getTarget_id() {
+	public String getTarget_id() {
 		return target_id;
 	}
-	public void setTarget_id(long target_id) {
+	public void setTarget_id(String target_id) {
 		this.target_id = target_id;
 	}
 	public String getTarget_name() {
@@ -93,6 +95,19 @@ public class ChatMessage {
 		this.msg_body = msg_body;
 	}
 	
+	public int getSid() {
+		return sid;
+	}
+	public void setSid(int sid) {
+		this.sid = sid;
+	}
+	public long getJuid() {
+		return juid;
+	}
+	public void setJuid(long juid) {
+		this.juid = juid;
+	}
+
 	public class Notification{
 		private String alert;
 

@@ -5,6 +5,8 @@ import jpushim.s2b.JpushimSdk2B.Packet;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
+import cn.jpush.protocal.common.JPushTcpClient;
+import cn.jpush.protocal.common.JPushTcpClientHandler;
 import cn.jpush.protocal.im.req.proto.ImAddGroupMemberRequestProto;
 import cn.jpush.protocal.im.req.proto.ImCreateGroupRequestProto;
 import cn.jpush.protocal.im.req.proto.ImDeleteGroupMemberRequestProto;
@@ -31,6 +33,7 @@ import cn.jpush.protocal.push.PushLogoutRequest;
 import cn.jpush.protocal.push.PushRegRequest;
 import cn.jpush.protocal.push.PushRegRequestBean;
 import cn.jpush.protocal.utils.ProtocolUtil;
+import cn.jpush.webim.common.UidResourcesPool;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
@@ -75,11 +78,17 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			log.info("im login request...");
 			ImLoginRequestProto req = (ImLoginRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
-			ImRequest request = new ImRequest(1, 1, 2092, 2570, reqProtobuf);
-			byte[] data = request.getRequestPackage();
+			ImRequest request = new ImRequest(1, 1, req.getSid(), req.getJuid(), reqProtobuf);
+			byte[] data = request.getRequestPackage(); 
 			log.info("im login pkg size: "+data.length);
-			log.info("im login pkg head data, cmd: "+request.getCommand()+", juid:"+request.getJuid());
-			log.info("im login protobuf data, cmd: "+req.getCmd()+", uid: "+req.getUid());
+			log.info("im login pkg head data, version: "+request.getVersion()+
+					", cmd: "+request.getCommand()+", juid:"+request.getJuid()+
+					", rid: "+request.getRid()+", sid: "+request.getSid());
+			log.info("im login protobuf data, cmd: "+req.getCmd()+", version: "+req.getVersion()+
+					", uid: "+req.getUid()+", appkey: "+req.getAppkey()+", username: "+
+					req.getLoginBuilder().getUsername().toStringUtf8()+", password: "+
+					req.getLoginBuilder().getPassword().toStringUtf8()+", platform: "+
+					req.getLoginBuilder().getPlatform());
 			out.writeBytes(data);
 		}
 		if(msg instanceof ImLogoutRequestProto){  // im logout
@@ -94,7 +103,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			log.info("im send single message request...");
 			ImSendSingleMsgRequestProto req = (ImSendSingleMsgRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
-			ImRequest request = new ImRequest(1, 12, 342, 343, reqProtobuf);
+			ImRequest request = new ImRequest(1, 1, req.getSid(), req.getJuid(), reqProtobuf);
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 		}
@@ -102,7 +111,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			log.info("im send group message request...");
 			ImSendGroupMsgRequestProto req = (ImSendGroupMsgRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
-			ImRequest request = new ImRequest(1, 12, 342, 343, reqProtobuf);
+			ImRequest request = new ImRequest(1, 1, req.getSid(), req.getJuid(), reqProtobuf);
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 		}
@@ -110,7 +119,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			log.info("im create group message request...");
 			ImCreateGroupRequestProto req = (ImCreateGroupRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
-			ImRequest request = new ImRequest(1, 1, 2092, req.getUid(), reqProtobuf);
+			ImRequest request = new ImRequest(1, 1, 0, 1153535375, reqProtobuf);
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 		}

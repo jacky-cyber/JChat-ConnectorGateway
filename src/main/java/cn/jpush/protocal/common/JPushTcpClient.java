@@ -61,6 +61,7 @@ public class JPushTcpClient {
 	
 	private Bootstrap b;
 	private EventLoopGroup workGroup;
+	private JPushTcpClientHandler jPushClientHandler;
 
 	public JPushTcpClient(){
 		b = new Bootstrap();
@@ -72,7 +73,8 @@ public class JPushTcpClient {
 	}
 	
 	public void init() throws InterruptedException{
-		log.info("netty tcp client is init......");
+		log.info("jpush tcp client is init......");
+		jPushClientHandler = new JPushTcpClientHandler();
 		workGroup = new NioEventLoopGroup();
 		b.group(workGroup);
 		b.channel(NioSocketChannel.class);
@@ -81,10 +83,10 @@ public class JPushTcpClient {
 		b.handler(new ChannelInitializer<SocketChannel>() {
 			@Override
 			protected void initChannel(SocketChannel ch) throws Exception {
-				ch.pipeline()/*.addLast("idleStateHandler", new IdleStateHandler(50, 50, 0))*/
+				ch.pipeline().addLast("idleStateHandler", new IdleStateHandler(100, 100, 0))
 								.addLast(new ImProtocalClientEncoder())
 								.addLast(new ImProtocalClientDecoder())
-								.addLast(new JPushTcpClientHandler());
+								.addLast(jPushClientHandler);
 					
 			}	
 		});		
@@ -114,17 +116,25 @@ public class JPushTcpClient {
 		channel.closeFuture().sync();
 	}
 	
+	public JPushTcpClientHandler getjPushClientHandler() {
+		return jPushClientHandler;
+	}
+
+	public void setjPushClientHandler(JPushTcpClientHandler jPushClientHandler) {
+		this.jPushClientHandler = jPushClientHandler;
+	}
+
 	public static void main(String[] args) {
 		JPushTcpClient client = new JPushTcpClient();
 		try {
 			//client.init();
 			log.info("success to connect the server.");
 			Channel channel = client.getChannel(); 
-			//PushLoginRequestBean req = new PushLoginRequestBean(1153535375, "a", ProtocolUtil.md5Encrypt("756371956"), 10800, "ebbd49c14a649e0fa4f01f3f", 0);
+			long juid = UidResourcesPool.getUid();
+			PushLoginRequestBean req = new PushLoginRequestBean(juid, "a", ProtocolUtil.md5Encrypt("756371956"), 10800, "ebbd49c14a649e0fa4f01f3f", 0);
 			//PushRegRequestBean req = new PushRegRequestBean("b095c7a18792bd8b$$ $$com.android.mypushdemo180src$$ebbd49c14a649e0fa4f01f3f",
 			//																"1.8.0", "4.4.2,19$$SCH-I959$$I959KEUHND6$$ja3gduosctc$$developer-default$$1.8.0$$0$$1080*1920", 
 			//															"", 0, 0, 0, "1$$a72007a3fb00024bde5191f4f7c27702$$00000000$$b095c7a18792bd8b$$CC:3A:61:BD:CB:3D");
-			//UidResourcesPool.getUid();
 			//PushLogoutRequest req = new PushLogoutRequest(7, 1, 0, 1153535375);
 			//HeartBeatRequest req = new HeartBeatRequest(2, 1, 0, 1153535375);
 			/******  im 业务     *********/
@@ -132,7 +142,7 @@ public class JPushTcpClient {
 			LoginRequestBean bean = new LoginRequestBean("kkk","kkk");
 			List<Integer> cookie = new ArrayList<Integer>();
 			//cookie.add(123);
-			ImLoginRequestProto req = new ImLoginRequestProto(Command.JPUSH_IM.LOGIN, 1, 0, "4f7aef34fb361292c566a1cd", cookie, bean);
+			//ImLoginRequestProto req = new ImLoginRequestProto(Command.JPUSH_IM.LOGIN, 1, 0, 2657, 1004360871,"ebbd49c14a649e0fa4f01f3f", cookie, bean); //4f7aef34fb361292c566a1cd
 			// logout
 		   /*LogoutRequestBean bean = new LogoutRequestBean("walter");
 			List<Integer> cookie = new ArrayList<Integer>();

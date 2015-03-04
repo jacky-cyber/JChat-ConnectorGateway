@@ -7239,8 +7239,9 @@ JPushIM = (function() {
   
 	    //  定义消息内容格式
 		var msgContent = {
-			version:"v1",
-			show_type:"v1",
+			version:"1",
+			juid:"",
+			sid:"",
 			target_type: "",
 			target_id: "",
 			target_name: "",
@@ -7251,7 +7252,6 @@ JPushIM = (function() {
 			notification: {
 				alert:""
 			},
-			msg_id:"",
 			msg_type: "",
 			msg_body: {
 				content: ""
@@ -7308,9 +7308,11 @@ JPushIM = (function() {
 		//  end of define jpush im emoji data
 		  
 	    //  消息内容封包
-	   JPushIM.buildMessageContent = function(target_type, msg_type,target_id, target_name,
+	   JPushIM.buildMessageContent = function(juid, sid, target_type, msg_type,target_id, target_name,
 	    														from_id, from_name, create_time, content){
-	    	msgContent.target_type = target_type || "";
+	    	msgContent.juid = juid || "";
+	    	msgContent.sid = sid || "";
+		   msgContent.target_type = target_type || "";
 	    	msgContent.target_id = target_id || "";
 	    	msgContent.target_name = target_name || "";
 	    	msgContent.from_id = from_id || "";

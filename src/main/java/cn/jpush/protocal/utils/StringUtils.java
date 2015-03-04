@@ -67,7 +67,7 @@ public class StringUtils {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
-		return resultString;
+		return resultString.toUpperCase();
 	}
 
 	public static String getUUID() {

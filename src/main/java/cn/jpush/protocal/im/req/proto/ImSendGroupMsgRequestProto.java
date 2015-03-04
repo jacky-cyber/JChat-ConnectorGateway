@@ -8,9 +8,14 @@ import cn.jpush.protocal.im.bean.SendGroupMsgRequestBean;
 import com.google.protobuf.ByteString;
 
 public class ImSendGroupMsgRequestProto extends BaseProtobufRequest {
+	private int sid;
+	private long juid;
+	
 	public ImSendGroupMsgRequestProto(int cmd, int version, long uid,
-			String appkey, List cookie, Object bean) {
+			String appkey, int sid, long juid, List cookie, Object bean) {
 		super(cmd, version, uid, appkey, cookie, bean);
+		this.sid = sid;
+		this.juid = juid;
 	}
 
 	@Override
@@ -24,6 +29,22 @@ public class ImSendGroupMsgRequestProto extends BaseProtobufRequest {
 		groupBuilder.setContent(msgContent);
 		bodyBuilder.setGroupMsg(groupBuilder);
 		protocalBuilder.setBody(bodyBuilder);
+	}
+
+	public int getSid() {
+		return sid;
+	}
+
+	public void setSid(int sid) {
+		this.sid = sid;
+	}
+
+	public long getJuid() {
+		return juid;
+	}
+
+	public void setJuid(long juid) {
+		this.juid = juid;
 	}
 
 }

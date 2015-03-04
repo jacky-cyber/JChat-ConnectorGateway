@@ -73,13 +73,15 @@ public class ImProtocalClientDecoder extends ByteToMessageDecoder {
 						
 					case Command.JPUSH_IM.COMMAND:
 						log.info("im 业务响应....");
-						Packet protocol = JpushimSdk2B.Packet.parseFrom(in.readBytes(pkg_len-20).array());
+						in.readBytes(2);  // 有2B的body的长度
+						Packet protocol = JpushimSdk2B.Packet.parseFrom(in.readBytes(pkg_len-22).array());
 						out.add(protocol);
 						break;
 						
 					case Command.JPUSH_ACK_RESP.COMMAND:
 						log.info("Jpush 心跳响应");
-						String message = new String(in.readBytes(pkg_len-20).array(),"utf-8");
+						in.readBytes(pkg_len-20);
+						//String message = new String(in.readBytes(pkg_len-20).array(),"utf-8");
 						break;
 					default:
 						log.info("未定义的消息类型.");

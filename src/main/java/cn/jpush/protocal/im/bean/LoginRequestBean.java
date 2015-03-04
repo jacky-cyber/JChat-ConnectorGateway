@@ -1,5 +1,7 @@
 package cn.jpush.protocal.im.bean;
 
+import cn.jpush.protocal.push.PushLoginResponseBean;
+
 
 public class LoginRequestBean{
 	private String username;

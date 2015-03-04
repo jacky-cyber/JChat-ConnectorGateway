@@ -4,6 +4,8 @@ public class ChatObject {
 	private String appKey;
 	private String userName;
 	private long uid;
+	private long juid;
+	private int sid;
 	private String password;
 	private String toUserName;
 	private long toUid;
@@ -68,6 +70,18 @@ public class ChatObject {
 	}
 	public void setContentType(String contentType) {
 		this.contentType = contentType;
+	}
+	public int getSid() {
+		return sid;
+	}
+	public void setSid(int sid) {
+		this.sid = sid;
+	}
+	public long getJuid() {
+		return juid;
+	}
+	public void setJuid(long juid) {
+		this.juid = juid;
 	}
 	
 	

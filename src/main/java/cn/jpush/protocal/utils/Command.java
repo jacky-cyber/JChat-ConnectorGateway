@@ -6,9 +6,9 @@ public interface Command {
 	public static final String ENCODING_UTF_8 = "UTF-8";
 
 	public interface DEVICE_TYPE{
-		public static final int ANDROID = 1;
-		public static final int IOS = 2;
-		public static final int WINPHONE = 4;
+		public static final int ANDROID = 0;
+		public static final int IOS = 1;
+		public static final int WINPHONE = 2;
 	}
 
 	public interface KKPUSH_REG {
@@ -66,8 +66,8 @@ public interface Command {
 		public static final int ADD_GROUP_MEMBER = 10; //添加群组成员
 		public static final int DEL_GROUP_MEMBER = 11; //删除群组成员
 		public static final int UPDATE_GROUP_INFO = 12; //修改群组详情
-		public static final int SYNC = 13; //IM业务同步信息
-		
+		public static final int SYNC_EVENT = 13; //IM业务事件同步
+		public static final int SYNC_MSG = 14; //IM信息同步
 	}
 	
 }

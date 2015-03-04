@@ -90,7 +90,7 @@ public class BaseRequest {
 		}
 	}
 	
-	/**0
+	/**
 	 * 修改包中的包长度数据
 	 * @param bos
 	 * @return

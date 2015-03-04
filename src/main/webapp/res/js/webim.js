@@ -3,6 +3,8 @@
 
 //  自己的业务需要添加的变量
 var uid = null;
+var juid = null;
+var sid = null;
 var curUserId = null;  //  当前用户id
 var curChatUserId = null;  //  当前聊天对象id
 var curChatGroupId = null;  // 当前聊天Group id
@@ -20,7 +22,8 @@ JPushIM.connect();
 
 //初始化IM业务配置
 JPushIM.init({
-	appKey : '521c83e1ac1d4c4800961540',
+	//appKey : 'ab5e82b23ee58621a01de671',//
+	appKey : '4f7aef34fb361292c566a1cd',
 	secrect : 'master secrect',
 	onConnect : function(){
 		connectResp();
@@ -63,6 +66,8 @@ var loginResp = function(data){
 	console.log('处理登陆响应！');
 	if(data!=null && data.uid!=0){
 		uid = data.uid;
+		sid = data.sid;
+		juid = data.juid;
 		curUserId = uid;
 	} else {
 		$('#waitLoginmodal').css({"display":"none"});
@@ -99,9 +104,15 @@ var uploadProgressFunc = function(progress){
 var uploadCompleteFunc = function(src){
   	appendPicMsgSendByMe("<img onclick='zoomOut(this)' src="+ src +" width='100px;' height='70px;' style='cursor:pointer'></img>");
   	var toUserName = $('#'+curChatUserId).attr('username');
-  	var message =  JPushIM.buildMessageContent("single", "image", curChatUserId, toUserName,
-							uid, user_name, "time..", src);
-   JPushIM.chatEvent(message);
+  	if(isSingleOrGroup=='single'){
+  		var message =  JPushIM.buildMessageContent(juid, sid, "single", "image", toUserName, curChatUserId,
+				uid, user_name, Date.parse(new Date())/1000, src);
+  		JPushIM.chatEvent(message);
+  	} else if(isSingleOrGroup=='group'){
+  		var message =  JPushIM.buildMessageContent(juid, sid, "single", "image", curChatGroupId, curChatGroupId,
+				uid, user_name, mDate.parse(new Date())/1000, src);
+  		JPushIM.chatEvent(message);
+  	}
 };
 //  end 上传多媒体文件处理
 
@@ -231,6 +242,7 @@ $('#login_submit').click(function(){
 	user_name = $('#user_name').val();
 	var password = $('#password').val();
 	var options = {
+			'appKey' : JPushIM.init.appKey,
 			'userName' : user_name,
 			'password' : password
 	};
@@ -334,18 +346,19 @@ document.onkeydown = function(event){
 	   var content = document.getElementById('talkInputId').value;
 	   if(content!=''){
 		   appendMsgSendByMe(content);
-		   var toUserName = $('#'+curChatUserId).attr('username');
 		   if(isSingleOrGroup=='single'){
+			   var toUserName = $('#'+curChatUserId).attr('username');
 			   addToConversionList(curChatUserId);  //   添加该会话到会话列表
 			   updateConversionRectMsg(curChatUserId, content);
-			   var message =  JPushIM.buildMessageContent("single", "text", curChatUserId, toUserName,
-					   								uid, user_name, "time..", content);
+			   var message =  JPushIM.buildMessageContent(juid, sid,"single", "text", toUserName, curChatUserId,
+					   								uid, user_name, Date.parse(new Date())/1000, content);
 			   JPushIM.chatEvent(message);
 		   } else if(isSingleOrGroup=='group'){
+			   var toGroupName = $('#'+curChatGroupId).attr('displayname');
 			   addToConversionList(curChatGroupId);  //   添加该会话到会话列表
 			   updateConversionRectMsg(curChatGroupId, content);
-			   var message =  JPushIM.buildMessageContent("group", "text", curChatGroupId, toUserName,
-							uid, user_name, "time..", content);
+			   var message =  JPushIM.buildMessageContent(juid, sid, "group", "text", curChatGroupId, toGroupName,
+							uid, curChatGroupId, Date.parse(new Date())/1000, content);
 			   JPushIM.chatEvent(message);
 		    } 
 	   } else {
@@ -364,18 +377,19 @@ function sendText(){
 	  } 
  	 appendMsgSendByMe(content);
     document.getElementById('talkInputId').value = '';
-    var toUserName = $('#'+curChatUserId).attr('username');
     if(isSingleOrGroup=='single'){
+    	var toUserName = $('#'+curChatUserId).attr('username');
     	addToConversionList(curChatUserId);  //   添加该会话到会话列表
     	updateConversionRectMsg(curChatUserId, content);
-    	var message =  JPushIM.buildMessageContent("single", "text", curChatUserId, toUserName,
-					uid, user_name, "time..", content);	
+    	var message =  JPushIM.buildMessageContent(juid, sid, "single", "text", toUserName, curChatUserId,
+					uid, user_name, Date.parse(new Date())/1000, content);	
     	JPushIM.chatEvent(message);
     } else if(isSingleOrGroup=='group'){
+    	var toGroupName = $('#'+curChatGroupId).attr('displayname');
     	addToConversionList(curChatGroupId);  //   添加该会话到会话列表
     	updateConversionRectMsg(curChatGroupId, content);
-    	var message = JPushIM.buildMessageContent("group", "text", curChatGroupId, toUserName,
-				uid, user_name, "time..", content);
+    	var message = JPushIM.buildMessageContent(juid, sid, "group", "text", curChatGroupId, toGroupName,
+				uid, curChatGroupId, Date.parse(new Date())/1000, content);
     	JPushIM.chatEvent(message);
      } 
 };
