@@ -2766,6 +2766,26 @@ public final class JpushimSdk2B {
      * <code>optional bytes content = 1;</code>
      */
     com.google.protobuf.ByteString getContent();
+
+    // optional bytes android_package = 2;
+    /**
+     * <code>optional bytes android_package = 2;</code>
+     */
+    boolean hasAndroidPackage();
+    /**
+     * <code>optional bytes android_package = 2;</code>
+     */
+    com.google.protobuf.ByteString getAndroidPackage();
+
+    // optional bytes notification = 3;
+    /**
+     * <code>optional bytes notification = 3;</code>
+     */
+    boolean hasNotification();
+    /**
+     * <code>optional bytes notification = 3;</code>
+     */
+    com.google.protobuf.ByteString getNotification();
   }
   /**
    * Protobuf type {@code jpushim.s2b.MessageContent}
@@ -2821,6 +2841,16 @@ public final class JpushimSdk2B {
             case 10: {
               bitField0_ |= 0x00000001;
               content_ = input.readBytes();
+              break;
+            }
+            case 18: {
+              bitField0_ |= 0x00000002;
+              androidPackage_ = input.readBytes();
+              break;
+            }
+            case 26: {
+              bitField0_ |= 0x00000004;
+              notification_ = input.readBytes();
               break;
             }
           }
@@ -2879,8 +2909,42 @@ public final class JpushimSdk2B {
       return content_;
     }
 
+    // optional bytes android_package = 2;
+    public static final int ANDROID_PACKAGE_FIELD_NUMBER = 2;
+    private com.google.protobuf.ByteString androidPackage_;
+    /**
+     * <code>optional bytes android_package = 2;</code>
+     */
+    public boolean hasAndroidPackage() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional bytes android_package = 2;</code>
+     */
+    public com.google.protobuf.ByteString getAndroidPackage() {
+      return androidPackage_;
+    }
+
+    // optional bytes notification = 3;
+    public static final int NOTIFICATION_FIELD_NUMBER = 3;
+    private com.google.protobuf.ByteString notification_;
+    /**
+     * <code>optional bytes notification = 3;</code>
+     */
+    public boolean hasNotification() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional bytes notification = 3;</code>
+     */
+    public com.google.protobuf.ByteString getNotification() {
+      return notification_;
+    }
+
     private void initFields() {
       content_ = com.google.protobuf.ByteString.EMPTY;
+      androidPackage_ = com.google.protobuf.ByteString.EMPTY;
+      notification_ = com.google.protobuf.ByteString.EMPTY;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -2897,6 +2961,12 @@ public final class JpushimSdk2B {
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeBytes(1, content_);
       }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeBytes(2, androidPackage_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeBytes(3, notification_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -2909,6 +2979,14 @@ public final class JpushimSdk2B {
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(1, content_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(2, androidPackage_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(3, notification_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -3028,6 +3106,10 @@ public final class JpushimSdk2B {
         super.clear();
         content_ = com.google.protobuf.ByteString.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000001);
+        androidPackage_ = com.google.protobuf.ByteString.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        notification_ = com.google.protobuf.ByteString.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000004);
         return this;
       }
 
@@ -3060,6 +3142,14 @@ public final class JpushimSdk2B {
           to_bitField0_ |= 0x00000001;
         }
         result.content_ = content_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.androidPackage_ = androidPackage_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.notification_ = notification_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -3078,6 +3168,12 @@ public final class JpushimSdk2B {
         if (other == jpushim.s2b.JpushimSdk2B.MessageContent.getDefaultInstance()) return this;
         if (other.hasContent()) {
           setContent(other.getContent());
+        }
+        if (other.hasAndroidPackage()) {
+          setAndroidPackage(other.getAndroidPackage());
+        }
+        if (other.hasNotification()) {
+          setNotification(other.getNotification());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -3138,6 +3234,78 @@ public final class JpushimSdk2B {
       public Builder clearContent() {
         bitField0_ = (bitField0_ & ~0x00000001);
         content_ = getDefaultInstance().getContent();
+        onChanged();
+        return this;
+      }
+
+      // optional bytes android_package = 2;
+      private com.google.protobuf.ByteString androidPackage_ = com.google.protobuf.ByteString.EMPTY;
+      /**
+       * <code>optional bytes android_package = 2;</code>
+       */
+      public boolean hasAndroidPackage() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional bytes android_package = 2;</code>
+       */
+      public com.google.protobuf.ByteString getAndroidPackage() {
+        return androidPackage_;
+      }
+      /**
+       * <code>optional bytes android_package = 2;</code>
+       */
+      public Builder setAndroidPackage(com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+        androidPackage_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bytes android_package = 2;</code>
+       */
+      public Builder clearAndroidPackage() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        androidPackage_ = getDefaultInstance().getAndroidPackage();
+        onChanged();
+        return this;
+      }
+
+      // optional bytes notification = 3;
+      private com.google.protobuf.ByteString notification_ = com.google.protobuf.ByteString.EMPTY;
+      /**
+       * <code>optional bytes notification = 3;</code>
+       */
+      public boolean hasNotification() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>optional bytes notification = 3;</code>
+       */
+      public com.google.protobuf.ByteString getNotification() {
+        return notification_;
+      }
+      /**
+       * <code>optional bytes notification = 3;</code>
+       */
+      public Builder setNotification(com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
+        notification_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bytes notification = 3;</code>
+       */
+      public Builder clearNotification() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        notification_ = getDefaultInstance().getNotification();
         onChanged();
         return this;
       }
@@ -8468,842 +8636,6 @@ public final class JpushimSdk2B {
     // @@protoc_insertion_point(class_scope:jpushim.s2b.UpdateGroupInfo)
   }
 
-  public interface EventSyncOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
-
-    // optional int64 event_id = 1;
-    /**
-     * <code>optional int64 event_id = 1;</code>
-     */
-    boolean hasEventId();
-    /**
-     * <code>optional int64 event_id = 1;</code>
-     */
-    long getEventId();
-
-    // optional int32 event_type = 2;
-    /**
-     * <code>optional int32 event_type = 2;</code>
-     *
-     * <pre>
-     *head.cmd
-     * </pre>
-     */
-    boolean hasEventType();
-    /**
-     * <code>optional int32 event_type = 2;</code>
-     *
-     * <pre>
-     *head.cmd
-     * </pre>
-     */
-    int getEventType();
-
-    // optional int64 from_uid = 3;
-    /**
-     * <code>optional int64 from_uid = 3;</code>
-     */
-    boolean hasFromUid();
-    /**
-     * <code>optional int64 from_uid = 3;</code>
-     */
-    long getFromUid();
-
-    // optional int64 gid = 4;
-    /**
-     * <code>optional int64 gid = 4;</code>
-     */
-    boolean hasGid();
-    /**
-     * <code>optional int64 gid = 4;</code>
-     */
-    long getGid();
-
-    // optional bytes description = 5;
-    /**
-     * <code>optional bytes description = 5;</code>
-     */
-    boolean hasDescription();
-    /**
-     * <code>optional bytes description = 5;</code>
-     */
-    com.google.protobuf.ByteString getDescription();
-
-    // optional int32 answer = 6;
-    /**
-     * <code>optional int32 answer = 6;</code>
-     */
-    boolean hasAnswer();
-    /**
-     * <code>optional int32 answer = 6;</code>
-     */
-    int getAnswer();
-  }
-  /**
-   * Protobuf type {@code jpushim.s2b.EventSync}
-   */
-  public static final class EventSync extends
-      com.google.protobuf.GeneratedMessage
-      implements EventSyncOrBuilder {
-    // Use EventSync.newBuilder() to construct.
-    private EventSync(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-      this.unknownFields = builder.getUnknownFields();
-    }
-    private EventSync(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
-
-    private static final EventSync defaultInstance;
-    public static EventSync getDefaultInstance() {
-      return defaultInstance;
-    }
-
-    public EventSync getDefaultInstanceForType() {
-      return defaultInstance;
-    }
-
-    private final com.google.protobuf.UnknownFieldSet unknownFields;
-    @java.lang.Override
-    public final com.google.protobuf.UnknownFieldSet
-        getUnknownFields() {
-      return this.unknownFields;
-    }
-    private EventSync(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      initFields();
-      int mutable_bitField0_ = 0;
-      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-          com.google.protobuf.UnknownFieldSet.newBuilder();
-      try {
-        boolean done = false;
-        while (!done) {
-          int tag = input.readTag();
-          switch (tag) {
-            case 0:
-              done = true;
-              break;
-            default: {
-              if (!parseUnknownField(input, unknownFields,
-                                     extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
-            case 8: {
-              bitField0_ |= 0x00000001;
-              eventId_ = input.readInt64();
-              break;
-            }
-            case 16: {
-              bitField0_ |= 0x00000002;
-              eventType_ = input.readInt32();
-              break;
-            }
-            case 24: {
-              bitField0_ |= 0x00000004;
-              fromUid_ = input.readInt64();
-              break;
-            }
-            case 32: {
-              bitField0_ |= 0x00000008;
-              gid_ = input.readInt64();
-              break;
-            }
-            case 42: {
-              bitField0_ |= 0x00000010;
-              description_ = input.readBytes();
-              break;
-            }
-            case 48: {
-              bitField0_ |= 0x00000020;
-              answer_ = input.readInt32();
-              break;
-            }
-          }
-        }
-      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw e.setUnfinishedMessage(this);
-      } catch (java.io.IOException e) {
-        throw new com.google.protobuf.InvalidProtocolBufferException(
-            e.getMessage()).setUnfinishedMessage(this);
-      } finally {
-        this.unknownFields = unknownFields.build();
-        makeExtensionsImmutable();
-      }
-    }
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return jpushim.s2b.JpushimSdk2B.internal_static_jpushim_s2b_EventSync_descriptor;
-    }
-
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return jpushim.s2b.JpushimSdk2B.internal_static_jpushim_s2b_EventSync_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              jpushim.s2b.JpushimSdk2B.EventSync.class, jpushim.s2b.JpushimSdk2B.EventSync.Builder.class);
-    }
-
-    public static com.google.protobuf.Parser<EventSync> PARSER =
-        new com.google.protobuf.AbstractParser<EventSync>() {
-      public EventSync parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        return new EventSync(input, extensionRegistry);
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<EventSync> getParserForType() {
-      return PARSER;
-    }
-
-    private int bitField0_;
-    // optional int64 event_id = 1;
-    public static final int EVENT_ID_FIELD_NUMBER = 1;
-    private long eventId_;
-    /**
-     * <code>optional int64 event_id = 1;</code>
-     */
-    public boolean hasEventId() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
-    }
-    /**
-     * <code>optional int64 event_id = 1;</code>
-     */
-    public long getEventId() {
-      return eventId_;
-    }
-
-    // optional int32 event_type = 2;
-    public static final int EVENT_TYPE_FIELD_NUMBER = 2;
-    private int eventType_;
-    /**
-     * <code>optional int32 event_type = 2;</code>
-     *
-     * <pre>
-     *head.cmd
-     * </pre>
-     */
-    public boolean hasEventType() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
-    }
-    /**
-     * <code>optional int32 event_type = 2;</code>
-     *
-     * <pre>
-     *head.cmd
-     * </pre>
-     */
-    public int getEventType() {
-      return eventType_;
-    }
-
-    // optional int64 from_uid = 3;
-    public static final int FROM_UID_FIELD_NUMBER = 3;
-    private long fromUid_;
-    /**
-     * <code>optional int64 from_uid = 3;</code>
-     */
-    public boolean hasFromUid() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
-    }
-    /**
-     * <code>optional int64 from_uid = 3;</code>
-     */
-    public long getFromUid() {
-      return fromUid_;
-    }
-
-    // optional int64 gid = 4;
-    public static final int GID_FIELD_NUMBER = 4;
-    private long gid_;
-    /**
-     * <code>optional int64 gid = 4;</code>
-     */
-    public boolean hasGid() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
-    }
-    /**
-     * <code>optional int64 gid = 4;</code>
-     */
-    public long getGid() {
-      return gid_;
-    }
-
-    // optional bytes description = 5;
-    public static final int DESCRIPTION_FIELD_NUMBER = 5;
-    private com.google.protobuf.ByteString description_;
-    /**
-     * <code>optional bytes description = 5;</code>
-     */
-    public boolean hasDescription() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
-    }
-    /**
-     * <code>optional bytes description = 5;</code>
-     */
-    public com.google.protobuf.ByteString getDescription() {
-      return description_;
-    }
-
-    // optional int32 answer = 6;
-    public static final int ANSWER_FIELD_NUMBER = 6;
-    private int answer_;
-    /**
-     * <code>optional int32 answer = 6;</code>
-     */
-    public boolean hasAnswer() {
-      return ((bitField0_ & 0x00000020) == 0x00000020);
-    }
-    /**
-     * <code>optional int32 answer = 6;</code>
-     */
-    public int getAnswer() {
-      return answer_;
-    }
-
-    private void initFields() {
-      eventId_ = 0L;
-      eventType_ = 0;
-      fromUid_ = 0L;
-      gid_ = 0L;
-      description_ = com.google.protobuf.ByteString.EMPTY;
-      answer_ = 0;
-    }
-    private byte memoizedIsInitialized = -1;
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      getSerializedSize();
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        output.writeInt64(1, eventId_);
-      }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeInt32(2, eventType_);
-      }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeInt64(3, fromUid_);
-      }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        output.writeInt64(4, gid_);
-      }
-      if (((bitField0_ & 0x00000010) == 0x00000010)) {
-        output.writeBytes(5, description_);
-      }
-      if (((bitField0_ & 0x00000020) == 0x00000020)) {
-        output.writeInt32(6, answer_);
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    private int memoizedSerializedSize = -1;
-    public int getSerializedSize() {
-      int size = memoizedSerializedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(1, eventId_);
-      }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(2, eventType_);
-      }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(3, fromUid_);
-      }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(4, gid_);
-      }
-      if (((bitField0_ & 0x00000010) == 0x00000010)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(5, description_);
-      }
-      if (((bitField0_ & 0x00000020) == 0x00000020)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(6, answer_);
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSerializedSize = size;
-      return size;
-    }
-
-    private static final long serialVersionUID = 0L;
-    @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
-      return super.writeReplace();
-    }
-
-    public static jpushim.s2b.JpushimSdk2B.EventSync parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static jpushim.s2b.JpushimSdk2B.EventSync parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static jpushim.s2b.JpushimSdk2B.EventSync parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static jpushim.s2b.JpushimSdk2B.EventSync parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static jpushim.s2b.JpushimSdk2B.EventSync parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return PARSER.parseFrom(input);
-    }
-    public static jpushim.s2b.JpushimSdk2B.EventSync parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
-    }
-    public static jpushim.s2b.JpushimSdk2B.EventSync parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input);
-    }
-    public static jpushim.s2b.JpushimSdk2B.EventSync parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input, extensionRegistry);
-    }
-    public static jpushim.s2b.JpushimSdk2B.EventSync parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return PARSER.parseFrom(input);
-    }
-    public static jpushim.s2b.JpushimSdk2B.EventSync parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
-    }
-
-    public static Builder newBuilder() { return Builder.create(); }
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(jpushim.s2b.JpushimSdk2B.EventSync prototype) {
-      return newBuilder().mergeFrom(prototype);
-    }
-    public Builder toBuilder() { return newBuilder(this); }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * Protobuf type {@code jpushim.s2b.EventSync}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements jpushim.s2b.JpushimSdk2B.EventSyncOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return jpushim.s2b.JpushimSdk2B.internal_static_jpushim_s2b_EventSync_descriptor;
-      }
-
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return jpushim.s2b.JpushimSdk2B.internal_static_jpushim_s2b_EventSync_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                jpushim.s2b.JpushimSdk2B.EventSync.class, jpushim.s2b.JpushimSdk2B.EventSync.Builder.class);
-      }
-
-      // Construct using jpushim.s2b.JpushimSdk2B.EventSync.newBuilder()
-      private Builder() {
-        maybeForceBuilderInitialization();
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-        maybeForceBuilderInitialization();
-      }
-      private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
-        }
-      }
-      private static Builder create() {
-        return new Builder();
-      }
-
-      public Builder clear() {
-        super.clear();
-        eventId_ = 0L;
-        bitField0_ = (bitField0_ & ~0x00000001);
-        eventType_ = 0;
-        bitField0_ = (bitField0_ & ~0x00000002);
-        fromUid_ = 0L;
-        bitField0_ = (bitField0_ & ~0x00000004);
-        gid_ = 0L;
-        bitField0_ = (bitField0_ & ~0x00000008);
-        description_ = com.google.protobuf.ByteString.EMPTY;
-        bitField0_ = (bitField0_ & ~0x00000010);
-        answer_ = 0;
-        bitField0_ = (bitField0_ & ~0x00000020);
-        return this;
-      }
-
-      public Builder clone() {
-        return create().mergeFrom(buildPartial());
-      }
-
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return jpushim.s2b.JpushimSdk2B.internal_static_jpushim_s2b_EventSync_descriptor;
-      }
-
-      public jpushim.s2b.JpushimSdk2B.EventSync getDefaultInstanceForType() {
-        return jpushim.s2b.JpushimSdk2B.EventSync.getDefaultInstance();
-      }
-
-      public jpushim.s2b.JpushimSdk2B.EventSync build() {
-        jpushim.s2b.JpushimSdk2B.EventSync result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      public jpushim.s2b.JpushimSdk2B.EventSync buildPartial() {
-        jpushim.s2b.JpushimSdk2B.EventSync result = new jpushim.s2b.JpushimSdk2B.EventSync(this);
-        int from_bitField0_ = bitField0_;
-        int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
-          to_bitField0_ |= 0x00000001;
-        }
-        result.eventId_ = eventId_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
-          to_bitField0_ |= 0x00000002;
-        }
-        result.eventType_ = eventType_;
-        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
-          to_bitField0_ |= 0x00000004;
-        }
-        result.fromUid_ = fromUid_;
-        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
-          to_bitField0_ |= 0x00000008;
-        }
-        result.gid_ = gid_;
-        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
-          to_bitField0_ |= 0x00000010;
-        }
-        result.description_ = description_;
-        if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
-          to_bitField0_ |= 0x00000020;
-        }
-        result.answer_ = answer_;
-        result.bitField0_ = to_bitField0_;
-        onBuilt();
-        return result;
-      }
-
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof jpushim.s2b.JpushimSdk2B.EventSync) {
-          return mergeFrom((jpushim.s2b.JpushimSdk2B.EventSync)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(jpushim.s2b.JpushimSdk2B.EventSync other) {
-        if (other == jpushim.s2b.JpushimSdk2B.EventSync.getDefaultInstance()) return this;
-        if (other.hasEventId()) {
-          setEventId(other.getEventId());
-        }
-        if (other.hasEventType()) {
-          setEventType(other.getEventType());
-        }
-        if (other.hasFromUid()) {
-          setFromUid(other.getFromUid());
-        }
-        if (other.hasGid()) {
-          setGid(other.getGid());
-        }
-        if (other.hasDescription()) {
-          setDescription(other.getDescription());
-        }
-        if (other.hasAnswer()) {
-          setAnswer(other.getAnswer());
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        return this;
-      }
-
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        jpushim.s2b.JpushimSdk2B.EventSync parsedMessage = null;
-        try {
-          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          parsedMessage = (jpushim.s2b.JpushimSdk2B.EventSync) e.getUnfinishedMessage();
-          throw e;
-        } finally {
-          if (parsedMessage != null) {
-            mergeFrom(parsedMessage);
-          }
-        }
-        return this;
-      }
-      private int bitField0_;
-
-      // optional int64 event_id = 1;
-      private long eventId_ ;
-      /**
-       * <code>optional int64 event_id = 1;</code>
-       */
-      public boolean hasEventId() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
-      }
-      /**
-       * <code>optional int64 event_id = 1;</code>
-       */
-      public long getEventId() {
-        return eventId_;
-      }
-      /**
-       * <code>optional int64 event_id = 1;</code>
-       */
-      public Builder setEventId(long value) {
-        bitField0_ |= 0x00000001;
-        eventId_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional int64 event_id = 1;</code>
-       */
-      public Builder clearEventId() {
-        bitField0_ = (bitField0_ & ~0x00000001);
-        eventId_ = 0L;
-        onChanged();
-        return this;
-      }
-
-      // optional int32 event_type = 2;
-      private int eventType_ ;
-      /**
-       * <code>optional int32 event_type = 2;</code>
-       *
-       * <pre>
-       *head.cmd
-       * </pre>
-       */
-      public boolean hasEventType() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
-      }
-      /**
-       * <code>optional int32 event_type = 2;</code>
-       *
-       * <pre>
-       *head.cmd
-       * </pre>
-       */
-      public int getEventType() {
-        return eventType_;
-      }
-      /**
-       * <code>optional int32 event_type = 2;</code>
-       *
-       * <pre>
-       *head.cmd
-       * </pre>
-       */
-      public Builder setEventType(int value) {
-        bitField0_ |= 0x00000002;
-        eventType_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional int32 event_type = 2;</code>
-       *
-       * <pre>
-       *head.cmd
-       * </pre>
-       */
-      public Builder clearEventType() {
-        bitField0_ = (bitField0_ & ~0x00000002);
-        eventType_ = 0;
-        onChanged();
-        return this;
-      }
-
-      // optional int64 from_uid = 3;
-      private long fromUid_ ;
-      /**
-       * <code>optional int64 from_uid = 3;</code>
-       */
-      public boolean hasFromUid() {
-        return ((bitField0_ & 0x00000004) == 0x00000004);
-      }
-      /**
-       * <code>optional int64 from_uid = 3;</code>
-       */
-      public long getFromUid() {
-        return fromUid_;
-      }
-      /**
-       * <code>optional int64 from_uid = 3;</code>
-       */
-      public Builder setFromUid(long value) {
-        bitField0_ |= 0x00000004;
-        fromUid_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional int64 from_uid = 3;</code>
-       */
-      public Builder clearFromUid() {
-        bitField0_ = (bitField0_ & ~0x00000004);
-        fromUid_ = 0L;
-        onChanged();
-        return this;
-      }
-
-      // optional int64 gid = 4;
-      private long gid_ ;
-      /**
-       * <code>optional int64 gid = 4;</code>
-       */
-      public boolean hasGid() {
-        return ((bitField0_ & 0x00000008) == 0x00000008);
-      }
-      /**
-       * <code>optional int64 gid = 4;</code>
-       */
-      public long getGid() {
-        return gid_;
-      }
-      /**
-       * <code>optional int64 gid = 4;</code>
-       */
-      public Builder setGid(long value) {
-        bitField0_ |= 0x00000008;
-        gid_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional int64 gid = 4;</code>
-       */
-      public Builder clearGid() {
-        bitField0_ = (bitField0_ & ~0x00000008);
-        gid_ = 0L;
-        onChanged();
-        return this;
-      }
-
-      // optional bytes description = 5;
-      private com.google.protobuf.ByteString description_ = com.google.protobuf.ByteString.EMPTY;
-      /**
-       * <code>optional bytes description = 5;</code>
-       */
-      public boolean hasDescription() {
-        return ((bitField0_ & 0x00000010) == 0x00000010);
-      }
-      /**
-       * <code>optional bytes description = 5;</code>
-       */
-      public com.google.protobuf.ByteString getDescription() {
-        return description_;
-      }
-      /**
-       * <code>optional bytes description = 5;</code>
-       */
-      public Builder setDescription(com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000010;
-        description_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional bytes description = 5;</code>
-       */
-      public Builder clearDescription() {
-        bitField0_ = (bitField0_ & ~0x00000010);
-        description_ = getDefaultInstance().getDescription();
-        onChanged();
-        return this;
-      }
-
-      // optional int32 answer = 6;
-      private int answer_ ;
-      /**
-       * <code>optional int32 answer = 6;</code>
-       */
-      public boolean hasAnswer() {
-        return ((bitField0_ & 0x00000020) == 0x00000020);
-      }
-      /**
-       * <code>optional int32 answer = 6;</code>
-       */
-      public int getAnswer() {
-        return answer_;
-      }
-      /**
-       * <code>optional int32 answer = 6;</code>
-       */
-      public Builder setAnswer(int value) {
-        bitField0_ |= 0x00000020;
-        answer_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional int32 answer = 6;</code>
-       */
-      public Builder clearAnswer() {
-        bitField0_ = (bitField0_ & ~0x00000020);
-        answer_ = 0;
-        onChanged();
-        return this;
-      }
-
-      // @@protoc_insertion_point(builder_scope:jpushim.s2b.EventSync)
-    }
-
-    static {
-      defaultInstance = new EventSync(true);
-      defaultInstance.initFields();
-    }
-
-    // @@protoc_insertion_point(class_scope:jpushim.s2b.EventSync)
-  }
-
   public interface EventNotificationOrBuilder
       extends com.google.protobuf.MessageOrBuilder {
 
@@ -9322,7 +8654,7 @@ public final class JpushimSdk2B {
      * <code>optional int32 event_type = 2;</code>
      *
      * <pre>
-     *head.cmd  
+     *head.cmd
      * </pre>
      */
     boolean hasEventType();
@@ -9330,7 +8662,7 @@ public final class JpushimSdk2B {
      * <code>optional int32 event_type = 2;</code>
      *
      * <pre>
-     *head.cmd  
+     *head.cmd
      * </pre>
      */
     int getEventType();
@@ -9562,7 +8894,7 @@ public final class JpushimSdk2B {
      * <code>optional int32 event_type = 2;</code>
      *
      * <pre>
-     *head.cmd  
+     *head.cmd
      * </pre>
      */
     public boolean hasEventType() {
@@ -9572,7 +8904,7 @@ public final class JpushimSdk2B {
      * <code>optional int32 event_type = 2;</code>
      *
      * <pre>
-     *head.cmd  
+     *head.cmd
      * </pre>
      */
     public int getEventType() {
@@ -10034,7 +9366,7 @@ public final class JpushimSdk2B {
        * <code>optional int32 event_type = 2;</code>
        *
        * <pre>
-       *head.cmd  
+       *head.cmd
        * </pre>
        */
       public boolean hasEventType() {
@@ -10044,7 +9376,7 @@ public final class JpushimSdk2B {
        * <code>optional int32 event_type = 2;</code>
        *
        * <pre>
-       *head.cmd  
+       *head.cmd
        * </pre>
        */
       public int getEventType() {
@@ -10054,7 +9386,7 @@ public final class JpushimSdk2B {
        * <code>optional int32 event_type = 2;</code>
        *
        * <pre>
-       *head.cmd  
+       *head.cmd
        * </pre>
        */
       public Builder setEventType(int value) {
@@ -10067,7 +9399,7 @@ public final class JpushimSdk2B {
        * <code>optional int32 event_type = 2;</code>
        *
        * <pre>
-       *head.cmd  
+       *head.cmd
        * </pre>
        */
       public Builder clearEventType() {
@@ -10300,6 +9632,2298 @@ public final class JpushimSdk2B {
     // @@protoc_insertion_point(class_scope:jpushim.s2b.EventNotification)
   }
 
+  public interface ChatMsgOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
+
+    // optional int64 from_uid = 1;
+    /**
+     * <code>optional int64 from_uid = 1;</code>
+     */
+    boolean hasFromUid();
+    /**
+     * <code>optional int64 from_uid = 1;</code>
+     */
+    long getFromUid();
+
+    // optional int64 from_gid = 2;
+    /**
+     * <code>optional int64 from_gid = 2;</code>
+     */
+    boolean hasFromGid();
+    /**
+     * <code>optional int64 from_gid = 2;</code>
+     */
+    long getFromGid();
+
+    // optional int64 msgid = 3;
+    /**
+     * <code>optional int64 msgid = 3;</code>
+     */
+    boolean hasMsgid();
+    /**
+     * <code>optional int64 msgid = 3;</code>
+     */
+    long getMsgid();
+
+    // optional int32 msg_type = 4;
+    /**
+     * <code>optional int32 msg_type = 4;</code>
+     *
+     * <pre>
+     *3-single, 4-group etc.  
+     * </pre>
+     */
+    boolean hasMsgType();
+    /**
+     * <code>optional int32 msg_type = 4;</code>
+     *
+     * <pre>
+     *3-single, 4-group etc.  
+     * </pre>
+     */
+    int getMsgType();
+
+    // optional .jpushim.s2b.MessageContent content = 5;
+    /**
+     * <code>optional .jpushim.s2b.MessageContent content = 5;</code>
+     */
+    boolean hasContent();
+    /**
+     * <code>optional .jpushim.s2b.MessageContent content = 5;</code>
+     */
+    jpushim.s2b.JpushimSdk2B.MessageContent getContent();
+    /**
+     * <code>optional .jpushim.s2b.MessageContent content = 5;</code>
+     */
+    jpushim.s2b.JpushimSdk2B.MessageContentOrBuilder getContentOrBuilder();
+  }
+  /**
+   * Protobuf type {@code jpushim.s2b.ChatMsg}
+   */
+  public static final class ChatMsg extends
+      com.google.protobuf.GeneratedMessage
+      implements ChatMsgOrBuilder {
+    // Use ChatMsg.newBuilder() to construct.
+    private ChatMsg(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private ChatMsg(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final ChatMsg defaultInstance;
+    public static ChatMsg getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public ChatMsg getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private ChatMsg(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              fromUid_ = input.readInt64();
+              break;
+            }
+            case 16: {
+              bitField0_ |= 0x00000002;
+              fromGid_ = input.readInt64();
+              break;
+            }
+            case 24: {
+              bitField0_ |= 0x00000004;
+              msgid_ = input.readInt64();
+              break;
+            }
+            case 32: {
+              bitField0_ |= 0x00000008;
+              msgType_ = input.readInt32();
+              break;
+            }
+            case 42: {
+              jpushim.s2b.JpushimSdk2B.MessageContent.Builder subBuilder = null;
+              if (((bitField0_ & 0x00000010) == 0x00000010)) {
+                subBuilder = content_.toBuilder();
+              }
+              content_ = input.readMessage(jpushim.s2b.JpushimSdk2B.MessageContent.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(content_);
+                content_ = subBuilder.buildPartial();
+              }
+              bitField0_ |= 0x00000010;
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return jpushim.s2b.JpushimSdk2B.internal_static_jpushim_s2b_ChatMsg_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return jpushim.s2b.JpushimSdk2B.internal_static_jpushim_s2b_ChatMsg_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              jpushim.s2b.JpushimSdk2B.ChatMsg.class, jpushim.s2b.JpushimSdk2B.ChatMsg.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<ChatMsg> PARSER =
+        new com.google.protobuf.AbstractParser<ChatMsg>() {
+      public ChatMsg parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new ChatMsg(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ChatMsg> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    // optional int64 from_uid = 1;
+    public static final int FROM_UID_FIELD_NUMBER = 1;
+    private long fromUid_;
+    /**
+     * <code>optional int64 from_uid = 1;</code>
+     */
+    public boolean hasFromUid() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional int64 from_uid = 1;</code>
+     */
+    public long getFromUid() {
+      return fromUid_;
+    }
+
+    // optional int64 from_gid = 2;
+    public static final int FROM_GID_FIELD_NUMBER = 2;
+    private long fromGid_;
+    /**
+     * <code>optional int64 from_gid = 2;</code>
+     */
+    public boolean hasFromGid() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional int64 from_gid = 2;</code>
+     */
+    public long getFromGid() {
+      return fromGid_;
+    }
+
+    // optional int64 msgid = 3;
+    public static final int MSGID_FIELD_NUMBER = 3;
+    private long msgid_;
+    /**
+     * <code>optional int64 msgid = 3;</code>
+     */
+    public boolean hasMsgid() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional int64 msgid = 3;</code>
+     */
+    public long getMsgid() {
+      return msgid_;
+    }
+
+    // optional int32 msg_type = 4;
+    public static final int MSG_TYPE_FIELD_NUMBER = 4;
+    private int msgType_;
+    /**
+     * <code>optional int32 msg_type = 4;</code>
+     *
+     * <pre>
+     *3-single, 4-group etc.  
+     * </pre>
+     */
+    public boolean hasMsgType() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional int32 msg_type = 4;</code>
+     *
+     * <pre>
+     *3-single, 4-group etc.  
+     * </pre>
+     */
+    public int getMsgType() {
+      return msgType_;
+    }
+
+    // optional .jpushim.s2b.MessageContent content = 5;
+    public static final int CONTENT_FIELD_NUMBER = 5;
+    private jpushim.s2b.JpushimSdk2B.MessageContent content_;
+    /**
+     * <code>optional .jpushim.s2b.MessageContent content = 5;</code>
+     */
+    public boolean hasContent() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    /**
+     * <code>optional .jpushim.s2b.MessageContent content = 5;</code>
+     */
+    public jpushim.s2b.JpushimSdk2B.MessageContent getContent() {
+      return content_;
+    }
+    /**
+     * <code>optional .jpushim.s2b.MessageContent content = 5;</code>
+     */
+    public jpushim.s2b.JpushimSdk2B.MessageContentOrBuilder getContentOrBuilder() {
+      return content_;
+    }
+
+    private void initFields() {
+      fromUid_ = 0L;
+      fromGid_ = 0L;
+      msgid_ = 0L;
+      msgType_ = 0;
+      content_ = jpushim.s2b.JpushimSdk2B.MessageContent.getDefaultInstance();
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt64(1, fromUid_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeInt64(2, fromGid_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeInt64(3, msgid_);
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        output.writeInt32(4, msgType_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        output.writeMessage(5, content_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, fromUid_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(2, fromGid_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(3, msgid_);
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(4, msgType_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(5, content_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static jpushim.s2b.JpushimSdk2B.ChatMsg parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static jpushim.s2b.JpushimSdk2B.ChatMsg parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static jpushim.s2b.JpushimSdk2B.ChatMsg parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static jpushim.s2b.JpushimSdk2B.ChatMsg parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static jpushim.s2b.JpushimSdk2B.ChatMsg parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static jpushim.s2b.JpushimSdk2B.ChatMsg parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static jpushim.s2b.JpushimSdk2B.ChatMsg parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static jpushim.s2b.JpushimSdk2B.ChatMsg parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static jpushim.s2b.JpushimSdk2B.ChatMsg parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static jpushim.s2b.JpushimSdk2B.ChatMsg parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(jpushim.s2b.JpushimSdk2B.ChatMsg prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code jpushim.s2b.ChatMsg}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements jpushim.s2b.JpushimSdk2B.ChatMsgOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return jpushim.s2b.JpushimSdk2B.internal_static_jpushim_s2b_ChatMsg_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return jpushim.s2b.JpushimSdk2B.internal_static_jpushim_s2b_ChatMsg_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                jpushim.s2b.JpushimSdk2B.ChatMsg.class, jpushim.s2b.JpushimSdk2B.ChatMsg.Builder.class);
+      }
+
+      // Construct using jpushim.s2b.JpushimSdk2B.ChatMsg.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+          getContentFieldBuilder();
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        fromUid_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        fromGid_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        msgid_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000004);
+        msgType_ = 0;
+        bitField0_ = (bitField0_ & ~0x00000008);
+        if (contentBuilder_ == null) {
+          content_ = jpushim.s2b.JpushimSdk2B.MessageContent.getDefaultInstance();
+        } else {
+          contentBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000010);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return jpushim.s2b.JpushimSdk2B.internal_static_jpushim_s2b_ChatMsg_descriptor;
+      }
+
+      public jpushim.s2b.JpushimSdk2B.ChatMsg getDefaultInstanceForType() {
+        return jpushim.s2b.JpushimSdk2B.ChatMsg.getDefaultInstance();
+      }
+
+      public jpushim.s2b.JpushimSdk2B.ChatMsg build() {
+        jpushim.s2b.JpushimSdk2B.ChatMsg result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public jpushim.s2b.JpushimSdk2B.ChatMsg buildPartial() {
+        jpushim.s2b.JpushimSdk2B.ChatMsg result = new jpushim.s2b.JpushimSdk2B.ChatMsg(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.fromUid_ = fromUid_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.fromGid_ = fromGid_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.msgid_ = msgid_;
+        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+          to_bitField0_ |= 0x00000008;
+        }
+        result.msgType_ = msgType_;
+        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+          to_bitField0_ |= 0x00000010;
+        }
+        if (contentBuilder_ == null) {
+          result.content_ = content_;
+        } else {
+          result.content_ = contentBuilder_.build();
+        }
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof jpushim.s2b.JpushimSdk2B.ChatMsg) {
+          return mergeFrom((jpushim.s2b.JpushimSdk2B.ChatMsg)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(jpushim.s2b.JpushimSdk2B.ChatMsg other) {
+        if (other == jpushim.s2b.JpushimSdk2B.ChatMsg.getDefaultInstance()) return this;
+        if (other.hasFromUid()) {
+          setFromUid(other.getFromUid());
+        }
+        if (other.hasFromGid()) {
+          setFromGid(other.getFromGid());
+        }
+        if (other.hasMsgid()) {
+          setMsgid(other.getMsgid());
+        }
+        if (other.hasMsgType()) {
+          setMsgType(other.getMsgType());
+        }
+        if (other.hasContent()) {
+          mergeContent(other.getContent());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        jpushim.s2b.JpushimSdk2B.ChatMsg parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (jpushim.s2b.JpushimSdk2B.ChatMsg) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      // optional int64 from_uid = 1;
+      private long fromUid_ ;
+      /**
+       * <code>optional int64 from_uid = 1;</code>
+       */
+      public boolean hasFromUid() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional int64 from_uid = 1;</code>
+       */
+      public long getFromUid() {
+        return fromUid_;
+      }
+      /**
+       * <code>optional int64 from_uid = 1;</code>
+       */
+      public Builder setFromUid(long value) {
+        bitField0_ |= 0x00000001;
+        fromUid_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 from_uid = 1;</code>
+       */
+      public Builder clearFromUid() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        fromUid_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // optional int64 from_gid = 2;
+      private long fromGid_ ;
+      /**
+       * <code>optional int64 from_gid = 2;</code>
+       */
+      public boolean hasFromGid() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional int64 from_gid = 2;</code>
+       */
+      public long getFromGid() {
+        return fromGid_;
+      }
+      /**
+       * <code>optional int64 from_gid = 2;</code>
+       */
+      public Builder setFromGid(long value) {
+        bitField0_ |= 0x00000002;
+        fromGid_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 from_gid = 2;</code>
+       */
+      public Builder clearFromGid() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        fromGid_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // optional int64 msgid = 3;
+      private long msgid_ ;
+      /**
+       * <code>optional int64 msgid = 3;</code>
+       */
+      public boolean hasMsgid() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>optional int64 msgid = 3;</code>
+       */
+      public long getMsgid() {
+        return msgid_;
+      }
+      /**
+       * <code>optional int64 msgid = 3;</code>
+       */
+      public Builder setMsgid(long value) {
+        bitField0_ |= 0x00000004;
+        msgid_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 msgid = 3;</code>
+       */
+      public Builder clearMsgid() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        msgid_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // optional int32 msg_type = 4;
+      private int msgType_ ;
+      /**
+       * <code>optional int32 msg_type = 4;</code>
+       *
+       * <pre>
+       *3-single, 4-group etc.  
+       * </pre>
+       */
+      public boolean hasMsgType() {
+        return ((bitField0_ & 0x00000008) == 0x00000008);
+      }
+      /**
+       * <code>optional int32 msg_type = 4;</code>
+       *
+       * <pre>
+       *3-single, 4-group etc.  
+       * </pre>
+       */
+      public int getMsgType() {
+        return msgType_;
+      }
+      /**
+       * <code>optional int32 msg_type = 4;</code>
+       *
+       * <pre>
+       *3-single, 4-group etc.  
+       * </pre>
+       */
+      public Builder setMsgType(int value) {
+        bitField0_ |= 0x00000008;
+        msgType_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int32 msg_type = 4;</code>
+       *
+       * <pre>
+       *3-single, 4-group etc.  
+       * </pre>
+       */
+      public Builder clearMsgType() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        msgType_ = 0;
+        onChanged();
+        return this;
+      }
+
+      // optional .jpushim.s2b.MessageContent content = 5;
+      private jpushim.s2b.JpushimSdk2B.MessageContent content_ = jpushim.s2b.JpushimSdk2B.MessageContent.getDefaultInstance();
+      private com.google.protobuf.SingleFieldBuilder<
+          jpushim.s2b.JpushimSdk2B.MessageContent, jpushim.s2b.JpushimSdk2B.MessageContent.Builder, jpushim.s2b.JpushimSdk2B.MessageContentOrBuilder> contentBuilder_;
+      /**
+       * <code>optional .jpushim.s2b.MessageContent content = 5;</code>
+       */
+      public boolean hasContent() {
+        return ((bitField0_ & 0x00000010) == 0x00000010);
+      }
+      /**
+       * <code>optional .jpushim.s2b.MessageContent content = 5;</code>
+       */
+      public jpushim.s2b.JpushimSdk2B.MessageContent getContent() {
+        if (contentBuilder_ == null) {
+          return content_;
+        } else {
+          return contentBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .jpushim.s2b.MessageContent content = 5;</code>
+       */
+      public Builder setContent(jpushim.s2b.JpushimSdk2B.MessageContent value) {
+        if (contentBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          content_ = value;
+          onChanged();
+        } else {
+          contentBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000010;
+        return this;
+      }
+      /**
+       * <code>optional .jpushim.s2b.MessageContent content = 5;</code>
+       */
+      public Builder setContent(
+          jpushim.s2b.JpushimSdk2B.MessageContent.Builder builderForValue) {
+        if (contentBuilder_ == null) {
+          content_ = builderForValue.build();
+          onChanged();
+        } else {
+          contentBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000010;
+        return this;
+      }
+      /**
+       * <code>optional .jpushim.s2b.MessageContent content = 5;</code>
+       */
+      public Builder mergeContent(jpushim.s2b.JpushimSdk2B.MessageContent value) {
+        if (contentBuilder_ == null) {
+          if (((bitField0_ & 0x00000010) == 0x00000010) &&
+              content_ != jpushim.s2b.JpushimSdk2B.MessageContent.getDefaultInstance()) {
+            content_ =
+              jpushim.s2b.JpushimSdk2B.MessageContent.newBuilder(content_).mergeFrom(value).buildPartial();
+          } else {
+            content_ = value;
+          }
+          onChanged();
+        } else {
+          contentBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000010;
+        return this;
+      }
+      /**
+       * <code>optional .jpushim.s2b.MessageContent content = 5;</code>
+       */
+      public Builder clearContent() {
+        if (contentBuilder_ == null) {
+          content_ = jpushim.s2b.JpushimSdk2B.MessageContent.getDefaultInstance();
+          onChanged();
+        } else {
+          contentBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000010);
+        return this;
+      }
+      /**
+       * <code>optional .jpushim.s2b.MessageContent content = 5;</code>
+       */
+      public jpushim.s2b.JpushimSdk2B.MessageContent.Builder getContentBuilder() {
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return getContentFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .jpushim.s2b.MessageContent content = 5;</code>
+       */
+      public jpushim.s2b.JpushimSdk2B.MessageContentOrBuilder getContentOrBuilder() {
+        if (contentBuilder_ != null) {
+          return contentBuilder_.getMessageOrBuilder();
+        } else {
+          return content_;
+        }
+      }
+      /**
+       * <code>optional .jpushim.s2b.MessageContent content = 5;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          jpushim.s2b.JpushimSdk2B.MessageContent, jpushim.s2b.JpushimSdk2B.MessageContent.Builder, jpushim.s2b.JpushimSdk2B.MessageContentOrBuilder> 
+          getContentFieldBuilder() {
+        if (contentBuilder_ == null) {
+          contentBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              jpushim.s2b.JpushimSdk2B.MessageContent, jpushim.s2b.JpushimSdk2B.MessageContent.Builder, jpushim.s2b.JpushimSdk2B.MessageContentOrBuilder>(
+                  content_,
+                  getParentForChildren(),
+                  isClean());
+          content_ = null;
+        }
+        return contentBuilder_;
+      }
+
+      // @@protoc_insertion_point(builder_scope:jpushim.s2b.ChatMsg)
+    }
+
+    static {
+      defaultInstance = new ChatMsg(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:jpushim.s2b.ChatMsg)
+  }
+
+  public interface ChatMsgSyncOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
+
+    // repeated .jpushim.s2b.ChatMsg chat_msg = 1;
+    /**
+     * <code>repeated .jpushim.s2b.ChatMsg chat_msg = 1;</code>
+     */
+    java.util.List<jpushim.s2b.JpushimSdk2B.ChatMsg> 
+        getChatMsgList();
+    /**
+     * <code>repeated .jpushim.s2b.ChatMsg chat_msg = 1;</code>
+     */
+    jpushim.s2b.JpushimSdk2B.ChatMsg getChatMsg(int index);
+    /**
+     * <code>repeated .jpushim.s2b.ChatMsg chat_msg = 1;</code>
+     */
+    int getChatMsgCount();
+    /**
+     * <code>repeated .jpushim.s2b.ChatMsg chat_msg = 1;</code>
+     */
+    java.util.List<? extends jpushim.s2b.JpushimSdk2B.ChatMsgOrBuilder> 
+        getChatMsgOrBuilderList();
+    /**
+     * <code>repeated .jpushim.s2b.ChatMsg chat_msg = 1;</code>
+     */
+    jpushim.s2b.JpushimSdk2B.ChatMsgOrBuilder getChatMsgOrBuilder(
+        int index);
+  }
+  /**
+   * Protobuf type {@code jpushim.s2b.ChatMsgSync}
+   */
+  public static final class ChatMsgSync extends
+      com.google.protobuf.GeneratedMessage
+      implements ChatMsgSyncOrBuilder {
+    // Use ChatMsgSync.newBuilder() to construct.
+    private ChatMsgSync(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private ChatMsgSync(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final ChatMsgSync defaultInstance;
+    public static ChatMsgSync getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public ChatMsgSync getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private ChatMsgSync(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+                chatMsg_ = new java.util.ArrayList<jpushim.s2b.JpushimSdk2B.ChatMsg>();
+                mutable_bitField0_ |= 0x00000001;
+              }
+              chatMsg_.add(input.readMessage(jpushim.s2b.JpushimSdk2B.ChatMsg.PARSER, extensionRegistry));
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+          chatMsg_ = java.util.Collections.unmodifiableList(chatMsg_);
+        }
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return jpushim.s2b.JpushimSdk2B.internal_static_jpushim_s2b_ChatMsgSync_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return jpushim.s2b.JpushimSdk2B.internal_static_jpushim_s2b_ChatMsgSync_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              jpushim.s2b.JpushimSdk2B.ChatMsgSync.class, jpushim.s2b.JpushimSdk2B.ChatMsgSync.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<ChatMsgSync> PARSER =
+        new com.google.protobuf.AbstractParser<ChatMsgSync>() {
+      public ChatMsgSync parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new ChatMsgSync(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ChatMsgSync> getParserForType() {
+      return PARSER;
+    }
+
+    // repeated .jpushim.s2b.ChatMsg chat_msg = 1;
+    public static final int CHAT_MSG_FIELD_NUMBER = 1;
+    private java.util.List<jpushim.s2b.JpushimSdk2B.ChatMsg> chatMsg_;
+    /**
+     * <code>repeated .jpushim.s2b.ChatMsg chat_msg = 1;</code>
+     */
+    public java.util.List<jpushim.s2b.JpushimSdk2B.ChatMsg> getChatMsgList() {
+      return chatMsg_;
+    }
+    /**
+     * <code>repeated .jpushim.s2b.ChatMsg chat_msg = 1;</code>
+     */
+    public java.util.List<? extends jpushim.s2b.JpushimSdk2B.ChatMsgOrBuilder> 
+        getChatMsgOrBuilderList() {
+      return chatMsg_;
+    }
+    /**
+     * <code>repeated .jpushim.s2b.ChatMsg chat_msg = 1;</code>
+     */
+    public int getChatMsgCount() {
+      return chatMsg_.size();
+    }
+    /**
+     * <code>repeated .jpushim.s2b.ChatMsg chat_msg = 1;</code>
+     */
+    public jpushim.s2b.JpushimSdk2B.ChatMsg getChatMsg(int index) {
+      return chatMsg_.get(index);
+    }
+    /**
+     * <code>repeated .jpushim.s2b.ChatMsg chat_msg = 1;</code>
+     */
+    public jpushim.s2b.JpushimSdk2B.ChatMsgOrBuilder getChatMsgOrBuilder(
+        int index) {
+      return chatMsg_.get(index);
+    }
+
+    private void initFields() {
+      chatMsg_ = java.util.Collections.emptyList();
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      for (int i = 0; i < chatMsg_.size(); i++) {
+        output.writeMessage(1, chatMsg_.get(i));
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      for (int i = 0; i < chatMsg_.size(); i++) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, chatMsg_.get(i));
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static jpushim.s2b.JpushimSdk2B.ChatMsgSync parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static jpushim.s2b.JpushimSdk2B.ChatMsgSync parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static jpushim.s2b.JpushimSdk2B.ChatMsgSync parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static jpushim.s2b.JpushimSdk2B.ChatMsgSync parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static jpushim.s2b.JpushimSdk2B.ChatMsgSync parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static jpushim.s2b.JpushimSdk2B.ChatMsgSync parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static jpushim.s2b.JpushimSdk2B.ChatMsgSync parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static jpushim.s2b.JpushimSdk2B.ChatMsgSync parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static jpushim.s2b.JpushimSdk2B.ChatMsgSync parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static jpushim.s2b.JpushimSdk2B.ChatMsgSync parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(jpushim.s2b.JpushimSdk2B.ChatMsgSync prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code jpushim.s2b.ChatMsgSync}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements jpushim.s2b.JpushimSdk2B.ChatMsgSyncOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return jpushim.s2b.JpushimSdk2B.internal_static_jpushim_s2b_ChatMsgSync_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return jpushim.s2b.JpushimSdk2B.internal_static_jpushim_s2b_ChatMsgSync_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                jpushim.s2b.JpushimSdk2B.ChatMsgSync.class, jpushim.s2b.JpushimSdk2B.ChatMsgSync.Builder.class);
+      }
+
+      // Construct using jpushim.s2b.JpushimSdk2B.ChatMsgSync.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+          getChatMsgFieldBuilder();
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        if (chatMsgBuilder_ == null) {
+          chatMsg_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000001);
+        } else {
+          chatMsgBuilder_.clear();
+        }
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return jpushim.s2b.JpushimSdk2B.internal_static_jpushim_s2b_ChatMsgSync_descriptor;
+      }
+
+      public jpushim.s2b.JpushimSdk2B.ChatMsgSync getDefaultInstanceForType() {
+        return jpushim.s2b.JpushimSdk2B.ChatMsgSync.getDefaultInstance();
+      }
+
+      public jpushim.s2b.JpushimSdk2B.ChatMsgSync build() {
+        jpushim.s2b.JpushimSdk2B.ChatMsgSync result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public jpushim.s2b.JpushimSdk2B.ChatMsgSync buildPartial() {
+        jpushim.s2b.JpushimSdk2B.ChatMsgSync result = new jpushim.s2b.JpushimSdk2B.ChatMsgSync(this);
+        int from_bitField0_ = bitField0_;
+        if (chatMsgBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) == 0x00000001)) {
+            chatMsg_ = java.util.Collections.unmodifiableList(chatMsg_);
+            bitField0_ = (bitField0_ & ~0x00000001);
+          }
+          result.chatMsg_ = chatMsg_;
+        } else {
+          result.chatMsg_ = chatMsgBuilder_.build();
+        }
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof jpushim.s2b.JpushimSdk2B.ChatMsgSync) {
+          return mergeFrom((jpushim.s2b.JpushimSdk2B.ChatMsgSync)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(jpushim.s2b.JpushimSdk2B.ChatMsgSync other) {
+        if (other == jpushim.s2b.JpushimSdk2B.ChatMsgSync.getDefaultInstance()) return this;
+        if (chatMsgBuilder_ == null) {
+          if (!other.chatMsg_.isEmpty()) {
+            if (chatMsg_.isEmpty()) {
+              chatMsg_ = other.chatMsg_;
+              bitField0_ = (bitField0_ & ~0x00000001);
+            } else {
+              ensureChatMsgIsMutable();
+              chatMsg_.addAll(other.chatMsg_);
+            }
+            onChanged();
+          }
+        } else {
+          if (!other.chatMsg_.isEmpty()) {
+            if (chatMsgBuilder_.isEmpty()) {
+              chatMsgBuilder_.dispose();
+              chatMsgBuilder_ = null;
+              chatMsg_ = other.chatMsg_;
+              bitField0_ = (bitField0_ & ~0x00000001);
+              chatMsgBuilder_ = 
+                com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
+                   getChatMsgFieldBuilder() : null;
+            } else {
+              chatMsgBuilder_.addAllMessages(other.chatMsg_);
+            }
+          }
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        jpushim.s2b.JpushimSdk2B.ChatMsgSync parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (jpushim.s2b.JpushimSdk2B.ChatMsgSync) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      // repeated .jpushim.s2b.ChatMsg chat_msg = 1;
+      private java.util.List<jpushim.s2b.JpushimSdk2B.ChatMsg> chatMsg_ =
+        java.util.Collections.emptyList();
+      private void ensureChatMsgIsMutable() {
+        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+          chatMsg_ = new java.util.ArrayList<jpushim.s2b.JpushimSdk2B.ChatMsg>(chatMsg_);
+          bitField0_ |= 0x00000001;
+         }
+      }
+
+      private com.google.protobuf.RepeatedFieldBuilder<
+          jpushim.s2b.JpushimSdk2B.ChatMsg, jpushim.s2b.JpushimSdk2B.ChatMsg.Builder, jpushim.s2b.JpushimSdk2B.ChatMsgOrBuilder> chatMsgBuilder_;
+
+      /**
+       * <code>repeated .jpushim.s2b.ChatMsg chat_msg = 1;</code>
+       */
+      public java.util.List<jpushim.s2b.JpushimSdk2B.ChatMsg> getChatMsgList() {
+        if (chatMsgBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(chatMsg_);
+        } else {
+          return chatMsgBuilder_.getMessageList();
+        }
+      }
+      /**
+       * <code>repeated .jpushim.s2b.ChatMsg chat_msg = 1;</code>
+       */
+      public int getChatMsgCount() {
+        if (chatMsgBuilder_ == null) {
+          return chatMsg_.size();
+        } else {
+          return chatMsgBuilder_.getCount();
+        }
+      }
+      /**
+       * <code>repeated .jpushim.s2b.ChatMsg chat_msg = 1;</code>
+       */
+      public jpushim.s2b.JpushimSdk2B.ChatMsg getChatMsg(int index) {
+        if (chatMsgBuilder_ == null) {
+          return chatMsg_.get(index);
+        } else {
+          return chatMsgBuilder_.getMessage(index);
+        }
+      }
+      /**
+       * <code>repeated .jpushim.s2b.ChatMsg chat_msg = 1;</code>
+       */
+      public Builder setChatMsg(
+          int index, jpushim.s2b.JpushimSdk2B.ChatMsg value) {
+        if (chatMsgBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureChatMsgIsMutable();
+          chatMsg_.set(index, value);
+          onChanged();
+        } else {
+          chatMsgBuilder_.setMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .jpushim.s2b.ChatMsg chat_msg = 1;</code>
+       */
+      public Builder setChatMsg(
+          int index, jpushim.s2b.JpushimSdk2B.ChatMsg.Builder builderForValue) {
+        if (chatMsgBuilder_ == null) {
+          ensureChatMsgIsMutable();
+          chatMsg_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          chatMsgBuilder_.setMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .jpushim.s2b.ChatMsg chat_msg = 1;</code>
+       */
+      public Builder addChatMsg(jpushim.s2b.JpushimSdk2B.ChatMsg value) {
+        if (chatMsgBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureChatMsgIsMutable();
+          chatMsg_.add(value);
+          onChanged();
+        } else {
+          chatMsgBuilder_.addMessage(value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .jpushim.s2b.ChatMsg chat_msg = 1;</code>
+       */
+      public Builder addChatMsg(
+          int index, jpushim.s2b.JpushimSdk2B.ChatMsg value) {
+        if (chatMsgBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureChatMsgIsMutable();
+          chatMsg_.add(index, value);
+          onChanged();
+        } else {
+          chatMsgBuilder_.addMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .jpushim.s2b.ChatMsg chat_msg = 1;</code>
+       */
+      public Builder addChatMsg(
+          jpushim.s2b.JpushimSdk2B.ChatMsg.Builder builderForValue) {
+        if (chatMsgBuilder_ == null) {
+          ensureChatMsgIsMutable();
+          chatMsg_.add(builderForValue.build());
+          onChanged();
+        } else {
+          chatMsgBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .jpushim.s2b.ChatMsg chat_msg = 1;</code>
+       */
+      public Builder addChatMsg(
+          int index, jpushim.s2b.JpushimSdk2B.ChatMsg.Builder builderForValue) {
+        if (chatMsgBuilder_ == null) {
+          ensureChatMsgIsMutable();
+          chatMsg_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          chatMsgBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .jpushim.s2b.ChatMsg chat_msg = 1;</code>
+       */
+      public Builder addAllChatMsg(
+          java.lang.Iterable<? extends jpushim.s2b.JpushimSdk2B.ChatMsg> values) {
+        if (chatMsgBuilder_ == null) {
+          ensureChatMsgIsMutable();
+          super.addAll(values, chatMsg_);
+          onChanged();
+        } else {
+          chatMsgBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .jpushim.s2b.ChatMsg chat_msg = 1;</code>
+       */
+      public Builder clearChatMsg() {
+        if (chatMsgBuilder_ == null) {
+          chatMsg_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000001);
+          onChanged();
+        } else {
+          chatMsgBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .jpushim.s2b.ChatMsg chat_msg = 1;</code>
+       */
+      public Builder removeChatMsg(int index) {
+        if (chatMsgBuilder_ == null) {
+          ensureChatMsgIsMutable();
+          chatMsg_.remove(index);
+          onChanged();
+        } else {
+          chatMsgBuilder_.remove(index);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .jpushim.s2b.ChatMsg chat_msg = 1;</code>
+       */
+      public jpushim.s2b.JpushimSdk2B.ChatMsg.Builder getChatMsgBuilder(
+          int index) {
+        return getChatMsgFieldBuilder().getBuilder(index);
+      }
+      /**
+       * <code>repeated .jpushim.s2b.ChatMsg chat_msg = 1;</code>
+       */
+      public jpushim.s2b.JpushimSdk2B.ChatMsgOrBuilder getChatMsgOrBuilder(
+          int index) {
+        if (chatMsgBuilder_ == null) {
+          return chatMsg_.get(index);  } else {
+          return chatMsgBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      /**
+       * <code>repeated .jpushim.s2b.ChatMsg chat_msg = 1;</code>
+       */
+      public java.util.List<? extends jpushim.s2b.JpushimSdk2B.ChatMsgOrBuilder> 
+           getChatMsgOrBuilderList() {
+        if (chatMsgBuilder_ != null) {
+          return chatMsgBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(chatMsg_);
+        }
+      }
+      /**
+       * <code>repeated .jpushim.s2b.ChatMsg chat_msg = 1;</code>
+       */
+      public jpushim.s2b.JpushimSdk2B.ChatMsg.Builder addChatMsgBuilder() {
+        return getChatMsgFieldBuilder().addBuilder(
+            jpushim.s2b.JpushimSdk2B.ChatMsg.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .jpushim.s2b.ChatMsg chat_msg = 1;</code>
+       */
+      public jpushim.s2b.JpushimSdk2B.ChatMsg.Builder addChatMsgBuilder(
+          int index) {
+        return getChatMsgFieldBuilder().addBuilder(
+            index, jpushim.s2b.JpushimSdk2B.ChatMsg.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .jpushim.s2b.ChatMsg chat_msg = 1;</code>
+       */
+      public java.util.List<jpushim.s2b.JpushimSdk2B.ChatMsg.Builder> 
+           getChatMsgBuilderList() {
+        return getChatMsgFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilder<
+          jpushim.s2b.JpushimSdk2B.ChatMsg, jpushim.s2b.JpushimSdk2B.ChatMsg.Builder, jpushim.s2b.JpushimSdk2B.ChatMsgOrBuilder> 
+          getChatMsgFieldBuilder() {
+        if (chatMsgBuilder_ == null) {
+          chatMsgBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
+              jpushim.s2b.JpushimSdk2B.ChatMsg, jpushim.s2b.JpushimSdk2B.ChatMsg.Builder, jpushim.s2b.JpushimSdk2B.ChatMsgOrBuilder>(
+                  chatMsg_,
+                  ((bitField0_ & 0x00000001) == 0x00000001),
+                  getParentForChildren(),
+                  isClean());
+          chatMsg_ = null;
+        }
+        return chatMsgBuilder_;
+      }
+
+      // @@protoc_insertion_point(builder_scope:jpushim.s2b.ChatMsgSync)
+    }
+
+    static {
+      defaultInstance = new ChatMsgSync(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:jpushim.s2b.ChatMsgSync)
+  }
+
+  public interface EventSyncOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
+
+    // optional int64 event_id = 1;
+    /**
+     * <code>optional int64 event_id = 1;</code>
+     */
+    boolean hasEventId();
+    /**
+     * <code>optional int64 event_id = 1;</code>
+     */
+    long getEventId();
+
+    // optional int32 event_type = 2;
+    /**
+     * <code>optional int32 event_type = 2;</code>
+     *
+     * <pre>
+     *head.cmd
+     * </pre>
+     */
+    boolean hasEventType();
+    /**
+     * <code>optional int32 event_type = 2;</code>
+     *
+     * <pre>
+     *head.cmd
+     * </pre>
+     */
+    int getEventType();
+
+    // optional int64 from_uid = 3;
+    /**
+     * <code>optional int64 from_uid = 3;</code>
+     */
+    boolean hasFromUid();
+    /**
+     * <code>optional int64 from_uid = 3;</code>
+     */
+    long getFromUid();
+
+    // optional int64 gid = 4;
+    /**
+     * <code>optional int64 gid = 4;</code>
+     */
+    boolean hasGid();
+    /**
+     * <code>optional int64 gid = 4;</code>
+     */
+    long getGid();
+
+    // optional bytes description = 5;
+    /**
+     * <code>optional bytes description = 5;</code>
+     */
+    boolean hasDescription();
+    /**
+     * <code>optional bytes description = 5;</code>
+     */
+    com.google.protobuf.ByteString getDescription();
+  }
+  /**
+   * Protobuf type {@code jpushim.s2b.EventSync}
+   */
+  public static final class EventSync extends
+      com.google.protobuf.GeneratedMessage
+      implements EventSyncOrBuilder {
+    // Use EventSync.newBuilder() to construct.
+    private EventSync(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private EventSync(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final EventSync defaultInstance;
+    public static EventSync getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public EventSync getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private EventSync(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              eventId_ = input.readInt64();
+              break;
+            }
+            case 16: {
+              bitField0_ |= 0x00000002;
+              eventType_ = input.readInt32();
+              break;
+            }
+            case 24: {
+              bitField0_ |= 0x00000004;
+              fromUid_ = input.readInt64();
+              break;
+            }
+            case 32: {
+              bitField0_ |= 0x00000008;
+              gid_ = input.readInt64();
+              break;
+            }
+            case 42: {
+              bitField0_ |= 0x00000010;
+              description_ = input.readBytes();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return jpushim.s2b.JpushimSdk2B.internal_static_jpushim_s2b_EventSync_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return jpushim.s2b.JpushimSdk2B.internal_static_jpushim_s2b_EventSync_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              jpushim.s2b.JpushimSdk2B.EventSync.class, jpushim.s2b.JpushimSdk2B.EventSync.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<EventSync> PARSER =
+        new com.google.protobuf.AbstractParser<EventSync>() {
+      public EventSync parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new EventSync(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<EventSync> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    // optional int64 event_id = 1;
+    public static final int EVENT_ID_FIELD_NUMBER = 1;
+    private long eventId_;
+    /**
+     * <code>optional int64 event_id = 1;</code>
+     */
+    public boolean hasEventId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional int64 event_id = 1;</code>
+     */
+    public long getEventId() {
+      return eventId_;
+    }
+
+    // optional int32 event_type = 2;
+    public static final int EVENT_TYPE_FIELD_NUMBER = 2;
+    private int eventType_;
+    /**
+     * <code>optional int32 event_type = 2;</code>
+     *
+     * <pre>
+     *head.cmd
+     * </pre>
+     */
+    public boolean hasEventType() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional int32 event_type = 2;</code>
+     *
+     * <pre>
+     *head.cmd
+     * </pre>
+     */
+    public int getEventType() {
+      return eventType_;
+    }
+
+    // optional int64 from_uid = 3;
+    public static final int FROM_UID_FIELD_NUMBER = 3;
+    private long fromUid_;
+    /**
+     * <code>optional int64 from_uid = 3;</code>
+     */
+    public boolean hasFromUid() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional int64 from_uid = 3;</code>
+     */
+    public long getFromUid() {
+      return fromUid_;
+    }
+
+    // optional int64 gid = 4;
+    public static final int GID_FIELD_NUMBER = 4;
+    private long gid_;
+    /**
+     * <code>optional int64 gid = 4;</code>
+     */
+    public boolean hasGid() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional int64 gid = 4;</code>
+     */
+    public long getGid() {
+      return gid_;
+    }
+
+    // optional bytes description = 5;
+    public static final int DESCRIPTION_FIELD_NUMBER = 5;
+    private com.google.protobuf.ByteString description_;
+    /**
+     * <code>optional bytes description = 5;</code>
+     */
+    public boolean hasDescription() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    /**
+     * <code>optional bytes description = 5;</code>
+     */
+    public com.google.protobuf.ByteString getDescription() {
+      return description_;
+    }
+
+    private void initFields() {
+      eventId_ = 0L;
+      eventType_ = 0;
+      fromUid_ = 0L;
+      gid_ = 0L;
+      description_ = com.google.protobuf.ByteString.EMPTY;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeInt64(1, eventId_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeInt32(2, eventType_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeInt64(3, fromUid_);
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        output.writeInt64(4, gid_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        output.writeBytes(5, description_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, eventId_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(2, eventType_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(3, fromUid_);
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(4, gid_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(5, description_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static jpushim.s2b.JpushimSdk2B.EventSync parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static jpushim.s2b.JpushimSdk2B.EventSync parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static jpushim.s2b.JpushimSdk2B.EventSync parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static jpushim.s2b.JpushimSdk2B.EventSync parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static jpushim.s2b.JpushimSdk2B.EventSync parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static jpushim.s2b.JpushimSdk2B.EventSync parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static jpushim.s2b.JpushimSdk2B.EventSync parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static jpushim.s2b.JpushimSdk2B.EventSync parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static jpushim.s2b.JpushimSdk2B.EventSync parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static jpushim.s2b.JpushimSdk2B.EventSync parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(jpushim.s2b.JpushimSdk2B.EventSync prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code jpushim.s2b.EventSync}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements jpushim.s2b.JpushimSdk2B.EventSyncOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return jpushim.s2b.JpushimSdk2B.internal_static_jpushim_s2b_EventSync_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return jpushim.s2b.JpushimSdk2B.internal_static_jpushim_s2b_EventSync_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                jpushim.s2b.JpushimSdk2B.EventSync.class, jpushim.s2b.JpushimSdk2B.EventSync.Builder.class);
+      }
+
+      // Construct using jpushim.s2b.JpushimSdk2B.EventSync.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        eventId_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        eventType_ = 0;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        fromUid_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000004);
+        gid_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000008);
+        description_ = com.google.protobuf.ByteString.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000010);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return jpushim.s2b.JpushimSdk2B.internal_static_jpushim_s2b_EventSync_descriptor;
+      }
+
+      public jpushim.s2b.JpushimSdk2B.EventSync getDefaultInstanceForType() {
+        return jpushim.s2b.JpushimSdk2B.EventSync.getDefaultInstance();
+      }
+
+      public jpushim.s2b.JpushimSdk2B.EventSync build() {
+        jpushim.s2b.JpushimSdk2B.EventSync result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public jpushim.s2b.JpushimSdk2B.EventSync buildPartial() {
+        jpushim.s2b.JpushimSdk2B.EventSync result = new jpushim.s2b.JpushimSdk2B.EventSync(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.eventId_ = eventId_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.eventType_ = eventType_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.fromUid_ = fromUid_;
+        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+          to_bitField0_ |= 0x00000008;
+        }
+        result.gid_ = gid_;
+        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+          to_bitField0_ |= 0x00000010;
+        }
+        result.description_ = description_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof jpushim.s2b.JpushimSdk2B.EventSync) {
+          return mergeFrom((jpushim.s2b.JpushimSdk2B.EventSync)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(jpushim.s2b.JpushimSdk2B.EventSync other) {
+        if (other == jpushim.s2b.JpushimSdk2B.EventSync.getDefaultInstance()) return this;
+        if (other.hasEventId()) {
+          setEventId(other.getEventId());
+        }
+        if (other.hasEventType()) {
+          setEventType(other.getEventType());
+        }
+        if (other.hasFromUid()) {
+          setFromUid(other.getFromUid());
+        }
+        if (other.hasGid()) {
+          setGid(other.getGid());
+        }
+        if (other.hasDescription()) {
+          setDescription(other.getDescription());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        jpushim.s2b.JpushimSdk2B.EventSync parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (jpushim.s2b.JpushimSdk2B.EventSync) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      // optional int64 event_id = 1;
+      private long eventId_ ;
+      /**
+       * <code>optional int64 event_id = 1;</code>
+       */
+      public boolean hasEventId() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional int64 event_id = 1;</code>
+       */
+      public long getEventId() {
+        return eventId_;
+      }
+      /**
+       * <code>optional int64 event_id = 1;</code>
+       */
+      public Builder setEventId(long value) {
+        bitField0_ |= 0x00000001;
+        eventId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 event_id = 1;</code>
+       */
+      public Builder clearEventId() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        eventId_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // optional int32 event_type = 2;
+      private int eventType_ ;
+      /**
+       * <code>optional int32 event_type = 2;</code>
+       *
+       * <pre>
+       *head.cmd
+       * </pre>
+       */
+      public boolean hasEventType() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional int32 event_type = 2;</code>
+       *
+       * <pre>
+       *head.cmd
+       * </pre>
+       */
+      public int getEventType() {
+        return eventType_;
+      }
+      /**
+       * <code>optional int32 event_type = 2;</code>
+       *
+       * <pre>
+       *head.cmd
+       * </pre>
+       */
+      public Builder setEventType(int value) {
+        bitField0_ |= 0x00000002;
+        eventType_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int32 event_type = 2;</code>
+       *
+       * <pre>
+       *head.cmd
+       * </pre>
+       */
+      public Builder clearEventType() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        eventType_ = 0;
+        onChanged();
+        return this;
+      }
+
+      // optional int64 from_uid = 3;
+      private long fromUid_ ;
+      /**
+       * <code>optional int64 from_uid = 3;</code>
+       */
+      public boolean hasFromUid() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>optional int64 from_uid = 3;</code>
+       */
+      public long getFromUid() {
+        return fromUid_;
+      }
+      /**
+       * <code>optional int64 from_uid = 3;</code>
+       */
+      public Builder setFromUid(long value) {
+        bitField0_ |= 0x00000004;
+        fromUid_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 from_uid = 3;</code>
+       */
+      public Builder clearFromUid() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        fromUid_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // optional int64 gid = 4;
+      private long gid_ ;
+      /**
+       * <code>optional int64 gid = 4;</code>
+       */
+      public boolean hasGid() {
+        return ((bitField0_ & 0x00000008) == 0x00000008);
+      }
+      /**
+       * <code>optional int64 gid = 4;</code>
+       */
+      public long getGid() {
+        return gid_;
+      }
+      /**
+       * <code>optional int64 gid = 4;</code>
+       */
+      public Builder setGid(long value) {
+        bitField0_ |= 0x00000008;
+        gid_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 gid = 4;</code>
+       */
+      public Builder clearGid() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        gid_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // optional bytes description = 5;
+      private com.google.protobuf.ByteString description_ = com.google.protobuf.ByteString.EMPTY;
+      /**
+       * <code>optional bytes description = 5;</code>
+       */
+      public boolean hasDescription() {
+        return ((bitField0_ & 0x00000010) == 0x00000010);
+      }
+      /**
+       * <code>optional bytes description = 5;</code>
+       */
+      public com.google.protobuf.ByteString getDescription() {
+        return description_;
+      }
+      /**
+       * <code>optional bytes description = 5;</code>
+       */
+      public Builder setDescription(com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000010;
+        description_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bytes description = 5;</code>
+       */
+      public Builder clearDescription() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        description_ = getDefaultInstance().getDescription();
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:jpushim.s2b.EventSync)
+    }
+
+    static {
+      defaultInstance = new EventSync(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:jpushim.s2b.EventSync)
+  }
+
   public interface EventAnswerOrBuilder
       extends com.google.protobuf.MessageOrBuilder {
 
@@ -10316,10 +11940,18 @@ public final class JpushimSdk2B {
     // optional int32 event_type = 2;
     /**
      * <code>optional int32 event_type = 2;</code>
+     *
+     * <pre>
+     *head.cmd
+     * </pre>
      */
     boolean hasEventType();
     /**
      * <code>optional int32 event_type = 2;</code>
+     *
+     * <pre>
+     *head.cmd
+     * </pre>
      */
     int getEventType();
 
@@ -10328,7 +11960,7 @@ public final class JpushimSdk2B {
      * <code>optional int32 answer = 3;</code>
      *
      * <pre>
-     * 1:Yes, 2:No
+     *1-YES, 2-NO
      * </pre>
      */
     boolean hasAnswer();
@@ -10336,7 +11968,7 @@ public final class JpushimSdk2B {
      * <code>optional int32 answer = 3;</code>
      *
      * <pre>
-     * 1:Yes, 2:No
+     *1-YES, 2-NO
      * </pre>
      */
     int getAnswer();
@@ -10468,12 +12100,20 @@ public final class JpushimSdk2B {
     private int eventType_;
     /**
      * <code>optional int32 event_type = 2;</code>
+     *
+     * <pre>
+     *head.cmd
+     * </pre>
      */
     public boolean hasEventType() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
      * <code>optional int32 event_type = 2;</code>
+     *
+     * <pre>
+     *head.cmd
+     * </pre>
      */
     public int getEventType() {
       return eventType_;
@@ -10486,7 +12126,7 @@ public final class JpushimSdk2B {
      * <code>optional int32 answer = 3;</code>
      *
      * <pre>
-     * 1:Yes, 2:No
+     *1-YES, 2-NO
      * </pre>
      */
     public boolean hasAnswer() {
@@ -10496,7 +12136,7 @@ public final class JpushimSdk2B {
      * <code>optional int32 answer = 3;</code>
      *
      * <pre>
-     * 1:Yes, 2:No
+     *1-YES, 2-NO
      * </pre>
      */
     public int getAnswer() {
@@ -10801,18 +12441,30 @@ public final class JpushimSdk2B {
       private int eventType_ ;
       /**
        * <code>optional int32 event_type = 2;</code>
+       *
+       * <pre>
+       *head.cmd
+       * </pre>
        */
       public boolean hasEventType() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
        * <code>optional int32 event_type = 2;</code>
+       *
+       * <pre>
+       *head.cmd
+       * </pre>
        */
       public int getEventType() {
         return eventType_;
       }
       /**
        * <code>optional int32 event_type = 2;</code>
+       *
+       * <pre>
+       *head.cmd
+       * </pre>
        */
       public Builder setEventType(int value) {
         bitField0_ |= 0x00000002;
@@ -10822,6 +12474,10 @@ public final class JpushimSdk2B {
       }
       /**
        * <code>optional int32 event_type = 2;</code>
+       *
+       * <pre>
+       *head.cmd
+       * </pre>
        */
       public Builder clearEventType() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -10836,7 +12492,7 @@ public final class JpushimSdk2B {
        * <code>optional int32 answer = 3;</code>
        *
        * <pre>
-       * 1:Yes, 2:No
+       *1-YES, 2-NO
        * </pre>
        */
       public boolean hasAnswer() {
@@ -10846,7 +12502,7 @@ public final class JpushimSdk2B {
        * <code>optional int32 answer = 3;</code>
        *
        * <pre>
-       * 1:Yes, 2:No
+       *1-YES, 2-NO
        * </pre>
        */
       public int getAnswer() {
@@ -10856,7 +12512,7 @@ public final class JpushimSdk2B {
        * <code>optional int32 answer = 3;</code>
        *
        * <pre>
-       * 1:Yes, 2:No
+       *1-YES, 2-NO
        * </pre>
        */
       public Builder setAnswer(int value) {
@@ -10869,7 +12525,7 @@ public final class JpushimSdk2B {
        * <code>optional int32 answer = 3;</code>
        *
        * <pre>
-       * 1:Yes, 2:No
+       *1-YES, 2-NO
        * </pre>
        */
       public Builder clearAnswer() {
@@ -10888,788 +12544,6 @@ public final class JpushimSdk2B {
     }
 
     // @@protoc_insertion_point(class_scope:jpushim.s2b.EventAnswer)
-  }
-
-  public interface ChatMsgSyncOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
-
-    // optional int64 from_uid = 1;
-    /**
-     * <code>optional int64 from_uid = 1;</code>
-     */
-    boolean hasFromUid();
-    /**
-     * <code>optional int64 from_uid = 1;</code>
-     */
-    long getFromUid();
-
-    // optional int64 msgid = 2;
-    /**
-     * <code>optional int64 msgid = 2;</code>
-     */
-    boolean hasMsgid();
-    /**
-     * <code>optional int64 msgid = 2;</code>
-     */
-    long getMsgid();
-
-    // optional int32 msg_type = 3;
-    /**
-     * <code>optional int32 msg_type = 3;</code>
-     *
-     * <pre>
-     *3-single, 4-group
-     * </pre>
-     */
-    boolean hasMsgType();
-    /**
-     * <code>optional int32 msg_type = 3;</code>
-     *
-     * <pre>
-     *3-single, 4-group
-     * </pre>
-     */
-    int getMsgType();
-
-    // optional .jpushim.s2b.MessageContent content = 4;
-    /**
-     * <code>optional .jpushim.s2b.MessageContent content = 4;</code>
-     */
-    boolean hasContent();
-    /**
-     * <code>optional .jpushim.s2b.MessageContent content = 4;</code>
-     */
-    jpushim.s2b.JpushimSdk2B.MessageContent getContent();
-    /**
-     * <code>optional .jpushim.s2b.MessageContent content = 4;</code>
-     */
-    jpushim.s2b.JpushimSdk2B.MessageContentOrBuilder getContentOrBuilder();
-  }
-  /**
-   * Protobuf type {@code jpushim.s2b.ChatMsgSync}
-   */
-  public static final class ChatMsgSync extends
-      com.google.protobuf.GeneratedMessage
-      implements ChatMsgSyncOrBuilder {
-    // Use ChatMsgSync.newBuilder() to construct.
-    private ChatMsgSync(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-      this.unknownFields = builder.getUnknownFields();
-    }
-    private ChatMsgSync(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
-
-    private static final ChatMsgSync defaultInstance;
-    public static ChatMsgSync getDefaultInstance() {
-      return defaultInstance;
-    }
-
-    public ChatMsgSync getDefaultInstanceForType() {
-      return defaultInstance;
-    }
-
-    private final com.google.protobuf.UnknownFieldSet unknownFields;
-    @java.lang.Override
-    public final com.google.protobuf.UnknownFieldSet
-        getUnknownFields() {
-      return this.unknownFields;
-    }
-    private ChatMsgSync(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      initFields();
-      int mutable_bitField0_ = 0;
-      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-          com.google.protobuf.UnknownFieldSet.newBuilder();
-      try {
-        boolean done = false;
-        while (!done) {
-          int tag = input.readTag();
-          switch (tag) {
-            case 0:
-              done = true;
-              break;
-            default: {
-              if (!parseUnknownField(input, unknownFields,
-                                     extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
-            case 8: {
-              bitField0_ |= 0x00000001;
-              fromUid_ = input.readInt64();
-              break;
-            }
-            case 16: {
-              bitField0_ |= 0x00000002;
-              msgid_ = input.readInt64();
-              break;
-            }
-            case 24: {
-              bitField0_ |= 0x00000004;
-              msgType_ = input.readInt32();
-              break;
-            }
-            case 34: {
-              jpushim.s2b.JpushimSdk2B.MessageContent.Builder subBuilder = null;
-              if (((bitField0_ & 0x00000008) == 0x00000008)) {
-                subBuilder = content_.toBuilder();
-              }
-              content_ = input.readMessage(jpushim.s2b.JpushimSdk2B.MessageContent.PARSER, extensionRegistry);
-              if (subBuilder != null) {
-                subBuilder.mergeFrom(content_);
-                content_ = subBuilder.buildPartial();
-              }
-              bitField0_ |= 0x00000008;
-              break;
-            }
-          }
-        }
-      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw e.setUnfinishedMessage(this);
-      } catch (java.io.IOException e) {
-        throw new com.google.protobuf.InvalidProtocolBufferException(
-            e.getMessage()).setUnfinishedMessage(this);
-      } finally {
-        this.unknownFields = unknownFields.build();
-        makeExtensionsImmutable();
-      }
-    }
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return jpushim.s2b.JpushimSdk2B.internal_static_jpushim_s2b_ChatMsgSync_descriptor;
-    }
-
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return jpushim.s2b.JpushimSdk2B.internal_static_jpushim_s2b_ChatMsgSync_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              jpushim.s2b.JpushimSdk2B.ChatMsgSync.class, jpushim.s2b.JpushimSdk2B.ChatMsgSync.Builder.class);
-    }
-
-    public static com.google.protobuf.Parser<ChatMsgSync> PARSER =
-        new com.google.protobuf.AbstractParser<ChatMsgSync>() {
-      public ChatMsgSync parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        return new ChatMsgSync(input, extensionRegistry);
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<ChatMsgSync> getParserForType() {
-      return PARSER;
-    }
-
-    private int bitField0_;
-    // optional int64 from_uid = 1;
-    public static final int FROM_UID_FIELD_NUMBER = 1;
-    private long fromUid_;
-    /**
-     * <code>optional int64 from_uid = 1;</code>
-     */
-    public boolean hasFromUid() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
-    }
-    /**
-     * <code>optional int64 from_uid = 1;</code>
-     */
-    public long getFromUid() {
-      return fromUid_;
-    }
-
-    // optional int64 msgid = 2;
-    public static final int MSGID_FIELD_NUMBER = 2;
-    private long msgid_;
-    /**
-     * <code>optional int64 msgid = 2;</code>
-     */
-    public boolean hasMsgid() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
-    }
-    /**
-     * <code>optional int64 msgid = 2;</code>
-     */
-    public long getMsgid() {
-      return msgid_;
-    }
-
-    // optional int32 msg_type = 3;
-    public static final int MSG_TYPE_FIELD_NUMBER = 3;
-    private int msgType_;
-    /**
-     * <code>optional int32 msg_type = 3;</code>
-     *
-     * <pre>
-     *3-single, 4-group
-     * </pre>
-     */
-    public boolean hasMsgType() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
-    }
-    /**
-     * <code>optional int32 msg_type = 3;</code>
-     *
-     * <pre>
-     *3-single, 4-group
-     * </pre>
-     */
-    public int getMsgType() {
-      return msgType_;
-    }
-
-    // optional .jpushim.s2b.MessageContent content = 4;
-    public static final int CONTENT_FIELD_NUMBER = 4;
-    private jpushim.s2b.JpushimSdk2B.MessageContent content_;
-    /**
-     * <code>optional .jpushim.s2b.MessageContent content = 4;</code>
-     */
-    public boolean hasContent() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
-    }
-    /**
-     * <code>optional .jpushim.s2b.MessageContent content = 4;</code>
-     */
-    public jpushim.s2b.JpushimSdk2B.MessageContent getContent() {
-      return content_;
-    }
-    /**
-     * <code>optional .jpushim.s2b.MessageContent content = 4;</code>
-     */
-    public jpushim.s2b.JpushimSdk2B.MessageContentOrBuilder getContentOrBuilder() {
-      return content_;
-    }
-
-    private void initFields() {
-      fromUid_ = 0L;
-      msgid_ = 0L;
-      msgType_ = 0;
-      content_ = jpushim.s2b.JpushimSdk2B.MessageContent.getDefaultInstance();
-    }
-    private byte memoizedIsInitialized = -1;
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      getSerializedSize();
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        output.writeInt64(1, fromUid_);
-      }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeInt64(2, msgid_);
-      }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeInt32(3, msgType_);
-      }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        output.writeMessage(4, content_);
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    private int memoizedSerializedSize = -1;
-    public int getSerializedSize() {
-      int size = memoizedSerializedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(1, fromUid_);
-      }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(2, msgid_);
-      }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(3, msgType_);
-      }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(4, content_);
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSerializedSize = size;
-      return size;
-    }
-
-    private static final long serialVersionUID = 0L;
-    @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
-      return super.writeReplace();
-    }
-
-    public static jpushim.s2b.JpushimSdk2B.ChatMsgSync parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static jpushim.s2b.JpushimSdk2B.ChatMsgSync parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static jpushim.s2b.JpushimSdk2B.ChatMsgSync parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static jpushim.s2b.JpushimSdk2B.ChatMsgSync parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static jpushim.s2b.JpushimSdk2B.ChatMsgSync parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return PARSER.parseFrom(input);
-    }
-    public static jpushim.s2b.JpushimSdk2B.ChatMsgSync parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
-    }
-    public static jpushim.s2b.JpushimSdk2B.ChatMsgSync parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input);
-    }
-    public static jpushim.s2b.JpushimSdk2B.ChatMsgSync parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input, extensionRegistry);
-    }
-    public static jpushim.s2b.JpushimSdk2B.ChatMsgSync parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return PARSER.parseFrom(input);
-    }
-    public static jpushim.s2b.JpushimSdk2B.ChatMsgSync parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
-    }
-
-    public static Builder newBuilder() { return Builder.create(); }
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(jpushim.s2b.JpushimSdk2B.ChatMsgSync prototype) {
-      return newBuilder().mergeFrom(prototype);
-    }
-    public Builder toBuilder() { return newBuilder(this); }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * Protobuf type {@code jpushim.s2b.ChatMsgSync}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements jpushim.s2b.JpushimSdk2B.ChatMsgSyncOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return jpushim.s2b.JpushimSdk2B.internal_static_jpushim_s2b_ChatMsgSync_descriptor;
-      }
-
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return jpushim.s2b.JpushimSdk2B.internal_static_jpushim_s2b_ChatMsgSync_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                jpushim.s2b.JpushimSdk2B.ChatMsgSync.class, jpushim.s2b.JpushimSdk2B.ChatMsgSync.Builder.class);
-      }
-
-      // Construct using jpushim.s2b.JpushimSdk2B.ChatMsgSync.newBuilder()
-      private Builder() {
-        maybeForceBuilderInitialization();
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-        maybeForceBuilderInitialization();
-      }
-      private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
-          getContentFieldBuilder();
-        }
-      }
-      private static Builder create() {
-        return new Builder();
-      }
-
-      public Builder clear() {
-        super.clear();
-        fromUid_ = 0L;
-        bitField0_ = (bitField0_ & ~0x00000001);
-        msgid_ = 0L;
-        bitField0_ = (bitField0_ & ~0x00000002);
-        msgType_ = 0;
-        bitField0_ = (bitField0_ & ~0x00000004);
-        if (contentBuilder_ == null) {
-          content_ = jpushim.s2b.JpushimSdk2B.MessageContent.getDefaultInstance();
-        } else {
-          contentBuilder_.clear();
-        }
-        bitField0_ = (bitField0_ & ~0x00000008);
-        return this;
-      }
-
-      public Builder clone() {
-        return create().mergeFrom(buildPartial());
-      }
-
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return jpushim.s2b.JpushimSdk2B.internal_static_jpushim_s2b_ChatMsgSync_descriptor;
-      }
-
-      public jpushim.s2b.JpushimSdk2B.ChatMsgSync getDefaultInstanceForType() {
-        return jpushim.s2b.JpushimSdk2B.ChatMsgSync.getDefaultInstance();
-      }
-
-      public jpushim.s2b.JpushimSdk2B.ChatMsgSync build() {
-        jpushim.s2b.JpushimSdk2B.ChatMsgSync result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      public jpushim.s2b.JpushimSdk2B.ChatMsgSync buildPartial() {
-        jpushim.s2b.JpushimSdk2B.ChatMsgSync result = new jpushim.s2b.JpushimSdk2B.ChatMsgSync(this);
-        int from_bitField0_ = bitField0_;
-        int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
-          to_bitField0_ |= 0x00000001;
-        }
-        result.fromUid_ = fromUid_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
-          to_bitField0_ |= 0x00000002;
-        }
-        result.msgid_ = msgid_;
-        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
-          to_bitField0_ |= 0x00000004;
-        }
-        result.msgType_ = msgType_;
-        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
-          to_bitField0_ |= 0x00000008;
-        }
-        if (contentBuilder_ == null) {
-          result.content_ = content_;
-        } else {
-          result.content_ = contentBuilder_.build();
-        }
-        result.bitField0_ = to_bitField0_;
-        onBuilt();
-        return result;
-      }
-
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof jpushim.s2b.JpushimSdk2B.ChatMsgSync) {
-          return mergeFrom((jpushim.s2b.JpushimSdk2B.ChatMsgSync)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(jpushim.s2b.JpushimSdk2B.ChatMsgSync other) {
-        if (other == jpushim.s2b.JpushimSdk2B.ChatMsgSync.getDefaultInstance()) return this;
-        if (other.hasFromUid()) {
-          setFromUid(other.getFromUid());
-        }
-        if (other.hasMsgid()) {
-          setMsgid(other.getMsgid());
-        }
-        if (other.hasMsgType()) {
-          setMsgType(other.getMsgType());
-        }
-        if (other.hasContent()) {
-          mergeContent(other.getContent());
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        return this;
-      }
-
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        jpushim.s2b.JpushimSdk2B.ChatMsgSync parsedMessage = null;
-        try {
-          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          parsedMessage = (jpushim.s2b.JpushimSdk2B.ChatMsgSync) e.getUnfinishedMessage();
-          throw e;
-        } finally {
-          if (parsedMessage != null) {
-            mergeFrom(parsedMessage);
-          }
-        }
-        return this;
-      }
-      private int bitField0_;
-
-      // optional int64 from_uid = 1;
-      private long fromUid_ ;
-      /**
-       * <code>optional int64 from_uid = 1;</code>
-       */
-      public boolean hasFromUid() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
-      }
-      /**
-       * <code>optional int64 from_uid = 1;</code>
-       */
-      public long getFromUid() {
-        return fromUid_;
-      }
-      /**
-       * <code>optional int64 from_uid = 1;</code>
-       */
-      public Builder setFromUid(long value) {
-        bitField0_ |= 0x00000001;
-        fromUid_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional int64 from_uid = 1;</code>
-       */
-      public Builder clearFromUid() {
-        bitField0_ = (bitField0_ & ~0x00000001);
-        fromUid_ = 0L;
-        onChanged();
-        return this;
-      }
-
-      // optional int64 msgid = 2;
-      private long msgid_ ;
-      /**
-       * <code>optional int64 msgid = 2;</code>
-       */
-      public boolean hasMsgid() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
-      }
-      /**
-       * <code>optional int64 msgid = 2;</code>
-       */
-      public long getMsgid() {
-        return msgid_;
-      }
-      /**
-       * <code>optional int64 msgid = 2;</code>
-       */
-      public Builder setMsgid(long value) {
-        bitField0_ |= 0x00000002;
-        msgid_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional int64 msgid = 2;</code>
-       */
-      public Builder clearMsgid() {
-        bitField0_ = (bitField0_ & ~0x00000002);
-        msgid_ = 0L;
-        onChanged();
-        return this;
-      }
-
-      // optional int32 msg_type = 3;
-      private int msgType_ ;
-      /**
-       * <code>optional int32 msg_type = 3;</code>
-       *
-       * <pre>
-       *3-single, 4-group
-       * </pre>
-       */
-      public boolean hasMsgType() {
-        return ((bitField0_ & 0x00000004) == 0x00000004);
-      }
-      /**
-       * <code>optional int32 msg_type = 3;</code>
-       *
-       * <pre>
-       *3-single, 4-group
-       * </pre>
-       */
-      public int getMsgType() {
-        return msgType_;
-      }
-      /**
-       * <code>optional int32 msg_type = 3;</code>
-       *
-       * <pre>
-       *3-single, 4-group
-       * </pre>
-       */
-      public Builder setMsgType(int value) {
-        bitField0_ |= 0x00000004;
-        msgType_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional int32 msg_type = 3;</code>
-       *
-       * <pre>
-       *3-single, 4-group
-       * </pre>
-       */
-      public Builder clearMsgType() {
-        bitField0_ = (bitField0_ & ~0x00000004);
-        msgType_ = 0;
-        onChanged();
-        return this;
-      }
-
-      // optional .jpushim.s2b.MessageContent content = 4;
-      private jpushim.s2b.JpushimSdk2B.MessageContent content_ = jpushim.s2b.JpushimSdk2B.MessageContent.getDefaultInstance();
-      private com.google.protobuf.SingleFieldBuilder<
-          jpushim.s2b.JpushimSdk2B.MessageContent, jpushim.s2b.JpushimSdk2B.MessageContent.Builder, jpushim.s2b.JpushimSdk2B.MessageContentOrBuilder> contentBuilder_;
-      /**
-       * <code>optional .jpushim.s2b.MessageContent content = 4;</code>
-       */
-      public boolean hasContent() {
-        return ((bitField0_ & 0x00000008) == 0x00000008);
-      }
-      /**
-       * <code>optional .jpushim.s2b.MessageContent content = 4;</code>
-       */
-      public jpushim.s2b.JpushimSdk2B.MessageContent getContent() {
-        if (contentBuilder_ == null) {
-          return content_;
-        } else {
-          return contentBuilder_.getMessage();
-        }
-      }
-      /**
-       * <code>optional .jpushim.s2b.MessageContent content = 4;</code>
-       */
-      public Builder setContent(jpushim.s2b.JpushimSdk2B.MessageContent value) {
-        if (contentBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          content_ = value;
-          onChanged();
-        } else {
-          contentBuilder_.setMessage(value);
-        }
-        bitField0_ |= 0x00000008;
-        return this;
-      }
-      /**
-       * <code>optional .jpushim.s2b.MessageContent content = 4;</code>
-       */
-      public Builder setContent(
-          jpushim.s2b.JpushimSdk2B.MessageContent.Builder builderForValue) {
-        if (contentBuilder_ == null) {
-          content_ = builderForValue.build();
-          onChanged();
-        } else {
-          contentBuilder_.setMessage(builderForValue.build());
-        }
-        bitField0_ |= 0x00000008;
-        return this;
-      }
-      /**
-       * <code>optional .jpushim.s2b.MessageContent content = 4;</code>
-       */
-      public Builder mergeContent(jpushim.s2b.JpushimSdk2B.MessageContent value) {
-        if (contentBuilder_ == null) {
-          if (((bitField0_ & 0x00000008) == 0x00000008) &&
-              content_ != jpushim.s2b.JpushimSdk2B.MessageContent.getDefaultInstance()) {
-            content_ =
-              jpushim.s2b.JpushimSdk2B.MessageContent.newBuilder(content_).mergeFrom(value).buildPartial();
-          } else {
-            content_ = value;
-          }
-          onChanged();
-        } else {
-          contentBuilder_.mergeFrom(value);
-        }
-        bitField0_ |= 0x00000008;
-        return this;
-      }
-      /**
-       * <code>optional .jpushim.s2b.MessageContent content = 4;</code>
-       */
-      public Builder clearContent() {
-        if (contentBuilder_ == null) {
-          content_ = jpushim.s2b.JpushimSdk2B.MessageContent.getDefaultInstance();
-          onChanged();
-        } else {
-          contentBuilder_.clear();
-        }
-        bitField0_ = (bitField0_ & ~0x00000008);
-        return this;
-      }
-      /**
-       * <code>optional .jpushim.s2b.MessageContent content = 4;</code>
-       */
-      public jpushim.s2b.JpushimSdk2B.MessageContent.Builder getContentBuilder() {
-        bitField0_ |= 0x00000008;
-        onChanged();
-        return getContentFieldBuilder().getBuilder();
-      }
-      /**
-       * <code>optional .jpushim.s2b.MessageContent content = 4;</code>
-       */
-      public jpushim.s2b.JpushimSdk2B.MessageContentOrBuilder getContentOrBuilder() {
-        if (contentBuilder_ != null) {
-          return contentBuilder_.getMessageOrBuilder();
-        } else {
-          return content_;
-        }
-      }
-      /**
-       * <code>optional .jpushim.s2b.MessageContent content = 4;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilder<
-          jpushim.s2b.JpushimSdk2B.MessageContent, jpushim.s2b.JpushimSdk2B.MessageContent.Builder, jpushim.s2b.JpushimSdk2B.MessageContentOrBuilder> 
-          getContentFieldBuilder() {
-        if (contentBuilder_ == null) {
-          contentBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              jpushim.s2b.JpushimSdk2B.MessageContent, jpushim.s2b.JpushimSdk2B.MessageContent.Builder, jpushim.s2b.JpushimSdk2B.MessageContentOrBuilder>(
-                  content_,
-                  getParentForChildren(),
-                  isClean());
-          content_ = null;
-        }
-        return contentBuilder_;
-      }
-
-      // @@protoc_insertion_point(builder_scope:jpushim.s2b.ChatMsgSync)
-    }
-
-    static {
-      defaultInstance = new ChatMsgSync(true);
-      defaultInstance.initFields();
-    }
-
-    // @@protoc_insertion_point(class_scope:jpushim.s2b.ChatMsgSync)
   }
 
   public interface ProtocolBodyOrBuilder
@@ -16031,25 +16905,30 @@ public final class JpushimSdk2B {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_jpushim_s2b_UpdateGroupInfo_fieldAccessorTable;
   private static com.google.protobuf.Descriptors.Descriptor
-    internal_static_jpushim_s2b_EventSync_descriptor;
-  private static
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_jpushim_s2b_EventSync_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_jpushim_s2b_EventNotification_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_jpushim_s2b_EventNotification_fieldAccessorTable;
   private static com.google.protobuf.Descriptors.Descriptor
-    internal_static_jpushim_s2b_EventAnswer_descriptor;
+    internal_static_jpushim_s2b_ChatMsg_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_jpushim_s2b_EventAnswer_fieldAccessorTable;
+      internal_static_jpushim_s2b_ChatMsg_fieldAccessorTable;
   private static com.google.protobuf.Descriptors.Descriptor
     internal_static_jpushim_s2b_ChatMsgSync_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_jpushim_s2b_ChatMsgSync_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_jpushim_s2b_EventSync_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_jpushim_s2b_EventSync_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_jpushim_s2b_EventAnswer_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_jpushim_s2b_EventAnswer_fieldAccessorTable;
   private static com.google.protobuf.Descriptors.Descriptor
     internal_static_jpushim_s2b_ProtocolBody_descriptor;
   private static
@@ -16076,55 +16955,58 @@ public final class JpushimSdk2B {
       "ookie\")\n\010Response\022\014\n\004code\030\001 \001(\005\022\017\n\007messa" +
       "ge\030\002 \001(\014\"=\n\005Login\022\020\n\010username\030\001 \001(\014\022\020\n\010p" +
       "assword\030\002 \001(\014\022\020\n\010platform\030\003 \001(\005\"\032\n\006Logou" +
-      "t\022\020\n\010username\030\001 \001(\014\"!\n\016MessageContent\022\017\n" +
-      "\007content\030\001 \001(\014\"\\\n\tSingleMsg\022\022\n\ntarget_ui" +
-      "d\030\001 \001(\003\022,\n\007content\030\002 \001(\0132\033.jpushim.s2b.M",
-      "essageContent\022\r\n\005msgid\030\003 \001(\003\"[\n\010GroupMsg" +
-      "\022\022\n\ntarget_gid\030\001 \001(\003\022,\n\007content\030\002 \001(\0132\033." +
-      "jpushim.s2b.MessageContent\022\r\n\005msgid\030\003 \001(" +
-      "\003\"\013\n\tAddFriend\"\013\n\tDelFriend\"\014\n\nUpdateMem" +
-      "o\"e\n\013CreateGroup\022\022\n\ngroup_name\030\001 \001(\014\022\022\n\n" +
-      "group_desc\030\002 \001(\014\022\023\n\013group_level\030\003 \001(\005\022\014\n" +
-      "\004flag\030\004 \001(\005\022\013\n\003gid\030\005 \001(\003\"\030\n\tExitGroup\022\013\n" +
-      "\003gid\030\001 \001(\003\"K\n\016AddGroupMember\022\013\n\003gid\030\001 \001(" +
-      "\003\022\024\n\014member_count\030\002 \001(\005\022\026\n\016member_uidlis" +
-      "t\030\003 \003(\003\"K\n\016DelGroupMember\022\013\n\003gid\030\001 \001(\003\022\024",
-      "\n\014member_count\030\002 \001(\005\022\026\n\016member_uidlist\030\003" +
-      " \003(\003\":\n\017UpdateGroupInfo\022\013\n\003gid\030\001 \001(\003\022\014\n\004" +
-      "name\030\002 \001(\014\022\014\n\004info\030\003 \001(\014\"u\n\tEventSync\022\020\n" +
+      "t\022\020\n\010username\030\001 \001(\014\"P\n\016MessageContent\022\017\n" +
+      "\007content\030\001 \001(\014\022\027\n\017android_package\030\002 \001(\014\022" +
+      "\024\n\014notification\030\003 \001(\014\"\\\n\tSingleMsg\022\022\n\nta",
+      "rget_uid\030\001 \001(\003\022,\n\007content\030\002 \001(\0132\033.jpushi" +
+      "m.s2b.MessageContent\022\r\n\005msgid\030\003 \001(\003\"[\n\010G" +
+      "roupMsg\022\022\n\ntarget_gid\030\001 \001(\003\022,\n\007content\030\002" +
+      " \001(\0132\033.jpushim.s2b.MessageContent\022\r\n\005msg" +
+      "id\030\003 \001(\003\"\013\n\tAddFriend\"\013\n\tDelFriend\"\014\n\nUp" +
+      "dateMemo\"e\n\013CreateGroup\022\022\n\ngroup_name\030\001 " +
+      "\001(\014\022\022\n\ngroup_desc\030\002 \001(\014\022\023\n\013group_level\030\003" +
+      " \001(\005\022\014\n\004flag\030\004 \001(\005\022\013\n\003gid\030\005 \001(\003\"\030\n\tExitG" +
+      "roup\022\013\n\003gid\030\001 \001(\003\"K\n\016AddGroupMember\022\013\n\003g" +
+      "id\030\001 \001(\003\022\024\n\014member_count\030\002 \001(\005\022\026\n\016member",
+      "_uidlist\030\003 \003(\003\"K\n\016DelGroupMember\022\013\n\003gid\030" +
+      "\001 \001(\003\022\024\n\014member_count\030\002 \001(\005\022\026\n\016member_ui" +
+      "dlist\030\003 \003(\003\":\n\017UpdateGroupInfo\022\013\n\003gid\030\001 " +
+      "\001(\003\022\014\n\004name\030\002 \001(\014\022\014\n\004info\030\003 \001(\014\"\201\001\n\021Even" +
+      "tNotification\022\020\n\010event_id\030\001 \001(\003\022\022\n\nevent" +
+      "_type\030\002 \001(\005\022\020\n\010from_uid\030\003 \001(\003\022\013\n\003gid\030\004 \001" +
+      "(\003\022\022\n\nto_uidlist\030\005 \003(\003\022\023\n\013description\030\006 " +
+      "\001(\014\"|\n\007ChatMsg\022\020\n\010from_uid\030\001 \001(\003\022\020\n\010from" +
+      "_gid\030\002 \001(\003\022\r\n\005msgid\030\003 \001(\003\022\020\n\010msg_type\030\004 " +
+      "\001(\005\022,\n\007content\030\005 \001(\0132\033.jpushim.s2b.Messa",
+      "geContent\"5\n\013ChatMsgSync\022&\n\010chat_msg\030\001 \003" +
+      "(\0132\024.jpushim.s2b.ChatMsg\"e\n\tEventSync\022\020\n" +
       "\010event_id\030\001 \001(\003\022\022\n\nevent_type\030\002 \001(\005\022\020\n\010f" +
       "rom_uid\030\003 \001(\003\022\013\n\003gid\030\004 \001(\003\022\023\n\013descriptio" +
-      "n\030\005 \001(\014\022\016\n\006answer\030\006 \001(\005\"\201\001\n\021EventNotific" +
-      "ation\022\020\n\010event_id\030\001 \001(\003\022\022\n\nevent_type\030\002 " +
-      "\001(\005\022\020\n\010from_uid\030\003 \001(\003\022\013\n\003gid\030\004 \001(\003\022\022\n\nto" +
-      "_uidlist\030\005 \003(\003\022\023\n\013description\030\006 \001(\014\"C\n\013E" +
-      "ventAnswer\022\020\n\010event_id\030\001 \001(\003\022\022\n\nevent_ty",
-      "pe\030\002 \001(\005\022\016\n\006answer\030\003 \001(\005\"n\n\013ChatMsgSync\022" +
-      "\020\n\010from_uid\030\001 \001(\003\022\r\n\005msgid\030\002 \001(\003\022\020\n\010msg_" +
-      "type\030\003 \001(\005\022,\n\007content\030\004 \001(\0132\033.jpushim.s2" +
-      "b.MessageContent\"\244\006\n\014ProtocolBody\022!\n\005log" +
-      "in\030\001 \001(\0132\022.jpushim.s2b.Login\022#\n\006logout\030\002" +
-      " \001(\0132\023.jpushim.s2b.Logout\022*\n\nsingle_msg\030" +
-      "\003 \001(\0132\026.jpushim.s2b.SingleMsg\022(\n\tgroup_m" +
-      "sg\030\004 \001(\0132\025.jpushim.s2b.GroupMsg\022*\n\nadd_f" +
-      "riend\030\005 \001(\0132\026.jpushim.s2b.AddFriend\022*\n\nd" +
-      "el_friend\030\006 \001(\0132\026.jpushim.s2b.DelFriend\022",
-      ",\n\013update_memo\030\007 \001(\0132\027.jpushim.s2b.Updat" +
-      "eMemo\022.\n\014create_group\030\010 \001(\0132\030.jpushim.s2" +
-      "b.CreateGroup\022*\n\nexit_group\030\t \001(\0132\026.jpus" +
-      "him.s2b.ExitGroup\0225\n\020add_group_member\030\n " +
-      "\001(\0132\033.jpushim.s2b.AddGroupMember\0225\n\020del_" +
-      "group_member\030\013 \001(\0132\033.jpushim.s2b.DelGrou" +
-      "pMember\0227\n\021update_group_info\030\014 \001(\0132\034.jpu" +
-      "shim.s2b.UpdateGroupInfo\022:\n\022event_notifi" +
-      "cation\030\r \001(\0132\036.jpushim.s2b.EventNotifica" +
-      "tion\022*\n\010chat_msg\030\016 \001(\0132\030.jpushim.s2b.Cha",
-      "tMsgSync\022*\n\nevent_sync\030\017 \001(\0132\026.jpushim.s" +
-      "2b.EventSync\022.\n\014event_answer\030\020 \001(\0132\030.jpu" +
-      "shim.s2b.EventAnswer\022)\n\ncommon_rep\030\024 \001(\013" +
-      "2\025.jpushim.s2b.Response\"Z\n\006Packet\022\'\n\004hea" +
-      "d\030\001 \001(\0132\031.jpushim.s2b.ProtocolHead\022\'\n\004bo" +
-      "dy\030\002 \001(\0132\031.jpushim.s2b.ProtocolBody"
+      "n\030\005 \001(\014\"C\n\013EventAnswer\022\020\n\010event_id\030\001 \001(\003" +
+      "\022\022\n\nevent_type\030\002 \001(\005\022\016\n\006answer\030\003 \001(\005\"\244\006\n" +
+      "\014ProtocolBody\022!\n\005login\030\001 \001(\0132\022.jpushim.s" +
+      "2b.Login\022#\n\006logout\030\002 \001(\0132\023.jpushim.s2b.L" +
+      "ogout\022*\n\nsingle_msg\030\003 \001(\0132\026.jpushim.s2b." +
+      "SingleMsg\022(\n\tgroup_msg\030\004 \001(\0132\025.jpushim.s",
+      "2b.GroupMsg\022*\n\nadd_friend\030\005 \001(\0132\026.jpushi" +
+      "m.s2b.AddFriend\022*\n\ndel_friend\030\006 \001(\0132\026.jp" +
+      "ushim.s2b.DelFriend\022,\n\013update_memo\030\007 \001(\013" +
+      "2\027.jpushim.s2b.UpdateMemo\022.\n\014create_grou" +
+      "p\030\010 \001(\0132\030.jpushim.s2b.CreateGroup\022*\n\nexi" +
+      "t_group\030\t \001(\0132\026.jpushim.s2b.ExitGroup\0225\n" +
+      "\020add_group_member\030\n \001(\0132\033.jpushim.s2b.Ad" +
+      "dGroupMember\0225\n\020del_group_member\030\013 \001(\0132\033" +
+      ".jpushim.s2b.DelGroupMember\0227\n\021update_gr" +
+      "oup_info\030\014 \001(\0132\034.jpushim.s2b.UpdateGroup",
+      "Info\022:\n\022event_notification\030\r \001(\0132\036.jpush" +
+      "im.s2b.EventNotification\022*\n\010chat_msg\030\016 \001" +
+      "(\0132\030.jpushim.s2b.ChatMsgSync\022*\n\nevent_sy" +
+      "nc\030\017 \001(\0132\026.jpushim.s2b.EventSync\022.\n\014even" +
+      "t_answer\030\020 \001(\0132\030.jpushim.s2b.EventAnswer" +
+      "\022)\n\ncommon_rep\030\024 \001(\0132\025.jpushim.s2b.Respo" +
+      "nse\"Z\n\006Packet\022\'\n\004head\030\001 \001(\0132\031.jpushim.s2" +
+      "b.ProtocolHead\022\'\n\004body\030\002 \001(\0132\031.jpushim.s" +
+      "2b.ProtocolBody"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -16166,7 +17048,7 @@ public final class JpushimSdk2B {
           internal_static_jpushim_s2b_MessageContent_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_jpushim_s2b_MessageContent_descriptor,
-              new java.lang.String[] { "Content", });
+              new java.lang.String[] { "Content", "AndroidPackage", "Notification", });
           internal_static_jpushim_s2b_SingleMsg_descriptor =
             getDescriptor().getMessageTypes().get(6);
           internal_static_jpushim_s2b_SingleMsg_fieldAccessorTable = new
@@ -16227,38 +17109,44 @@ public final class JpushimSdk2B {
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_jpushim_s2b_UpdateGroupInfo_descriptor,
               new java.lang.String[] { "Gid", "Name", "Info", });
-          internal_static_jpushim_s2b_EventSync_descriptor =
-            getDescriptor().getMessageTypes().get(16);
-          internal_static_jpushim_s2b_EventSync_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_jpushim_s2b_EventSync_descriptor,
-              new java.lang.String[] { "EventId", "EventType", "FromUid", "Gid", "Description", "Answer", });
           internal_static_jpushim_s2b_EventNotification_descriptor =
-            getDescriptor().getMessageTypes().get(17);
+            getDescriptor().getMessageTypes().get(16);
           internal_static_jpushim_s2b_EventNotification_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_jpushim_s2b_EventNotification_descriptor,
               new java.lang.String[] { "EventId", "EventType", "FromUid", "Gid", "ToUidlist", "Description", });
-          internal_static_jpushim_s2b_EventAnswer_descriptor =
+          internal_static_jpushim_s2b_ChatMsg_descriptor =
+            getDescriptor().getMessageTypes().get(17);
+          internal_static_jpushim_s2b_ChatMsg_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_jpushim_s2b_ChatMsg_descriptor,
+              new java.lang.String[] { "FromUid", "FromGid", "Msgid", "MsgType", "Content", });
+          internal_static_jpushim_s2b_ChatMsgSync_descriptor =
             getDescriptor().getMessageTypes().get(18);
+          internal_static_jpushim_s2b_ChatMsgSync_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_jpushim_s2b_ChatMsgSync_descriptor,
+              new java.lang.String[] { "ChatMsg", });
+          internal_static_jpushim_s2b_EventSync_descriptor =
+            getDescriptor().getMessageTypes().get(19);
+          internal_static_jpushim_s2b_EventSync_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_jpushim_s2b_EventSync_descriptor,
+              new java.lang.String[] { "EventId", "EventType", "FromUid", "Gid", "Description", });
+          internal_static_jpushim_s2b_EventAnswer_descriptor =
+            getDescriptor().getMessageTypes().get(20);
           internal_static_jpushim_s2b_EventAnswer_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_jpushim_s2b_EventAnswer_descriptor,
               new java.lang.String[] { "EventId", "EventType", "Answer", });
-          internal_static_jpushim_s2b_ChatMsgSync_descriptor =
-            getDescriptor().getMessageTypes().get(19);
-          internal_static_jpushim_s2b_ChatMsgSync_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_jpushim_s2b_ChatMsgSync_descriptor,
-              new java.lang.String[] { "FromUid", "Msgid", "MsgType", "Content", });
           internal_static_jpushim_s2b_ProtocolBody_descriptor =
-            getDescriptor().getMessageTypes().get(20);
+            getDescriptor().getMessageTypes().get(21);
           internal_static_jpushim_s2b_ProtocolBody_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_jpushim_s2b_ProtocolBody_descriptor,
               new java.lang.String[] { "Login", "Logout", "SingleMsg", "GroupMsg", "AddFriend", "DelFriend", "UpdateMemo", "CreateGroup", "ExitGroup", "AddGroupMember", "DelGroupMember", "UpdateGroupInfo", "EventNotification", "ChatMsg", "EventSync", "EventAnswer", "CommonRep", });
           internal_static_jpushim_s2b_Packet_descriptor =
-            getDescriptor().getMessageTypes().get(21);
+            getDescriptor().getMessageTypes().get(22);
           internal_static_jpushim_s2b_Packet_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_jpushim_s2b_Packet_descriptor,

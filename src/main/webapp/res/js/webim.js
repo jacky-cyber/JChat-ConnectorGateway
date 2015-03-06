@@ -17,6 +17,15 @@ var user_name = null;
 var uploadToken = null;
 var unreadMsgCount = 0;
 
+var imageContent = {
+	height:"",
+	width:"",
+	media_crc32:"",
+	duration:"",
+	media_id:"",
+	content:""
+}; 
+
 //   建立连接
 JPushIM.connect();
 
@@ -33,6 +42,9 @@ JPushIM.init({
 	},
 	onGetUploadToken : function(data){
 		getUploadTokenResp(data);
+	},
+	onGetUploadPicMetaInfo : function(data){
+		getUploadPicMetaInfoResp(data);
 	},
 	onGetContracterList : function(data){
 		getContracterListResp(data);
@@ -90,9 +102,9 @@ var loginResp = function(data){
 
 //上传多媒体文件时的响应函数
 var filesAddedFunc = function(files){
+	$('#picFileModal').modal('hide');
 	plupload.each(files, function(file) {
  	   //console.log(file);
- 	   $('#picFileModal').modal('hide');
 	});
 };
 
@@ -101,18 +113,15 @@ var uploadProgressFunc = function(progress){
 	//  添加自己想要的上传进度处理方式
 };
 
-var uploadCompleteFunc = function(src){
+//"msg_body":{"height":1944,"width":2592,"media_crc32":122296625,"media_id":"/qiniu/image/AAEFD27079985755"}
+var uploadCompleteFunc = function(mediaId){
+	imageContent.media_id = "/" + mediaId;
+	var src = JPushIM.mediaUrl + "/" + mediaId + '?imageView2/2/h/100';
   	appendPicMsgSendByMe("<img onclick='zoomOut(this)' src="+ src +" width='100px;' height='70px;' style='cursor:pointer'></img>");
-  	var toUserName = $('#'+curChatUserId).attr('username');
-  	if(isSingleOrGroup=='single'){
-  		var message =  JPushIM.buildMessageContent(juid, sid, "single", "image", toUserName, curChatUserId,
-				uid, user_name, Date.parse(new Date())/1000, src);
-  		JPushIM.chatEvent(message);
-  	} else if(isSingleOrGroup=='group'){
-  		var message =  JPushIM.buildMessageContent(juid, sid, "single", "image", curChatGroupId, curChatGroupId,
-				uid, user_name, mDate.parse(new Date())/1000, src);
-  		JPushIM.chatEvent(message);
-  	}
+  	JPushIM.getUploadPicMetaInfo(JPushIM.mediaUrl + "/" + mediaId);
+  	/*var message =  JPushIM.buildMessageContent(juid, sid,"single", "image", toUserName, curChatUserId,
+			uid, user_name, Date.parse(new Date())/1000, imageContent);
+	JPushIM.chatEvent(message);*/
 };
 //  end 上传多媒体文件处理
 
@@ -120,7 +129,27 @@ var uploadCompleteFunc = function(src){
 var getUploadTokenResp = function(data){
 	$('#picFileModal').modal('show');
 	uploadToken = data;
-	JPushIM.uploadMediaFile(uid, uploadToken, 'fileContainer', 'fileChooseBtn', filesAddedFunc, uploadProgressFunc, uploadCompleteFunc);
+	JPushIM.uploadMediaFile(uid, uploadToken, 'fileContainer', 'fileChooseBtn', /*filesAddedFunc,*/ uploadProgressFunc, uploadCompleteFunc);
+};
+
+//  获取上传的图片的元信息
+var getUploadPicMetaInfoResp = function(data){
+	data = JSON.parse(data);
+	imageContent.height = data.height;
+	imageContent.width = data.width;
+	imageContent.media_crc32 = data.crc32;
+	var toUserName = $('#'+curChatUserId).attr('username');
+	if(isSingleOrGroup=='single'){
+		console.log('single pic msg');
+  		var message =  JPushIM.buildMessageContent(juid, sid,"single", "image", toUserName, curChatUserId,
+					uid, user_name, Date.parse(new Date())/1000, imageContent);
+  		JPushIM.chatEvent(message);
+  	} else if(isSingleOrGroup=='group'){
+  		console.log('group pic msg');
+  		var message =  JPushIM.buildMessageContent(juid, sid, "group", "image", curChatGroupId, curChatGroupId,
+				uid, user_name, Date.parse(new Date())/1000, imageContent);
+  		JPushIM.chatEvent(message);
+  	}
 };
 
 //   联系人响应处理
@@ -345,20 +374,23 @@ document.onkeydown = function(event){
 	   stopDefault(e);
 	   var content = document.getElementById('talkInputId').value;
 	   if(content!=''){
+		   var msg_body = {
+				   content: content
+		    };
 		   appendMsgSendByMe(content);
 		   if(isSingleOrGroup=='single'){
 			   var toUserName = $('#'+curChatUserId).attr('username');
 			   addToConversionList(curChatUserId);  //   添加该会话到会话列表
 			   updateConversionRectMsg(curChatUserId, content);
 			   var message =  JPushIM.buildMessageContent(juid, sid,"single", "text", toUserName, curChatUserId,
-					   								uid, user_name, Date.parse(new Date())/1000, content);
+					   								uid, user_name, Date.parse(new Date())/1000, msg_body);
 			   JPushIM.chatEvent(message);
 		   } else if(isSingleOrGroup=='group'){
 			   var toGroupName = $('#'+curChatGroupId).attr('displayname');
 			   addToConversionList(curChatGroupId);  //   添加该会话到会话列表
 			   updateConversionRectMsg(curChatGroupId, content);
 			   var message =  JPushIM.buildMessageContent(juid, sid, "group", "text", curChatGroupId, toGroupName,
-							uid, curChatGroupId, Date.parse(new Date())/1000, content);
+							uid, curChatGroupId, Date.parse(new Date())/1000, msg_body);
 			   JPushIM.chatEvent(message);
 		    } 
 	   } else {
@@ -371,6 +403,9 @@ document.onkeydown = function(event){
 //  用户发送消息
 function sendText(){
 	 var content = document.getElementById('talkInputId').value;
+	 var msg_body = {
+ 			content: content
+	 };
 	 if(content==''){
 		  alert('您还未输入.');
 		  return;
@@ -382,14 +417,14 @@ function sendText(){
     	addToConversionList(curChatUserId);  //   添加该会话到会话列表
     	updateConversionRectMsg(curChatUserId, content);
     	var message =  JPushIM.buildMessageContent(juid, sid, "single", "text", toUserName, curChatUserId,
-					uid, user_name, Date.parse(new Date())/1000, content);	
+					uid, user_name, Date.parse(new Date())/1000, msg_body);	
     	JPushIM.chatEvent(message);
     } else if(isSingleOrGroup=='group'){
     	var toGroupName = $('#'+curChatGroupId).attr('displayname');
     	addToConversionList(curChatGroupId);  //   添加该会话到会话列表
     	updateConversionRectMsg(curChatGroupId, content);
     	var message = JPushIM.buildMessageContent(juid, sid, "group", "text", curChatGroupId, toGroupName,
-				uid, curChatGroupId, Date.parse(new Date())/1000, content);
+				uid, curChatGroupId, Date.parse(new Date())/1000, msg_body);
     	JPushIM.chatEvent(message);
      } 
 };
@@ -672,7 +707,7 @@ var appendMsgSendByOthers = function(name, message, contact, chattype, contentTy
 		var time = date.toLocaleTimeString();
 		var headstr = [ "<p1>" + $('#'+name).attr('username') + "   <span></span>" + "   </p1>",
 				"<p2>" + time + "<b></b><br/></p2>" ];
-		var header = $(headstr.join(''))
+		var header = $(headstr.join(''));
 
 		var lineDiv = document.createElement("div");
 		var lineDivStyle = document.createAttribute("style");
@@ -685,22 +720,36 @@ var appendMsgSendByOthers = function(name, message, contact, chattype, contentTy
 		
 		var ele;
 		if('text'==contentType){
-			var eletext = "<p3>" + message + "</p3>";
+			var content = jQuery.parseJSON(message).content;
+			var eletext = "<p3>" + content + "</p3>";
 			ele = $(eletext);
 			ele[0].setAttribute("class", "chat-content-p3");
 			ele[0].setAttribute("className", "chat-content-p3");
 			ele[0].style.backgroundColor = "#9EB867";
-			updateConversionRectMsg(contactDivId, message);  //  更新会话列表中最新的消息
+			updateConversionRectMsg(contactDivId, content);  //  更新会话列表中最新的消息
 		} else if('image'==contentType){
-			message = "<img onclick='zoomOut(this)' src="+message+" width='100px;' height='70px;' style='cursor:pointer'></img>";
+			var mediaId = jQuery.parseJSON(message).media_id;
+			var path = JPushIM.mediaUrl + "/" + mediaId + '?imageView2/2/h/100';
+			message = "<img onclick='zoomOut(this)' src="+path+" width='100px;' height='70px;' style='cursor:pointer'></img>";
 			var eletext = "<p3 >" + message + "</p3>";
 			ele = $(eletext);
 			ele[0].setAttribute("class", "chat-content-pic");
 			ele[0].setAttribute("className", "chat-content-pic");
 			ele[0].style.backgroundColor = "#9EB867";
 			updateConversionRectMsg(contactDivId, "图片文件");  //  更新会话列表中最新的消息
+		} else if('voice'==contentType){
+			var messageObject = jQuery.parseJSON(message);
+			var mediaId = messageObject.media_id;
+			var duration = messageObject.duration;
+			var path = JPushIM.mediaUrl + "/" + mediaId;
+			message = "<img onclick='zoomOut(this)' src="+path+" width='100px;' height='70px;' style='cursor:pointer'></img>";
+			var eletext = "<p3 >" + message + "</p3>";
+			ele = $(eletext);
+			ele[0].setAttribute("class", "chat-content-pic");
+			ele[0].setAttribute("className", "chat-content-pic");
+			ele[0].style.backgroundColor = "#9EB867";
+			updateConversionRectMsg(contactDivId, "语音文件");  //  更新会话列表中最新的消息
 		}
-		
 		
 		for ( var j = 0; j < ele.length; j++) {
 			lineDiv.appendChild(ele[j]);
@@ -735,7 +784,7 @@ var appendMsgSendByOthers = function(name, message, contact, chattype, contentTy
 		}
 		
 		var contactDivId = contact;
-		var contactLi = getContactLi('conversion-'+contact);
+		var contactLi = getContactLi('conversion-'+name);
 		if(contactLi==null){
 			addToConversionList(contactDivId);
 			contactLi = getContactLi('conversion-'+name);
@@ -757,14 +806,17 @@ var appendMsgSendByOthers = function(name, message, contact, chattype, contentTy
 			
 		var ele;
 		if('text'==contentType){
-			var eletext = "<p3>" + message + "</p3>";
+			var content = jQuery.parseJSON(message).content;
+			var eletext = "<p3>" + content + "</p3>";
 			ele = $(eletext);
 			ele[0].setAttribute("class", "chat-content-p3");
 			ele[0].setAttribute("className", "chat-content-p3");
 			ele[0].style.backgroundColor = "#9EB867";
-			updateConversionRectMsg(contactDivId, message);  //  更新会话列表中最新的消息
+			updateConversionRectMsg(contactDivId, content);  //  更新会话列表中最新的消息
 		} else if('image'==contentType){
-			message = "<img onclick='zoomOut(this)' src="+message+" width='100px;' height='70px;' style='cursor:pointer'></img>";
+			var mediaId = jQuery.parseJSON(message).media_id;
+			var path = JPushIM.mediaUrl + "/" + mediaId + '?imageView2/2/h/100';
+			message = "<img onclick='zoomOut(this)' src="+path+" width='100px;' height='70px;' style='cursor:pointer'></img>";
 			var eletext = "<p3 >" + message + "</p3>";
 			ele = $(eletext);
 			ele[0].setAttribute("class", "chat-content-pic");
@@ -778,7 +830,7 @@ var appendMsgSendByOthers = function(name, message, contact, chattype, contentTy
 		}
 					
 		//if (curChatGroupId.indexOf(contact) < 0) {
-			showUnreadMsgMark(name);
+			showUnreadMsgMark(contact);
 			//contactLi.style.backgroundColor = "#FF4500";
 			//contactLi.css({'background-color':'#FF4500'});
 		//}

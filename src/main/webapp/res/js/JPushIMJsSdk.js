@@ -7110,6 +7110,9 @@ JPushIM = (function() {
 		  this.socket.on('getUploadToken', function(data){
 			  options.onGetUploadToken(data);
 		  });
+		  this.socket.on('getUploadPicMetaInfo', function(data){
+			 options.onGetUploadPicMetaInfo(data); 
+		  });
 		  this.socket.on('getContracterList', function(data){
 			  options.onGetContracterList(data);
 		  });
@@ -7158,6 +7161,9 @@ JPushIM = (function() {
 	   JPushIM.getUploadTokenEvent = function(options) {
 		   this.socket.emit('getUploadToken');
 	    };
+	   JPushIM.getUploadPicMetaInfo = function(src) {
+	    	this.socket.emit('getUploadPicMetaInfo', src);
+	    };
 	   JPushIM.getContracterListEvent = function(options) {
 		   this.socket.emit('getContracterList', {
 			   user_name: options.userName
@@ -7169,6 +7175,7 @@ JPushIM = (function() {
 	        });
 	    };
 	   JPushIM.chatEvent = function(options) {
+		   console.log("chat event: "+options);
 		   this.socket.emit('chatEvent', options);
 		   emojify.run();
 	    };
@@ -7180,9 +7187,9 @@ JPushIM = (function() {
 	    };
 
 	    //  上传多媒体文件
-	    JPushIM.uploadMediaFile = function(uid, uploadToken, fileContainerId, browerButtonId, FilesAddedFunc, UploadProgressFunc, UploadCompleteFunc){
+	    JPushIM.uploadMediaFile = function(uid, uploadToken, fileContainerId, browerButtonId,/* FilesAddedFunc,*/ UploadProgressFunc, UploadCompleteFunc){
 	    	var key = getResourceId(uid);
-	    	var mediaId = 'image/'+key;
+	    	var mediaId = 'qiniu/image/'+key;
 	    	//  上传图片到七牛
 	    	var uploader = Qiniu.uploader({
 	            runtimes: 'html5,flash,html4',    
@@ -7214,7 +7221,10 @@ JPushIM = (function() {
 	            			});*/
 	            		},
 	            	'FilesAdded': function(up, files) {
-	            		FilesAddedFunc(files);
+	            		//FilesAddedFunc(files);
+	            		plupload.each(files, function(file) {
+         	                	
+         	            	});
 	            	    },
 	            	'UploadProgress': function(up, file) {
 	            	   UploadProgressFunc(file.percent);
@@ -7223,8 +7233,9 @@ JPushIM = (function() {
 	                  console.log(err);
 	                	},
 	               'UploadComplete': function() {
-	            	   var src = JPushIM.mediaUrl + '/' + mediaId + '?imageView2/2/h/100';
-	                	UploadCompleteFunc(src);
+	            	   /*var src = JPushIM.mediaUrl +"/"+ mediaId + '?imageView2/2/h/100';
+	                	UploadCompleteFunc(src);*/
+	            	   UploadCompleteFunc(mediaId);
 	                	},
 	               'Key': function(up, file) {
 	            	   var key = mediaId;
@@ -7253,9 +7264,7 @@ JPushIM = (function() {
 				alert:""
 			},
 			msg_type: "",
-			msg_body: {
-				content: ""
-			}
+			msg_body: ""
 		};
 		   
 		//  定义 JPushIM emoji 表情数据
@@ -7319,7 +7328,7 @@ JPushIM = (function() {
 	    	msgContent.from_name = from_name || "";
 	    	msgContent.create_time = create_time || "";
 	    	msgContent.msg_type = msg_type || "";
-	    	msgContent.msg_body.content = content || "";
+	    	msgContent.msg_body = content || "";
 	    	return msgContent;
 	    }
 	    return JPushIM;

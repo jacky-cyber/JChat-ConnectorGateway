@@ -2,11 +2,26 @@ package cn.jpush.webim.server;
 
 import io.netty.channel.Channel;
 
+import java.awt.image.BufferedImage;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.zip.CRC32;
+import java.util.zip.CheckedInputStream;
+
+import javax.imageio.ImageIO;
 
 import org.slf4j.LoggerFactory;
 
@@ -125,7 +140,7 @@ public class WebImServer {
 				String password = data.getPassword();
 				log.info("login user info, appkey: "+appkey+", name: "+user_name+", pwd: "+password);
 				long uid = 0L;
-				
+				 
 				//  获取用户ID
 				HttpResponseWrapper resultWrapper = APIProxy.getUserInfo(APPKEY, user_name);
 				if(resultWrapper.isOK()){
@@ -250,7 +265,7 @@ public class WebImServer {
 			 @Override
 			 public void onData(SocketIOClient client, ChatMessage data, AckRequest ackRequest) {
 				 log.info("message -- juid: "+data.getJuid()+", sid: "+data.getSid());
-				 log.info("message: "+ data.getMsg_body().getContent() +" from: "+data.getFrom_name()+" to: "+data.getTarget_name());
+				 log.info("message: "+ data.getMsg_body() +" from: "+data.getFrom_name()+" to: "+data.getTarget_name());
 				 int sid = data.getSid(); 
 				 Channel channel = userNameToPushChannelMap.get(data.getFrom_id());
 				 if(channel==null)
@@ -278,19 +293,40 @@ public class WebImServer {
 			@Override
 			public void onData(SocketIOClient client, String data,
 					AckRequest ackSender) throws Exception {
-				/*HttpResponseWrapper result = APIProxy.getQiUploadToken();
-				Map<String, String> resultMap = null;
-				if(result.isOK()){
-					resultMap = gson.fromJson(result.content, HashMap.class);
-					String token = resultMap.get("token");
-					String provider = resultMap.get("provider");
-				}*/
 				Mac mac = new Mac(Configure.QNCloudInterface.QN_ACCESS_KEY, Configure.QNCloudInterface.QN_SECRET_KEY);
 				PutPolicy putPolicy = new PutPolicy(Configure.QNCloudInterface.QN_BUCKETNAME);
 				putPolicy.expires = 14400;
 				String token = putPolicy.token(mac);
 				log.info("token: "+token);
 				client.sendEvent("getUploadToken", token);
+			}
+		 });
+		 
+		 //  向客户端返回上传的文件的属性信息
+		 server.addEventListener("getUploadPicMetaInfo", String.class, new DataListener<String>(){
+			@Override
+			public void onData(SocketIOClient client, String data,
+					AckRequest ackSender) throws Exception {
+				URL url = new URL(data);
+				URLConnection conn = url.openConnection();
+	         conn.setConnectTimeout(5 * 1000);
+				InputStream inStream = conn.getInputStream();
+			   BufferedImage src = ImageIO.read(inStream); // 读入文件
+		      int width = src.getWidth(); // 得到源图宽
+		      int height = src.getHeight(); // 得到源图长
+		      log.info("pic width: "+width+", height: "+height);
+				//  crc32 check sum
+				CheckedInputStream cis = new CheckedInputStream(inStream, new CRC32());
+	         byte[] buf = new byte[128];
+	         while(cis.read(buf) >= 0) {}
+	         long checksum = cis.getChecksum().getValue();
+	         inStream.close();
+	         log.info("pic crc32 check: "+checksum);
+	         Map<String, Object> map = new HashMap<String, Object>();
+	         map.put("width", width);
+	         map.put("height", height);
+	         map.put("crc32", checksum);
+	         client.sendEvent("getUploadPicMetaInfo", gson.toJson(map));
 			}
 		 });
 		 

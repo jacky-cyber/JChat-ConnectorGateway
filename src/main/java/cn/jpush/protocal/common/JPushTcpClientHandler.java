@@ -2,10 +2,12 @@ package cn.jpush.protocal.common;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import jpushim.s2b.JpushimSdk2B.AddGroupMember;
+import jpushim.s2b.JpushimSdk2B.ChatMsg;
 import jpushim.s2b.JpushimSdk2B.ChatMsgSync;
 import jpushim.s2b.JpushimSdk2B.CreateGroup;
 import jpushim.s2b.JpushimSdk2B.DelGroupMember;
@@ -41,10 +43,15 @@ import cn.jpush.webim.server.WebImServer;
 import cn.jpush.webim.socketio.bean.ChatMessage;
 import cn.jpush.webim.socketio.bean.ChatObject;
 import cn.jpush.webim.socketio.bean.ContracterObject;
+import cn.jpush.webim.socketio.bean.GroupMember;
+import cn.jpush.webim.socketio.bean.GroupMemberList;
 import cn.jpush.webim.socketio.bean.User;
 import cn.jpush.webim.socketio.bean.UserList;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -118,7 +125,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 				SocketIOClient client = WebImServer.userNameToSessionCilentMap.get(content.getTarget_id());	
 				data.setToUserName(content.getTarget_id()+"");
 				data.setUserName(content.getFrom_id()+"");
-				data.setMessage(content.getMsg_body().getContent());
+				data.setMessage(content.getMsg_body().toString());
 				data.setMsgType("single");
 				if("text".endsWith(content.getMsg_type())){
 					data.setContentType("text");
@@ -144,7 +151,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 							SocketIOClient client = WebImServer.userNameToSessionCilentMap.get(id);	
 							data.setToUserName(gid);
 							data.setUserName(content.getFrom_id()+"");
-							data.setMessage(content.getMsg_body().getContent());
+							data.setMessage(content.getMsg_body().toString());
 							data.setMsgType("group");
 							if(client!=null){
 								client.sendEvent("chatEvent", data);  // send message to web client
@@ -193,7 +200,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 						ChatMessage content = gson.fromJson(singleMsgBean.getContent().getContent().toStringUtf8(), ChatMessage.class);
 						singleMsgdata.setToUserName(content.getTarget_id()+"");
 						singleMsgdata.setUserName(content.getFrom_id()+"");
-						singleMsgdata.setMessage(content.getMsg_body().getContent());
+						singleMsgdata.setMessage(content.getMsg_body().toString());
 						singleMsgdata.setMsgType("single");
 						if("text".endsWith(content.getMsg_type())){
 							singleMsgdata.setContentType("text");
@@ -257,56 +264,73 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					log.info("im sync msg......");
 					String appkey = protocol.getHead().getAppkey().toStringUtf8();
 					ChatMsgSync chatMsgSync = ProtocolUtil.getChatMsgSync(protocol);
-					log.info("sync msg data: "+chatMsgSync.getContent().getContent().toStringUtf8());
-					HashMap dataMap = gson.fromJson(chatMsgSync.getContent().getContent().toStringUtf8(), HashMap.class);
-					String target_type = (String)dataMap.get("target_type");
-					if("single".equals(target_type)){   //  single
-						HttpResponseWrapper resultWrapper = APIProxy.getUserInfo(appkey, String.valueOf(dataMap.get("target_id")));
-						if(resultWrapper.isOK()){
-							User userInfo = gson.fromJson(resultWrapper.content, User.class);
-							dataMap.put("target_id", userInfo.getUid());
-							sessionClient = WebImServer.userNameToSessionCilentMap.get(userInfo.getUid());
-						}
-						ChatMessage content = gson.fromJson(gson.toJson(dataMap), ChatMessage.class);
-						
-						if(sessionClient!=null){
-							log.info("get username's session client: "+sessionClient.getSessionId());
-							ChatObject chatMsgData = new ChatObject();	
-							chatMsgData.setToUserName(content.getTarget_id()+"");
-							chatMsgData.setUserName(content.getFrom_id()+"");
-							chatMsgData.setMessage(content.getMsg_body().getContent());
-							chatMsgData.setMsgType("single");
-							if("text".endsWith(content.getMsg_type())){
-								chatMsgData.setContentType("text");
-							} else if("image".endsWith(content.getMsg_type())){
-								chatMsgData.setContentType("image");
+					int msgCount = chatMsgSync.getChatMsgCount();
+					List<ChatMsg> chatMsgList = chatMsgSync.getChatMsgList();
+					for(int i=0; i<msgCount; i++){
+						ChatMsg chatMsg = chatMsgList.get(i);
+						log.info("sync msg data: "+chatMsg.getContent().getContent().toStringUtf8());
+						HashMap dataMap = gson.fromJson(chatMsg.getContent().getContent().toStringUtf8(), HashMap.class);
+						String target_type = (String)dataMap.get("target_type");
+						if("single".equals(target_type)){   //  single
+							HttpResponseWrapper resultWrapper = APIProxy.getUserInfo(appkey, String.valueOf(dataMap.get("target_id")));
+							if(resultWrapper.isOK()){
+								User userInfo = gson.fromJson(resultWrapper.content, User.class);
+								dataMap.put("target_id", userInfo.getUid());
+								sessionClient = WebImServer.userNameToSessionCilentMap.get(userInfo.getUid());
 							}
-							sessionClient.sendEvent("chatEvent", chatMsgData);
-						} else {
-							log.info("用户不在线......");
-						}
-					} else if("group".equals(target_type)){   //  group
-						long gid = (Long)dataMap.get("target_id");
-						ChatMessage content = gson.fromJson(gson.toJson(dataMap), ChatMessage.class);
-						//  找群成员
-						sessionClient = WebImServer.userNameToSessionCilentMap.get(userInfo.getUid());
-						if(sessionClient!=null){
-							log.info("get username's session client: "+sessionClient.getSessionId());
-							ChatObject chatMsgData = new ChatObject();	
-							chatMsgData.setToUserName(content.getTarget_id()+"");
-							chatMsgData.setUserName(content.getFrom_id()+"");
-							chatMsgData.setMessage(content.getMsg_body().getContent());
-							chatMsgData.setMsgType("single");
-							if("text".endsWith(content.getMsg_type())){
-								chatMsgData.setContentType("text");
-							} else if("image".endsWith(content.getMsg_type())){
-								chatMsgData.setContentType("image");
+							ChatMessage content = gson.fromJson(gson.toJson(dataMap), ChatMessage.class);
+							
+							if(sessionClient!=null){
+								log.info("get username's session client: "+sessionClient.getSessionId());
+								ChatObject chatMsgData = new ChatObject();	
+								chatMsgData.setToUserName(content.getTarget_id()+"");
+								chatMsgData.setUserName(content.getFrom_id()+"");
+								chatMsgData.setMessage(content.getMsg_body().toString());
+								chatMsgData.setMsgType("single");
+								if("text".endsWith(content.getMsg_type())){
+									chatMsgData.setContentType("text");
+								} else if("image".endsWith(content.getMsg_type())){
+									chatMsgData.setContentType("image");
+								}
+								sessionClient.sendEvent("chatEvent", chatMsgData);
+							} else {
+								log.info("用户不在线......");
 							}
-							sessionClient.sendEvent("chatEvent", chatMsgData);
-						} else {
-							log.info("用户不在线......");
+						} else if("group".equals(target_type)){   //  group
+							long gid = Long.parseLong((String) dataMap.get("target_id"));
+							ChatMessage content = gson.fromJson(gson.toJson(dataMap), ChatMessage.class);
+							//  找群成员
+							HttpResponseWrapper resultWrapper = APIProxy.getGroupMemberList(String.valueOf(gid));
+							if(resultWrapper.isOK()){
+								JsonParser parser = new JsonParser();
+								JsonArray Jarray = parser.parse(resultWrapper.content).getAsJsonArray();
+								for(JsonElement obj : Jarray){
+									GroupMember member = gson.fromJson(obj, GroupMember.class);
+									if(content.getFrom_id()!=member.getUid()){
+										sessionClient = WebImServer.userNameToSessionCilentMap.get(member.getUid());
+										if(sessionClient!=null){
+											log.info("get username's session client: "+sessionClient.getSessionId());
+											ChatObject chatMsgData = new ChatObject();	
+											chatMsgData.setToUserName(content.getTarget_id()+"");
+											chatMsgData.setUserName(content.getFrom_id()+"");
+											chatMsgData.setMessage(content.getMsg_body().toString());
+											chatMsgData.setMsgType("group");
+											if("text".endsWith(content.getMsg_type())){
+												chatMsgData.setContentType("text");
+											} else if("image".endsWith(content.getMsg_type())){
+												chatMsgData.setContentType("image");
+											}
+											sessionClient.sendEvent("chatEvent", chatMsgData);
+										} else {
+											log.info("用户不在线......");
+										}
+									}
+							    } 
+							} else {
+								log.info("获取群成员信息异常.");
+							}
 						}
-					}
+					}	
 					break;
 					
 				default:

@@ -66,9 +66,9 @@ public final class APIProxy {
 		HttpResponseWrapper result = null;
 		//result = APIProxy.register(APPKEY, "jpush003", "jpush003");
 		//result = APIProxy.getUserInfo(APPKEY, "jpush001");
-		result = APIProxy.getGroupInfo("72");
+		//result = APIProxy.getGroupInfo("72");
 		//result = APIProxy.getGroupList("55");
-	   //result = APIProxy.getGroupMemberList("10000004");
+	   result = APIProxy.getGroupMemberList("72");
 		System.out.println("result: "+result.isOK()+", "+result.content);
 	}
 	

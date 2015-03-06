@@ -9,7 +9,6 @@ import redis.clients.jedis.exceptions.JedisConnectionException;
 public class RedisClient {
   private final  String BASE_URL = "114.119.7.195";
   private final  int PORT = 16380;
-  //private final  int PORT = 6379;
   public  int MAXTOTAL = 1000;
   public  int MAXIDL = 200;
   public  int MAXWAITMILLIS = 10000;
@@ -20,18 +19,7 @@ public class RedisClient {
   public RedisClient() {
     initPool();
   }
-/*   {
-    if (pool == null) {
-      LOG.info("Creating connection pool");
-      JedisPoolConfig config = new JedisPoolConfig();
-      config.setMaxTotal(100);
-      config.setMaxIdle(20);
-      config.setMaxWaitMillis(1000l);
-      config.setTestOnBorrow(false);
-      pool = new JedisPool(config, BASE_URL, PORT);
-      LOG.info("Succeed to create connection pool.");
-    }
-  }*/
+
   private void initPool() {
     if (pool == null) {
       JedisPoolConfig config = new JedisPoolConfig();
