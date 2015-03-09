@@ -16,6 +16,7 @@ import jpushim.s2b.JpushimSdk2B.AddGroupMember;
 import jpushim.s2b.JpushimSdk2B.ChatMsgSync;
 import jpushim.s2b.JpushimSdk2B.CreateGroup;
 import jpushim.s2b.JpushimSdk2B.DelGroupMember;
+import jpushim.s2b.JpushimSdk2B.EventNotification;
 import jpushim.s2b.JpushimSdk2B.ExitGroup;
 import jpushim.s2b.JpushimSdk2B.GroupMsg;
 import jpushim.s2b.JpushimSdk2B.Login;
@@ -468,6 +469,11 @@ public class ProtocolUtil {
 	public static UpdateGroupInfo getUpdateGroupInfo(Packet protocol){
 		UpdateGroupInfo updateGroupInfoBean = protocol.getBody().getUpdateGroupInfo();
 		return updateGroupInfoBean;
+	}
+	
+	public static EventNotification getEventNotification(Packet protocol){
+		EventNotification eventNotification = protocol.getBody().getEventNotification();
+		return eventNotification;
 	}
 	
 	public static ChatMsgSync getChatMsgSync(Packet protocol){

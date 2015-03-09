@@ -1,4 +1,6 @@
-
+// http://jpushim.qiniudn.com/qiniu/voice/93362B160589C678 
+// http://jpushim.qiniudn.com/qiniu/voice/42CEA721E2D354CE  ok
+// http://api.qiniu.com/status/get/prefop?id=54fd71797823de40686571f6 
 /*-------------------第三方调用方式----------------------*/
 
 //  自己的业务需要添加的变量
@@ -46,17 +48,26 @@ JPushIM.init({
 	onGetUploadPicMetaInfo : function(data){
 		getUploadPicMetaInfoResp(data);
 	},
-	onGetContracterList : function(data){
+	onGetContracterList : function(data){ 
 		getContracterListResp(data);
-	},
+	},                          
 	onGetGroupsList : function(data){
-		getGroupsList(data);
+		getGroupsListResp(data);
+	},
+	onGetGroupMemberList : function(data){
+		getGroupMemberListResp(data);
 	},
 	onChatEvent : function(data){
 		chatEventResp(data);
 	},
 	onAddFriendCmd : function(data){
 		addFriendCmdResp(data);
+	},
+	onEventNotification : function(data){
+		eventNotificationResp(data);
+	},
+	onLogout : function(data){
+		logoutResp(data);
 	},
 	onDisConnect : function(data){
 		disconnectResp(data);
@@ -116,12 +127,9 @@ var uploadProgressFunc = function(progress){
 //"msg_body":{"height":1944,"width":2592,"media_crc32":122296625,"media_id":"/qiniu/image/AAEFD27079985755"}
 var uploadCompleteFunc = function(mediaId){
 	imageContent.media_id = "/" + mediaId;
-	var src = JPushIM.mediaUrl + "/" + mediaId + '?imageView2/2/h/100';
+	var src = JPushIM.QiNiuMediaUrl + "/" + mediaId + '?imageView2/2/h/100';
   	appendPicMsgSendByMe("<img onclick='zoomOut(this)' src="+ src +" width='100px;' height='70px;' style='cursor:pointer'></img>");
-  	JPushIM.getUploadPicMetaInfo(JPushIM.mediaUrl + "/" + mediaId);
-  	/*var message =  JPushIM.buildMessageContent(juid, sid,"single", "image", toUserName, curChatUserId,
-			uid, user_name, Date.parse(new Date())/1000, imageContent);
-	JPushIM.chatEvent(message);*/
+  	JPushIM.getUploadPicMetaInfo(JPushIM.QiNiuMediaUrl + "/" + mediaId);
 };
 //  end 上传多媒体文件处理
 
@@ -201,7 +209,7 @@ var getContracterListResp = function(data){
 };
 
 //  获取群组处理
-var getGroupsList = function(data){
+var getGroupsListResp = function(data){
 	console.log('处理群组响应！');
 	createGroupslistUL();  // 创建群组列表UI
 	var uielem = document.getElementById("grouplistUL");
@@ -244,6 +252,24 @@ var getGroupsList = function(data){
 		curChatGroupId = data[0].gid;
 };
 
+//  获取群组成员响应
+var getGroupMemberListResp = function(data){
+	var data = JSON.parse(data);
+	if(data=='false'){
+		alert('获取群组成员失败');
+	} else {
+		var length = data.length;
+		for(var i=0; i<length; i++){
+			var uid = data[i].uid;
+			var username = data[i].username;
+			var ele = "<li id="+ uid + " onclick='showMemberInfo(this);'>" +
+							"<img src='../../res/img/head/header2.jpg'/>" +
+							"<p class='profileName'>"+username+"</p></li>";
+			 $('#addNewMember').before(ele);
+		}
+	}
+};
+
 //  聊天消息处理
 var chatEventResp = function(data){
 	updateAddUnreadMsgInfo();
@@ -253,12 +279,53 @@ var chatEventResp = function(data){
 //  处理添加好友请求的响应
 var addFriendCmdResp = function(data){
 	// to do
-}
+};
+
+//  事件通知响应处理
+var eventNotificationResp = function(data){
+	data = jQuery.parseJSON(data);
+	var eventType = data.eventType;
+	var gid = data.gid;
+	var message = data.message;
+	console.log('gid: '+gid+", type: "+eventType+", msg: "+message);
+	var domList = $('div.chat01_content');
+	var length = domList.length;
+	for(var i=0; i<length; i++){
+		var id = $(domList[i]).attr('id');
+		var tid = id.split('-')[1];
+		if(tid==gid){
+			var lineDiv = document.createElement("div");
+			var lineDivStyle = document.createAttribute("style");
+			lineDivStyle.nodeValue = "margin: 0px 10px 6px 10px;"; 
+			lineDiv.setAttributeNode(lineDivStyle); 
+			var eletext = "<p3 >" + message + "</p3>";
+			var ele = $(eletext);
+			ele[0].setAttribute("class", "chat-content-event");
+			ele[0].setAttribute("className", "chat-content-event");
+			ele[0].style.backgroundColor = "#9EB867";
+				
+			for ( var j = 0; j < ele.length; j++) {
+					lineDiv.appendChild(ele[j]);
+			}
+			
+			var msgContentDiv = document.getElementById(id);
+			lineDiv.style.textAlign = "center";
+			msgContentDiv.appendChild(lineDiv);	
+			msgContentDiv.scrollTop = msgContentDiv.scrollHeight;
+		}
+	}
+};
 
 //  网络断开处理
 var disconnectResp = function(data){
-	console.log('网络断开处理.');
 	alert('您已经与服务器断开，请重新连接.');
+};
+
+//  用户手动退出响应
+var logoutResp = function(data){
+	if(data=='true'){
+		alert('成功退出');
+	}
 };
 
 //   自定义相关的业务逻辑函数
@@ -301,6 +368,7 @@ $('#conversionTab').click(function(){
 	$("#friendsTab").parent().attr('class', '');
 	$('#groupsTab').parent().attr('class', '');
 });
+
 $('#friendsTab').click(function(){
 	/*$("#contractlist").css({
 		display:"block"
@@ -343,7 +411,7 @@ var showFriendsListPanel = function(obj){
 	$('#startChatFriendsList').css({
 		display: "block"
 	});
-}
+};
 
 //  发起聊天  群组选择列表切换
 var showGroupsListPanel = function(obj){
@@ -355,7 +423,7 @@ var showGroupsListPanel = function(obj){
 	$('#startChatGroupsList').css({
 		display: "block"
 	});
-}
+};
 
 //  回车键发送消息
 function stopDefault(e) {  
@@ -365,7 +433,7 @@ function stopDefault(e) {
     	window.event.returnValue = false;   
     }  
     return false;  
-}  
+}; 
 
 //  监听用户按键，处理回车键事件
 document.onkeydown = function(event){
@@ -728,8 +796,11 @@ var appendMsgSendByOthers = function(name, message, contact, chattype, contentTy
 			ele[0].style.backgroundColor = "#9EB867";
 			updateConversionRectMsg(contactDivId, content);  //  更新会话列表中最新的消息
 		} else if('image'==contentType){
-			var mediaId = jQuery.parseJSON(message).media_id;
-			var path = JPushIM.mediaUrl + "/" + mediaId + '?imageView2/2/h/100';
+			var messageObject = jQuery.parseJSON(message);
+			var mediaId = messageObject.media_id;
+			//var width = messageObject.width;
+			//var height = messageObject.height;
+			var path = JPushIM.QiNiuMediaUrl + mediaId + '?imageView2/2/h/100';
 			message = "<img onclick='zoomOut(this)' src="+path+" width='100px;' height='70px;' style='cursor:pointer'></img>";
 			var eletext = "<p3 >" + message + "</p3>";
 			ele = $(eletext);
@@ -741,12 +812,20 @@ var appendMsgSendByOthers = function(name, message, contact, chattype, contentTy
 			var messageObject = jQuery.parseJSON(message);
 			var mediaId = messageObject.media_id;
 			var duration = messageObject.duration;
-			var path = JPushIM.mediaUrl + "/" + mediaId;
-			message = "<img onclick='zoomOut(this)' src="+path+" width='100px;' height='70px;' style='cursor:pointer'></img>";
+			var mediaIds = mediaId.split('/');
+			var path = "";
+			if('qiniu'==mediaIds[1]){
+				path = JPushIM.QiNiuMediaUrl + mediaId;
+			} else if('upyun'==mediaIds[1]){
+				path = JPushIM.UpYunVoiceMediaUrl + mediaId;
+			}
+			message = "<audio src=" + path +" controls='controls' width='40px' height='20px'>"+
+							+	"Your browser does not support the audio element."+
+							+ "</audio>";
 			var eletext = "<p3 >" + message + "</p3>";
 			ele = $(eletext);
-			ele[0].setAttribute("class", "chat-content-pic");
-			ele[0].setAttribute("className", "chat-content-pic");
+			ele[0].setAttribute("class", "chat-content-voice");
+			ele[0].setAttribute("className", "chat-content-voice");
 			ele[0].style.backgroundColor = "#9EB867";
 			updateConversionRectMsg(contactDivId, "语音文件");  //  更新会话列表中最新的消息
 		}
@@ -815,7 +894,7 @@ var appendMsgSendByOthers = function(name, message, contact, chattype, contentTy
 			updateConversionRectMsg(contactDivId, content);  //  更新会话列表中最新的消息
 		} else if('image'==contentType){
 			var mediaId = jQuery.parseJSON(message).media_id;
-			var path = JPushIM.mediaUrl + "/" + mediaId + '?imageView2/2/h/100';
+			var path = JPushIM.QiNiuMediaUrl + mediaId + '?imageView2/2/h/100';
 			message = "<img onclick='zoomOut(this)' src="+path+" width='100px;' height='70px;' style='cursor:pointer'></img>";
 			var eletext = "<p3 >" + message + "</p3>";
 			ele = $(eletext);
@@ -823,6 +902,26 @@ var appendMsgSendByOthers = function(name, message, contact, chattype, contentTy
 			ele[0].setAttribute("className", "chat-content-pic");
 			ele[0].style.backgroundColor = "#9EB867";
 			updateConversionRectMsg(contactDivId, "图片文件");  //  更新会话列表中最新的消息
+		} else if('voice'==contentType){
+			var messageObject = jQuery.parseJSON(message);
+			var mediaId = messageObject.media_id;
+			var duration = messageObject.duration;
+			var mediaIds = mediaId.split('/');
+			var path = "";
+			if('qiniu'==mediaIds[1]){
+				path = JPushIM.QiNiuMediaUrl + mediaId;
+			} else if('upyun'==mediaIds[1]){
+				path = JPushIM.UpYunVoiceMediaUrl + mediaId;
+			}
+			message = "<audio src=" + path +" controls='controls' width='40px' height='20px'>"+
+							+	"Your browser does not support the audio element."+
+							+ "</audio>";
+			var eletext = "<p3 >" + message + "</p3>";
+			ele = $(eletext);
+			ele[0].setAttribute("class", "chat-content-voice");
+			ele[0].setAttribute("className", "chat-content-voice");
+			ele[0].style.backgroundColor = "#9EB867";
+			updateConversionRectMsg(contactDivId, "语音文件");  //  更新会话列表中最新的消息
 		}
 		
 		for ( var j = 0; j < ele.length; j++) {
@@ -1018,7 +1117,7 @@ JPushIM.initEmojiPanelTwo('#carton_emotionUL');
 //  清理当前聊天窗口
 var clearCurrentChat = function(){
 	console.log("clean the chat window.");
-}
+};
 	
 //  选择图片
 var picfile;
@@ -1041,52 +1140,97 @@ var zoomOut = function(obj){
 	var origin_src = src.split('?')[0];
 	$('#zoomOutPic').attr('src', origin_src);
 	$('#zoomOutPicView').modal('show');
-}
+};
 
 //  查看群成员,显示群成员面板
 var showGroupMembers = function(){
 	//  拉取群成员信息
-	// curChatGroupId
+	JPushIM.getGroupMemberListEvent(curChatGroupId);
+	var group_name = $('#'+curChatGroupId).attr('displayname');
+	$('#group_info_groupname').val(group_name);
 	$('#chat01.chat01').slideUp();
 	$('.chat02').slideUp();
 	$('#groupInfo').slideDown();
-}
+};
  
 //  隐藏群成员信息，显示之前的聊天面板
 var backToChat = function(){
+	updateGroupName();
 	$('#groupInfo').slideUp();
 	$('#chat01.chat01').slideDown();
 	$('.chat02').slideDown();
-}
+};
+
+//  更新群聊名称
+var updateGroupName = function(){
+	var group_name = $('#group_info_groupname').val();
+	var options = {
+			sid : sid,
+			juid : juid,
+			uid : uid,
+			user_name : user_name,
+			gid : curChatGroupId,
+			group_name : group_name
+	};
+	JPushIM.updateGroupNameEvent(options);
+};
 
 //  添加好友
 var addNewFriends = function(){
 	$('#addNewFriendModal').modal('show');
-}
+};
 
 //  发送添加好友请求
 var sendAddFriendCmd = function(){
 	var friend_name = $('#friend_username').val();
 	JPushIM.addFriendCmd({'from':curUserId, 'to':friend_name});
-}
+};
+
+//  发送添加群成员请求
+var sendAddGroupMemberCmd = function(){
+	var username_list = $('#add_group_member_username').val();
+	var options = {
+		sid : sid,
+		juid : juid,
+		uid : uid,
+		gid : curChatGroupId,
+		member_count : 1,
+		username : username_list
+	};
+	JPushIM.addGroupMemberEvent(options);
+};
+
+//  用户退出
+var logout = function(){
+	var options = {
+			sid : sid,
+			juid : juid,
+			uid : uid,
+			user_name : user_name
+	};
+	JPushIM.logoutEvent(options);
+};
 
 //  发起聊天
 var startNewChat = function(){
 	$('#startNewChatModal').modal('show');
-}
+};
 
 // 发送发起聊天请求
 var sendStartNewChatCmd = function(){
 	
-}
+};
 
 //  添加群组新成员
 var addNewMember = function(){
-	$('#addNewGroupMembersModal').modal('show');
+	$('#addGroupMemberModal').modal('show');
 }
 
 //  显示群成员信息
-var showMemberInfo = function(){
+var showMemberInfo = function(dom){
+	var uid = $(dom).attr('id');
+	var username = $('li#'+uid+' p.profileName').html();
+	$('p.groupMemberDetailName').html(username);
 	$('#showGroupMemberDetailInfoModal').modal('show');
 }
 
@@ -1125,7 +1269,7 @@ var flashTitle = function(){
 
 //  消息提示
 var notifyUnreadMsg = function(){ 
-	intervalId = setInterval("flashTitle()",1500);
+	intervalId = setInterval("flashTitle()",2500);
 }
 
 //  表情面板切换---> 符号表情

@@ -23,16 +23,24 @@ import java.util.zip.CheckedInputStream;
 
 import javax.imageio.ImageIO;
 
+import jpushim.s2b.JpushimSdk2B.UpdateGroupInfo;
+
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
 import cn.jpush.protocal.common.JPushTcpClient;
+import cn.jpush.protocal.im.bean.AddGroupMemberRequestBean;
 import cn.jpush.protocal.im.bean.LoginRequestBean;
+import cn.jpush.protocal.im.bean.LogoutRequestBean;
 import cn.jpush.protocal.im.bean.SendGroupMsgRequestBean;
 import cn.jpush.protocal.im.bean.SendSingleMsgRequestBean;
+import cn.jpush.protocal.im.bean.UpdateGroupInfoRequestBean;
+import cn.jpush.protocal.im.req.proto.ImAddGroupMemberRequestProto;
 import cn.jpush.protocal.im.req.proto.ImLoginRequestProto;
+import cn.jpush.protocal.im.req.proto.ImLogoutRequestProto;
 import cn.jpush.protocal.im.req.proto.ImSendGroupMsgRequestProto;
 import cn.jpush.protocal.im.req.proto.ImSendSingleMsgRequestProto;
+import cn.jpush.protocal.im.req.proto.ImUpdateGroupInfoRequestProto;
 import cn.jpush.protocal.push.PushLoginRequest;
 import cn.jpush.protocal.push.PushLoginRequestBean;
 import cn.jpush.protocal.push.PushLoginResponseBean;
@@ -53,15 +61,22 @@ import cn.jpush.socketio.listener.DataListener;
 import cn.jpush.socketio.listener.DisconnectListener;
 import cn.jpush.webim.common.UidResourcesPool;
 import cn.jpush.webim.socketio.bean.AddFriendCmd;
+import cn.jpush.webim.socketio.bean.AddOrDelGroupMember;
 import cn.jpush.webim.socketio.bean.ChatMessage;
 import cn.jpush.webim.socketio.bean.ChatObject;
 import cn.jpush.webim.socketio.bean.ContracterObject;
 import cn.jpush.webim.socketio.bean.Group;
 import cn.jpush.webim.socketio.bean.GroupList;
+import cn.jpush.webim.socketio.bean.GroupMember;
+import cn.jpush.webim.socketio.bean.LogoutBean;
+import cn.jpush.webim.socketio.bean.UpdateGroupInfoBean;
 import cn.jpush.webim.socketio.bean.User;
 import cn.jpush.webim.socketio.bean.UserList;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 import com.qiniu.api.auth.digest.Mac;
 import com.qiniu.api.rs.PutPolicy;
@@ -259,6 +274,25 @@ public class WebImServer {
 				client.sendEvent("getGroupsList", groupsList);
 			}	 
 		});
+		
+		// 获取群组成员列表
+		server.addEventListener("getGroupMemberList", String.class, new DataListener<String>() {
+			@Override
+			public void onData(SocketIOClient client, String data,
+					AckRequest ackSender) throws Exception {
+				if(data==null || data.equals("")){
+					log.error("client arguments error: no gid.");
+					return;
+				}
+				String gid = data;
+				HttpResponseWrapper resultWrapper = APIProxy.getGroupMemberList(gid);
+				if(resultWrapper.isOK()){
+					client.sendEvent("getGroupMemberList", resultWrapper.content);
+				} else {
+					client.sendEvent("getGroupMemberList", "false");
+				}
+			}	 
+		});
 		 
 		 // 用户聊天
 		server.addEventListener("chatEvent", ChatMessage.class, new DataListener<ChatMessage>() {
@@ -271,17 +305,13 @@ public class WebImServer {
 				 if(channel==null)
 					 log.info("当前用户与jpush的连接已断开.");
 				 if("single".equals(data.getTarget_type())){
-					 // 模拟接入 Jpush 单发消息测试
 					 SendSingleMsgRequestBean bean = new SendSingleMsgRequestBean(Long.parseLong(data.getTarget_name()), gson.toJson(data));  //  为了和移动端保持一致，注意这里用target_name来存储id，避免再查一次
 					 List<Integer> cookie = new ArrayList<Integer>();
-					 cookie.add(123);
 					 ImSendSingleMsgRequestProto req = new ImSendSingleMsgRequestProto(Command.JPUSH_IM.SENDMSG_SINGAL, 1, data.getFrom_id(), APPKEY, sid, data.getJuid(), cookie, bean);
 					 channel.writeAndFlush(req);
 				 } else if("group".equals(data.getTarget_type())){
-					// 模拟接入 JPush 群发消息测试
 					 SendGroupMsgRequestBean bean = new SendGroupMsgRequestBean(Long.parseLong(data.getTarget_id()), gson.toJson(data));
 					 List<Integer> cookie = new ArrayList<Integer>();
-					 cookie.add(123);
 					 ImSendGroupMsgRequestProto req = new ImSendGroupMsgRequestProto(Command.JPUSH_IM.SENDMSG_GROUP, 1, Long.parseLong(data.getTarget_id()), APPKEY, sid, data.getJuid(), cookie, bean);
 					 channel.writeAndFlush(req);
 				 }
@@ -297,7 +327,6 @@ public class WebImServer {
 				PutPolicy putPolicy = new PutPolicy(Configure.QNCloudInterface.QN_BUCKETNAME);
 				putPolicy.expires = 14400;
 				String token = putPolicy.token(mac);
-				log.info("token: "+token);
 				client.sendEvent("getUploadToken", token);
 			}
 		 });
@@ -314,14 +343,11 @@ public class WebImServer {
 			   BufferedImage src = ImageIO.read(inStream); // 读入文件
 		      int width = src.getWidth(); // 得到源图宽
 		      int height = src.getHeight(); // 得到源图长
-		      log.info("pic width: "+width+", height: "+height);
-				//  crc32 check sum
 				CheckedInputStream cis = new CheckedInputStream(inStream, new CRC32());
 	         byte[] buf = new byte[128];
 	         while(cis.read(buf) >= 0) {}
 	         long checksum = cis.getChecksum().getValue();
 	         inStream.close();
-	         log.info("pic crc32 check: "+checksum);
 	         Map<String, Object> map = new HashMap<String, Object>();
 	         map.put("width", width);
 	         map.put("height", height);
@@ -347,29 +373,88 @@ public class WebImServer {
 				log.info("get group member info, group id: "+data);
 			}
 		});
+		
+		//  更新群组名称
+		server.addEventListener("updateGroupName", UpdateGroupInfoBean.class, new DataListener<UpdateGroupInfoBean>(){
+			@Override
+			public void onData(SocketIOClient client, UpdateGroupInfoBean data,
+					AckRequest ackSender) throws Exception {
+				log.info("update group member info, group id: "+data.getGid()+", name: "+data.getGroup_name());
+				long gid = data.getGid();
+				long uid = data.getUid();
+				int sid = data.getSid();
+				long juid = data.getJuid();
+				String group_name = data.getGroup_name();
+				UpdateGroupInfoRequestBean bean = new UpdateGroupInfoRequestBean(gid, group_name, "");
+				List<Integer> cookie = new ArrayList<Integer>();
+				ImUpdateGroupInfoRequestProto req = new ImUpdateGroupInfoRequestProto(Command.JPUSH_IM.UPDATE_GROUP_INFO, 1, uid, APPKEY, sid, juid, cookie, bean);
+				Channel channel = userNameToPushChannelMap.get(data.getUid());
+				channel.writeAndFlush(req);
+			}
+		});
+		
+		//  添加群组成员
+		server.addEventListener("addGroupMember", AddOrDelGroupMember.class, new DataListener<AddOrDelGroupMember>(){
+			@Override
+				public void onData(SocketIOClient client, AddOrDelGroupMember data,
+						AckRequest ackSender) throws Exception {
+					log.info("add group member info, group id: "+data);
+					String user_name = data.getUsername();
+					int sid = data.getSid();
+					long uid = data.getUid();
+					long addUid = 0L;
+					long juid = data.getJuid();
+					long gid = data.getGid();
+					HttpResponseWrapper resultWrapper = APIProxy.getUserInfo(APPKEY, user_name);
+					if(resultWrapper.isOK()){
+						User userInfo = gson.fromJson(resultWrapper.content, User.class);
+						addUid = userInfo.getUid();
+					}
+					List<Long> list = new ArrayList<Long>();
+					list.add(addUid);
+					AddGroupMemberRequestBean bean = new AddGroupMemberRequestBean(gid, 1, list);
+					List<Integer> cookie = new ArrayList<Integer>();
+					ImAddGroupMemberRequestProto req = new ImAddGroupMemberRequestProto(Command.JPUSH_IM.ADD_GROUP_MEMBER, 1, uid, APPKEY, sid, juid,cookie, bean);
+					Channel channel = userNameToPushChannelMap.get(uid);
+					channel.writeAndFlush(req);
+				}
+		});
+		
+		//   删除群组成员
+		/*server.addEventListener("getGroupMemberEvent", String.class, new DataListener<String>(){
+		@Override
+			public void onData(SocketIOClient client, String data,
+					AckRequest ackSender) throws Exception {
+				log.info("get group member info, group id: "+data);
+			}
+		});*/
+		
+		//  用户退出
+		 server.addEventListener("logout", LogoutBean.class, new DataListener<LogoutBean>() {
+			@Override
+			public void onData(SocketIOClient client, LogoutBean data,
+					AckRequest ackSender) throws Exception {
+				int sid = data.getSid();
+				long juid = data.getJuid();
+				long uid = data.getUid();
+				String username = data.getUser_name();
+				Channel channel = userNameToPushChannelMap.get(uid);
+				if(channel==null){
+					 log.info("当前用户与jpush的连接已断开.");
+					 client.sendEvent("logout", "true");
+				} else {
+					LogoutRequestBean bean = new LogoutRequestBean(username);
+					List<Integer> cookie = new ArrayList<Integer>();
+					ImLogoutRequestProto req = new ImLogoutRequestProto(Command.JPUSH_IM.LOGOUT, 1, uid, APPKEY, sid, juid, cookie, bean);
+					channel.writeAndFlush(req);
+				}
+			}
+		 });
 		 
 		 server.start();
 		 Thread.sleep(Integer.MAX_VALUE);
 		 server.stop();
 	}
-	
-	 
-	/*public void run(){
-		log.info("启动 im server......");
-		WebImServer socketServer = new WebImServer();
-		socketServer.init();
-		try {
-			socketServer.configMessageEventAndStart();
-		} catch (InterruptedException e) {
-			log.info("exception when start im server: "+e.getMessage());
-		}
-		log.info("启动 im server 成功.");
-	}
-	
-	public void stop(){
-		
-	}*/
-	
 	
 	public static void main(String[] args) throws InterruptedException {
 		WebImServer socketServer = new WebImServer();

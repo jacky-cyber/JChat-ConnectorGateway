@@ -95,7 +95,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			log.info("im logout request...");
 			ImLogoutRequestProto req = (ImLogoutRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
-			ImRequest request = new ImRequest(1, 12, 342, 343, reqProtobuf);
+			ImRequest request = new ImRequest(1,  2, req.getSid(), req.getJuid(), reqProtobuf);
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 		}
@@ -127,7 +127,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			log.info("im exit group message request...");
 			ImExitGroupRequestProto req = (ImExitGroupRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
-			ImRequest request = new ImRequest(1, 12, 342, 343, reqProtobuf);
+			ImRequest request = new ImRequest(1, 1, 342, 343, reqProtobuf);
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 		}
@@ -135,7 +135,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			log.info("im add group members message request...");
 			ImAddGroupMemberRequestProto req = (ImAddGroupMemberRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
-			ImRequest request = new ImRequest(1, 12, 342, 343, reqProtobuf);
+			ImRequest request = new ImRequest(1, 1, req.getSid(), req.getJuid(), reqProtobuf);
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 		}
@@ -151,7 +151,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			log.info("im modify group info message request...");
 			ImUpdateGroupInfoRequestProto req = (ImUpdateGroupInfoRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
-			ImRequest request = new ImRequest(1, 12, 342, 343, reqProtobuf);
+			ImRequest request = new ImRequest(1, 1, req.getSid(), req.getJuid(), reqProtobuf);
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 		}

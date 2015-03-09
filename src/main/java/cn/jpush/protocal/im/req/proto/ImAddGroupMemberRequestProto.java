@@ -6,11 +6,13 @@ import jpushim.s2b.JpushimSdk2B;
 import cn.jpush.protocal.im.bean.AddGroupMemberRequestBean;
 
 public class ImAddGroupMemberRequestProto extends BaseProtobufRequest {
-
-
+	private int sid;
+	private long juid;
 	public ImAddGroupMemberRequestProto(int cmd, int version, long uid,
-			String appkey, List cookie, Object bean) {
+			String appkey, int sid, long juid, List cookie, Object bean) {
 		super(cmd, version, uid, appkey, cookie, bean);
+		this.sid = sid;
+		this.juid = juid;
 	}
 
 	@Override
@@ -26,6 +28,22 @@ public class ImAddGroupMemberRequestProto extends BaseProtobufRequest {
 		}
 		bodyBuilder.setAddGroupMember(addGroupMemberBuilder);
 		protocalBuilder.setBody(bodyBuilder);
+	}
+
+	public int getSid() {
+		return sid;
+	}
+
+	public void setSid(int sid) {
+		this.sid = sid;
+	}
+
+	public long getJuid() {
+		return juid;
+	}
+
+	public void setJuid(long juid) {
+		this.juid = juid;
 	}
 
 }

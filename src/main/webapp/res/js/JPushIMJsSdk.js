@@ -7083,8 +7083,9 @@ if(typeof jQuery == 'undefined'){
 JPushIM = (function() {
 		var JPushIM = {};
 	   JPushIM.url = 'http://127.0.0.1:9092';  //  IM Server 地址
-	   JPushIM.mediaUrl = 'http://jpushim.qiniudn.com';  //  media storage 地址
-	  
+	   JPushIM.QiNiuMediaUrl = 'http://jpushim.qiniudn.com';  //  media storage 地址
+	   JPushIM.UpYunVoiceMediaUrl = 'http://cvoice.b0.upaiyun.com';
+	   
 	   JPushIM.connect = function() {
 		   if(window.WebSocket){  // 根据浏览器的支持情况选择连接方式
 			  this.socket = io.connect(this.url, {
@@ -7119,6 +7120,9 @@ JPushIM = (function() {
 		  this.socket.on('getGroupsList', function(data){
 			  options.onGetGroupsList(data);
 		  });
+		  this.socket.on('getGroupMemberList', function(data){
+			  options.onGetGroupMemberList(data);
+		  });
 		  this.socket.on('chatEvent', function(data){
 			  options.onChatEvent(data);
 			  emojify.run();
@@ -7126,7 +7130,12 @@ JPushIM = (function() {
 		  this.socket.on('addFriendCmd', function(data){
 			  options.onAddFriendCmd(data);
 		  });
-		  
+		  this.socket.on('eventNotification', function(data){
+			  options.onEventNotification(data);
+		  });
+		  this.socket.on('logout', function(data){
+			 options.onLogout(data); 
+		  });
 		  this.socket.on('disconnect', function(data){
 			  options.onDisConnect(data);
 		  });
@@ -7174,16 +7183,27 @@ JPushIM = (function() {
 			   uid: options.uid
 	        });
 	    };
+	   JPushIM.getGroupMemberListEvent = function(gid){
+		   this.socket.emit('getGroupMemberList', gid);
+	    };
+	   JPushIM.updateGroupNameEvent = function(options){
+		   this.socket.emit('updateGroupName', options);
+	    };
+	   JPushIM.addGroupMemberEvent = function(options){
+		   this.socket.emit('addGroupMember', options);
+	    };
 	   JPushIM.chatEvent = function(options) {
-		   console.log("chat event: "+options);
 		   this.socket.emit('chatEvent', options);
 		   emojify.run();
 	    };
 	   JPushIM.addFriendCmd = function(options){
 		   this.socket.emit('addFriendCmd', options);
 	    };
+	   JPushIM.logoutEvent = function(options){
+	    	this.socket.emit('logout', options);
+	    };
 	   JPushIM.disconnectEvent = function(options) {
-	        //  待定
+		   	// to do
 	    };
 
 	    //  上传多媒体文件
@@ -7232,7 +7252,8 @@ JPushIM = (function() {
 	            	'Error': function(up, err, errTip) {
 	                  console.log(err);
 	                	},
-	               'UploadComplete': function() {
+	               'UploadComplete': function(data) {
+	            	   console.log('....data: '+data);
 	            	   /*var src = JPushIM.mediaUrl +"/"+ mediaId + '?imageView2/2/h/100';
 	                	UploadCompleteFunc(src);*/
 	            	   UploadCompleteFunc(mediaId);

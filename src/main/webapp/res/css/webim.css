@@ -355,6 +355,27 @@ a:hover {
 	display: inline-block;
 	height: 80px;
 }
+
+.chat-content-voice {
+	white-space: pre-wrap;
+	border-radius: 5px;
+	background-color: #C0C0C0;
+	position: relative;
+	padding: 5px 10px 5px 5px;
+	display: inline-block;
+	height: 40px;
+}
+
+.chat-content-event {
+	white-space: pre-wrap;
+	border-radius: 5px;
+	background-color: #C0C0C0;
+	position: relative;
+	padding: 5px 10px 5px 5px;
+	display: inline-block;
+	height: 30px;
+}
+
 .chat03_content ul {
 	position: relative;
 }

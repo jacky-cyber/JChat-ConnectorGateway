@@ -34,11 +34,13 @@ public class ImProtocalClientDecoder extends ByteToMessageDecoder {
 		if(length<2){
 			return;
 		} else {
+			in.markReaderIndex();  // 标记读索引位置
 			byte[] len = in.readBytes(2).array();
-			in.resetReaderIndex();  // reset readIndex 
+			in.resetReaderIndex();
 			int pkg_len = ProtocolUtil.byteArrayToInt(len);
 			log.info("客户端接收数据包大小为： "+pkg_len);
 			if(length<pkg_len){
+				in.resetReaderIndex(); 
 				return;
 			} else {
 				int command = new JHead(in).getCommandInResponse();

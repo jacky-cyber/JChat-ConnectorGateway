@@ -84,17 +84,12 @@
 				<div id="groupMemberInfoPanel" class="groupinfo_content">
 					<div class="input-group">
 					  <span class="input-group-addon" id="basic-addon1">群组名称</span>
-					  <input type="text" class="form-control" placeholder="这里显示群聊名称" aria-describedby="basic-addon1"/>
+					  <input id="group_info_groupname" type="text" class="form-control" placeholder="这里显示群聊名称" aria-describedby="basic-addon1"/>
+					  <!-- <button type="button" class="btn btn-info" onclick="updateGroupName();">修改</button> -->
 					</div>
 					<div id="groupMemberInfoList" class="groupMemberInfoList">
 						<ul id="groupMemberInfoListUL">
-							<li id='user001' onclick="showMemberInfo();"><img src="../../res/img/head/header2.jpg"/><p class="profileName">成员1</p></li>
-							<li id='user002' onclick="showMemberInfo();"><img src="../../res/img/head/header.jpg"/><p class="profileName">成员2</p></li>
-							<li id='user003' onclick="showMemberInfo();"><img src="../../res/img/head/contact_normal.png"/><p class="profileName">成员3</p></li>
-							<li id='user004' onclick="showMemberInfo();"><img src="../../res/img/head/header2.jpg"/><p class="profileName">成员4</p></li>
-							<li id='user005' onclick="showMemberInfo();"><img src="../../res/img/head/header2.jpg"/><p class="profileName">成员5</p></li>
-							<li id='user006' onclick="showMemberInfo();"><img src="../../res/img/head/header2.jpg"/><p class="profileName">成员6</p></li>
-							<li id='user007' onclick="addNewMember();"><img src="../../res/img/head/add.png"/><p class="profileName">加人</p></li>
+							<li id='addNewMember' onclick="addNewMember();"><img src="../../res/img/head/add.png"/><p class="profileName">加人</p></li>
 						</ul>
 					</div>
 				</div>
@@ -233,6 +228,26 @@
 				</div>
 		</div>
 		
+		<div id="addGroupMemberModal" class="modal fade" tabindex="-1" role="dialog"
+				aria-hidden="true" data-backdrop="true">
+				<div class="modal-dialog">
+    				<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal"
+								aria-hidden="true">&times;</button>
+							<h3>添加群成员</h3>
+						</div>
+						<div class="modal-body">
+							<input type="text" name="add_group_member_username" id="add_group_member_username" class="form-control" placeholder="输入用户名"/>
+						</div>
+						<div class="modal-footer">
+							<button id="addFriendConfirm" class="btn btn-primary" onclick="sendAddGroupMemberCmd();" data-dismiss="modal">发送请求</button>
+							<button id="cancelfileSend" class="btn" data-dismiss="modal">取消</button>
+						</div>
+					</div>
+				</div>
+		</div>
+		
 		<div id="startNewChatModal" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog"
 				aria-hidden="true" data-backdrop="true">
 				<div class="modal-dialog modal-sm">
@@ -314,7 +329,7 @@
 						<div class="modal-body">
 							<div class="row">
 								<img class='groupMemberDetailAvator' src="../../res/img/head/header2.jpg"/>
-								<p class="groupMemberDetailName">成员1</p><br/>
+								<p class="groupMemberDetailName"></p><br/>
 								<p class="groupMemberDetailLocation">广东 深圳</p>
 							</div>
 						</div>
@@ -325,7 +340,7 @@
 				</div>
 		</div>
 		
-		
+		<!-- http://jpushim.qiniudn.com/qiniu/voice/01347B260E67869B?avthumb/mp3 -->
     	<!-- <object width="200" height="20" classid="clsid:02BF25D5-8C17-4B23-BC80-D3488ABDDC6B" codebase="http://www.apple.com/qtactivex/qtplugin.cab">
 		    <param name="src" value="http://jpushim.qiniudn.com/qiniu/voice/01347B260E67869B"/>
 		    <param name="controller" value="true"/>
