@@ -274,45 +274,39 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					String description = eventNotification.getDescription().toStringUtf8();
 					log.info("im event -- event type: "+sync_eventType+", uid: "+sync_uid+
 								", gid: "+sync_gid+", toUid: "+sync_toUid+", desc: "+description);
-					/*event type: 10, uid: 55, gid: 72, toUid: 66, desc: add group member*/
-					//if(sync_eventType == Command.JPUSH_IM.ADD_GROUP_MEMBER){  // 添加群成员的事件通知
+					HashMap<String, Object> data = new HashMap<String, Object>();
+					if(sync_eventType == Command.JPUSH_IM.ADD_GROUP_MEMBER){  // 添加群成员的事件通知
 						HttpResponseWrapper _resultWrapper = APIProxy.getGroupMemberList(String.valueOf(sync_gid));
 						if(_resultWrapper.isOK()){
 							JsonParser parser = new JsonParser();
 							JsonArray Jarray = parser.parse(_resultWrapper.content).getAsJsonArray();
 							String memberName = "";
-							HashMap<String, Object> data = new HashMap<String, Object>();
 							for(JsonElement obj : Jarray){
 								GroupMember member = gson.fromJson(obj, GroupMember.class);
 								if(sync_toUid == member.getUid()){
 									memberName = member.getUsername();
-									String message = "";
-									if(sync_eventType == Command.JPUSH_IM.ADD_GROUP_MEMBER){
-										message = memberName+" 加入群聊";
-									} else if(sync_eventType == Command.JPUSH_IM.EXIT_GROUP || sync_eventType == Command.JPUSH_IM.DEL_GROUP_MEMBER){
-										message = memberName+" 退出群聊";
-									}
+									String message = memberName+" 加入群聊";
 									data.put("eventType", sync_eventType);
 									data.put("gid", sync_gid);
 									data.put("message", message);
 								}
 							}
-							long uid = WebImServer.pushChannelToUsernameMap.get(ctx.channel());
-							sessionClient = WebImServer.userNameToSessionCilentMap.get(uid);
-							sessionClient.sendEvent("eventNotification", gson.toJson(data));
-							/*for(JsonElement obj : Jarray){
-								GroupMember member = gson.fromJson(obj, GroupMember.class);
-								sessionClient = WebImServer.userNameToSessionCilentMap.get(member.getUid());
-								if(sessionClient!=null){
-									sessionClient.sendEvent("eventNotification", gson.toJson(data));	
-								} else {
-									log.info("用户不在线......");
-								}
-						    } */
 						} else {
 							log.info("get group member exception...");
 						}
-					//}
+					} else if (sync_eventType == Command.JPUSH_IM.EXIT_GROUP || sync_eventType == Command.JPUSH_IM.DEL_GROUP_MEMBER){
+						//String message = sync_toUid+" 退出群聊";
+						data.put("eventType", sync_eventType);
+						data.put("gid", sync_gid);
+						data.put("toUid", sync_toUid);
+					}
+					long userId = WebImServer.pushChannelToUsernameMap.get(ctx.channel());
+					sessionClient = WebImServer.userNameToSessionCilentMap.get(userId);
+					if(sessionClient!=null){
+						sessionClient.sendEvent("eventNotification", gson.toJson(data));
+					} else {
+						log.info("用户已断开");
+					}
 					break;
 	
 				case Command.JPUSH_IM.SYNC_MSG:

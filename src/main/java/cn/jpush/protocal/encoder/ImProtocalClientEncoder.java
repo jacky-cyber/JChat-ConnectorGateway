@@ -143,7 +143,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			log.info("im delete group members message request...");
 			ImDeleteGroupMemberRequestProto req = (ImDeleteGroupMemberRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
-			ImRequest request = new ImRequest(1, 12, 342, 343, reqProtobuf);
+			ImRequest request = new ImRequest(1, 1, req.getSid(), req.getJuid(), reqProtobuf);
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 		}

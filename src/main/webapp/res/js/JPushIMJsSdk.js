@@ -7175,11 +7175,13 @@ JPushIM = (function() {
 	    };
 	   JPushIM.getContracterListEvent = function(options) {
 		   this.socket.emit('getContracterList', {
+			   appKey: this.appKey, 
 			   user_name: options.userName
 	        });
 	    };
 	   JPushIM.getGroupListEvent = function(options) {
 		   this.socket.emit('getGroupsList', {
+			   appkey: this.appKey,
 			   uid: options.uid
 	        });
 	    };
@@ -7187,11 +7189,38 @@ JPushIM = (function() {
 		   this.socket.emit('getGroupMemberList', gid);
 	    };
 	   JPushIM.updateGroupNameEvent = function(options){
-		   this.socket.emit('updateGroupName', options);
+		   this.socket.emit('updateGroupName', {
+			   appKey: this.appKey,
+			   sid : options.sid,
+				juid : options.juid,
+				uid : options.uid,
+				user_name : options.user_name,
+				gid : options.gid,
+				group_name : options.group_name
+		   });
 	    };
 	   JPushIM.addGroupMemberEvent = function(options){
-		   this.socket.emit('addGroupMember', options);
+		   this.socket.emit('addGroupMember', {
+			   appKey: this.appKey,
+			   sid : options.sid,
+				juid : options.juid,
+				uid : options.uid,
+				gid : options.gid,
+				member_count : options.member_count,
+				username : options.username
+		   });
 	    };
+	   JPushIM.delGroupMemberEvent = function(options){
+		   this.socket.emit('delGroupMember', {
+			   appKey: this.appKey,
+			   sid : options.sid,
+				juid : options.juid,
+				uid : options.uid,
+				toUid : options.toUid,
+				gid : options.gid,
+				member_count : options.member_count
+		   });
+		};
 	   JPushIM.chatEvent = function(options) {
 		   this.socket.emit('chatEvent', options);
 		   emojify.run();
@@ -7200,7 +7229,13 @@ JPushIM = (function() {
 		   this.socket.emit('addFriendCmd', options);
 	    };
 	   JPushIM.logoutEvent = function(options){
-	    	this.socket.emit('logout', options);
+	    	this.socket.emit('logout', {
+	    		appKey: this.appKey,
+	    		sid : options.sid,
+				juid : options.juid,
+				uid : options.uid,
+				user_name : options.user_name
+	    	});
 	    };
 	   JPushIM.disconnectEvent = function(options) {
 		   	// to do
@@ -7340,7 +7375,8 @@ JPushIM = (function() {
 	    //  消息内容封包
 	   JPushIM.buildMessageContent = function(juid, sid, target_type, msg_type,target_id, target_name,
 	    														from_id, from_name, create_time, content){
-	    	msgContent.juid = juid || "";
+	    	msgContent.appKey = this.appKey;
+		   msgContent.juid = juid || "";
 	    	msgContent.sid = sid || "";
 		   msgContent.target_type = target_type || "";
 	    	msgContent.target_id = target_id || "";

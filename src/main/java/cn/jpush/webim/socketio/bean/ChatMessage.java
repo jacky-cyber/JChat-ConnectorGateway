@@ -3,6 +3,7 @@ package cn.jpush.webim.socketio.bean;
 import com.google.gson.Gson;
 
 public class ChatMessage {
+	private String appKey;
 	private String version;
 	private int sid;
 	private long juid;
@@ -18,6 +19,13 @@ public class ChatMessage {
 	private long msg_id;
 	private String msg_type;
 	public MsgBody msg_body;
+	
+	public String getAppKey() {
+		return appKey;
+	}
+	public void setAppKey(String appKey) {
+		this.appKey = appKey;
+	}
 	public String getVersion() {
 		return version;
 	}

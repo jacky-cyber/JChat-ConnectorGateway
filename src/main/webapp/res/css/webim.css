@@ -728,7 +728,7 @@ label.offline {
 	border: 1px solid #DBE3ED;
 }
 
-.groupMemberInfoList ul li img {
+.groupMemberInfoList ul li img.avator {
 	height: 66px;
 	width: 60px;
 }
@@ -775,4 +775,13 @@ label.offline {
    font: 14px/1.5 Helvetica,"微软雅黑","黑体",Arial,Tahoma;
 	text-align: center;
 	float: left;
+ }
+ 
+ .del-mark{
+ 	display: none;
+ 	position: absolute;
+ 	width: 20px;
+ 	height: 20px;
+ 	margin-left: 65px;
+ 	margin-top: -5px;
  }

@@ -30,12 +30,14 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Logger;
 import cn.jpush.protocal.common.JPushTcpClient;
 import cn.jpush.protocal.im.bean.AddGroupMemberRequestBean;
+import cn.jpush.protocal.im.bean.DeleteGroupMemberRequestBean;
 import cn.jpush.protocal.im.bean.LoginRequestBean;
 import cn.jpush.protocal.im.bean.LogoutRequestBean;
 import cn.jpush.protocal.im.bean.SendGroupMsgRequestBean;
 import cn.jpush.protocal.im.bean.SendSingleMsgRequestBean;
 import cn.jpush.protocal.im.bean.UpdateGroupInfoRequestBean;
 import cn.jpush.protocal.im.req.proto.ImAddGroupMemberRequestProto;
+import cn.jpush.protocal.im.req.proto.ImDeleteGroupMemberRequestProto;
 import cn.jpush.protocal.im.req.proto.ImLoginRequestProto;
 import cn.jpush.protocal.im.req.proto.ImLogoutRequestProto;
 import cn.jpush.protocal.im.req.proto.ImSendGroupMsgRequestProto;
@@ -99,6 +101,7 @@ public class WebImServer {
 	private Configuration config;
 	private SocketIOServer server;
 	private JPushTcpClient jpushIMTcpClient;
+	private int onlineCount;
 	
 	public void init() {
 		 config = new Configuration();
@@ -149,15 +152,16 @@ public class WebImServer {
 			public void onData(SocketIOClient client, ChatObject data,
 					AckRequest ackSender) throws Exception {
 				log.info("user: "+data.getUserName()+" begin login");
+				onlineCount++;
+				log.info("当前在线人数： "+onlineCount);
 				String appkey = data.getAppKey();
-				APPKEY = appkey;
 				String user_name = data.getUserName();
 				String password = data.getPassword();
 				log.info("login user info, appkey: "+appkey+", name: "+user_name+", pwd: "+password);
 				long uid = 0L;
 				 
 				//  获取用户ID
-				HttpResponseWrapper resultWrapper = APIProxy.getUserInfo(APPKEY, user_name);
+				HttpResponseWrapper resultWrapper = APIProxy.getUserInfo(appkey, user_name);
 				if(resultWrapper.isOK()){
 					User userInfo = gson.fromJson(resultWrapper.content, User.class);
 					uid = userInfo.getUid();
@@ -186,7 +190,7 @@ public class WebImServer {
 				userNameToPushChannelMap.put(uid, pushChannel);
 				pushChannelToUsernameMap.put(pushChannel, uid);
 				//  JPush login
-				PushLoginRequestBean pushLoginBean = new PushLoginRequestBean(juid, "a", ProtocolUtil.md5Encrypt("756371956"), 10800, APPKEY, 0);
+				PushLoginRequestBean pushLoginBean = new PushLoginRequestBean(juid, "a", ProtocolUtil.md5Encrypt("756371956"), 10800, appkey, 0);
 				pushChannel.writeAndFlush(pushLoginBean);
 				pushLoginInCountDown.await();  //  等待push login返回数据
 				PushLoginResponseBean pushLoginResponseBean = jpushIMTcpClient.getjPushClientHandler().getPushLoginResponseBean();
@@ -203,7 +207,7 @@ public class WebImServer {
 				//   IM Login
 				LoginRequestBean bean = new LoginRequestBean(user_name, StringUtils.toMD5(password));
 				List<Integer> cookie = new ArrayList<Integer>();
-				ImLoginRequestProto req = new ImLoginRequestProto(Command.JPUSH_IM.LOGIN, 1, 0, pushLoginResponseBean.getSid(), juid, APPKEY, cookie, bean);
+				ImLoginRequestProto req = new ImLoginRequestProto(Command.JPUSH_IM.LOGIN, 1, 0, pushLoginResponseBean.getSid(), juid, appkey, cookie, bean);
 				log.info("开始发送 IM Login 请求.......");
 				pushChannel.writeAndFlush(req);
 			}
@@ -214,6 +218,7 @@ public class WebImServer {
 			@Override
 			public void onData(SocketIOClient client, ContracterObject data,
 					AckRequest ackSender) throws Exception {
+				String appkey = data.getAppkey();
 				String user_name = data.getUser_name();
 				if(user_name==null || "".equals(user_name) || data==null){
 					log.error("client arguments error: no user name.");
@@ -225,7 +230,7 @@ public class WebImServer {
 				//  模拟用户列表
 				for(int i=1; i<4; i++){
 					String username = "p00"+i;
-					HttpResponseWrapper userResult = APIProxy.getUserInfo(APPKEY, username);
+					HttpResponseWrapper userResult = APIProxy.getUserInfo(appkey, username);
 					if(userResult.isOK()){
 						User userInfo = gson.fromJson(userResult.content, User.class);
 						contractersList.add(userInfo);
@@ -244,6 +249,7 @@ public class WebImServer {
 			public void onData(SocketIOClient client, ContracterObject data,
 					AckRequest ackSender) throws Exception {
 				//String curUserName = data.getUser_name();
+				String appkey = data.getAppkey();
 				long uid = data.getUid();
 				if(uid==0 || data==null){
 					log.error("client arguments error: no user name.");
@@ -252,7 +258,7 @@ public class WebImServer {
 				
 				List<Group> groupsList = new ArrayList<Group>();
 				Group group = new Group();
-				group.setAppkey(APPKEY);
+				group.setAppkey(appkey);
 				group.setGid(72);
 				group.setGroup_name("group01");
 				groupsList.add(group);
@@ -284,6 +290,7 @@ public class WebImServer {
 					log.error("client arguments error: no gid.");
 					return;
 				}
+				log.info("get group member list...");
 				String gid = data;
 				HttpResponseWrapper resultWrapper = APIProxy.getGroupMemberList(gid);
 				if(resultWrapper.isOK()){
@@ -300,6 +307,7 @@ public class WebImServer {
 			 public void onData(SocketIOClient client, ChatMessage data, AckRequest ackRequest) {
 				 log.info("message -- juid: "+data.getJuid()+", sid: "+data.getSid());
 				 log.info("message: "+ data.getMsg_body() +" from: "+data.getFrom_name()+" to: "+data.getTarget_name());
+				 String appKey = data.getAppKey();
 				 int sid = data.getSid(); 
 				 Channel channel = userNameToPushChannelMap.get(data.getFrom_id());
 				 if(channel==null)
@@ -307,12 +315,12 @@ public class WebImServer {
 				 if("single".equals(data.getTarget_type())){
 					 SendSingleMsgRequestBean bean = new SendSingleMsgRequestBean(Long.parseLong(data.getTarget_name()), gson.toJson(data));  //  为了和移动端保持一致，注意这里用target_name来存储id，避免再查一次
 					 List<Integer> cookie = new ArrayList<Integer>();
-					 ImSendSingleMsgRequestProto req = new ImSendSingleMsgRequestProto(Command.JPUSH_IM.SENDMSG_SINGAL, 1, data.getFrom_id(), APPKEY, sid, data.getJuid(), cookie, bean);
+					 ImSendSingleMsgRequestProto req = new ImSendSingleMsgRequestProto(Command.JPUSH_IM.SENDMSG_SINGAL, 1, data.getFrom_id(), appKey, sid, data.getJuid(), cookie, bean);
 					 channel.writeAndFlush(req);
 				 } else if("group".equals(data.getTarget_type())){
 					 SendGroupMsgRequestBean bean = new SendGroupMsgRequestBean(Long.parseLong(data.getTarget_id()), gson.toJson(data));
 					 List<Integer> cookie = new ArrayList<Integer>();
-					 ImSendGroupMsgRequestProto req = new ImSendGroupMsgRequestProto(Command.JPUSH_IM.SENDMSG_GROUP, 1, Long.parseLong(data.getTarget_id()), APPKEY, sid, data.getJuid(), cookie, bean);
+					 ImSendGroupMsgRequestProto req = new ImSendGroupMsgRequestProto(Command.JPUSH_IM.SENDMSG_GROUP, 1, Long.parseLong(data.getTarget_id()), appKey, sid, data.getJuid(), cookie, bean);
 					 channel.writeAndFlush(req);
 				 }
 			 }
@@ -364,15 +372,6 @@ public class WebImServer {
 				log.info("add new friend cmd, from: "+data.getFrom()+", to: "+data.getTo());
 			}
 		 });
-		 
-		//  获取群组成员
-		server.addEventListener("getGroupMemberEvent", String.class, new DataListener<String>(){
-		@Override
-			public void onData(SocketIOClient client, String data,
-					AckRequest ackSender) throws Exception {
-				log.info("get group member info, group id: "+data);
-			}
-		});
 		
 		//  更新群组名称
 		server.addEventListener("updateGroupName", UpdateGroupInfoBean.class, new DataListener<UpdateGroupInfoBean>(){
@@ -380,6 +379,7 @@ public class WebImServer {
 			public void onData(SocketIOClient client, UpdateGroupInfoBean data,
 					AckRequest ackSender) throws Exception {
 				log.info("update group member info, group id: "+data.getGid()+", name: "+data.getGroup_name());
+				String appKey = data.getAppKey();
 				long gid = data.getGid();
 				long uid = data.getUid();
 				int sid = data.getSid();
@@ -387,7 +387,7 @@ public class WebImServer {
 				String group_name = data.getGroup_name();
 				UpdateGroupInfoRequestBean bean = new UpdateGroupInfoRequestBean(gid, group_name, "");
 				List<Integer> cookie = new ArrayList<Integer>();
-				ImUpdateGroupInfoRequestProto req = new ImUpdateGroupInfoRequestProto(Command.JPUSH_IM.UPDATE_GROUP_INFO, 1, uid, APPKEY, sid, juid, cookie, bean);
+				ImUpdateGroupInfoRequestProto req = new ImUpdateGroupInfoRequestProto(Command.JPUSH_IM.UPDATE_GROUP_INFO, 1, uid, appKey, sid, juid, cookie, bean);
 				Channel channel = userNameToPushChannelMap.get(data.getUid());
 				channel.writeAndFlush(req);
 			}
@@ -400,6 +400,7 @@ public class WebImServer {
 						AckRequest ackSender) throws Exception {
 					log.info("add group member info, group id: "+data);
 					String user_name = data.getUsername();
+					String appKey = data.getAppKey();
 					int sid = data.getSid();
 					long uid = data.getUid();
 					long addUid = 0L;
@@ -414,26 +415,40 @@ public class WebImServer {
 					list.add(addUid);
 					AddGroupMemberRequestBean bean = new AddGroupMemberRequestBean(gid, 1, list);
 					List<Integer> cookie = new ArrayList<Integer>();
-					ImAddGroupMemberRequestProto req = new ImAddGroupMemberRequestProto(Command.JPUSH_IM.ADD_GROUP_MEMBER, 1, uid, APPKEY, sid, juid,cookie, bean);
+					ImAddGroupMemberRequestProto req = new ImAddGroupMemberRequestProto(Command.JPUSH_IM.ADD_GROUP_MEMBER, 1, uid, appKey, sid, juid,cookie, bean);
 					Channel channel = userNameToPushChannelMap.get(uid);
 					channel.writeAndFlush(req);
 				}
 		});
 		
 		//   删除群组成员
-		/*server.addEventListener("getGroupMemberEvent", String.class, new DataListener<String>(){
+		server.addEventListener("delGroupMember", AddOrDelGroupMember.class, new DataListener<AddOrDelGroupMember>(){
 		@Override
-			public void onData(SocketIOClient client, String data,
+			public void onData(SocketIOClient client, AddOrDelGroupMember data,
 					AckRequest ackSender) throws Exception {
-				log.info("get group member info, group id: "+data);
+				log.info("del group member info, group id: "+data);
+				String appKey = data.getAppKey();
+				int sid = data.getSid();
+				long uid = data.getUid();
+				long delUid = data.getToUid();
+				long juid = data.getJuid();
+				long gid = data.getGid();
+				List<Long> list = new ArrayList<Long>();
+				list.add(delUid);	
+				DeleteGroupMemberRequestBean bean = new DeleteGroupMemberRequestBean(gid, 1, list);
+				List<Integer> cookie = new ArrayList<Integer>();
+				ImDeleteGroupMemberRequestProto req = new ImDeleteGroupMemberRequestProto(Command.JPUSH_IM.DEL_GROUP_MEMBER, 1, uid, appKey, sid, juid, cookie, bean);
+				Channel channel = userNameToPushChannelMap.get(uid);
+				channel.writeAndFlush(req);
 			}
-		});*/
+		});
 		
 		//  用户退出
 		 server.addEventListener("logout", LogoutBean.class, new DataListener<LogoutBean>() {
 			@Override
 			public void onData(SocketIOClient client, LogoutBean data,
 					AckRequest ackSender) throws Exception {
+				String appKey = data.getAppKey();
 				int sid = data.getSid();
 				long juid = data.getJuid();
 				long uid = data.getUid();
@@ -445,15 +460,15 @@ public class WebImServer {
 				} else {
 					LogoutRequestBean bean = new LogoutRequestBean(username);
 					List<Integer> cookie = new ArrayList<Integer>();
-					ImLogoutRequestProto req = new ImLogoutRequestProto(Command.JPUSH_IM.LOGOUT, 1, uid, APPKEY, sid, juid, cookie, bean);
+					ImLogoutRequestProto req = new ImLogoutRequestProto(Command.JPUSH_IM.LOGOUT, 1, uid, appKey, sid, juid, cookie, bean);
 					channel.writeAndFlush(req);
 				}
 			}
 		 });
 		 
 		 server.start();
-		 Thread.sleep(Integer.MAX_VALUE);
-		 server.stop();
+		 //Thread.sleep(Integer.MAX_VALUE);
+		 //server.stop();
 	}
 	
 	public static void main(String[] args) throws InterruptedException {

@@ -1,10 +1,18 @@
 package cn.jpush.webim.socketio.bean;
 
 public class LogoutBean {
+	private String appKey;
 	private int sid;
 	private long juid;
 	private long uid;
 	private String user_name;
+	
+	public String getAppKey() {
+		return appKey;
+	}
+	public void setAppKey(String appKey) {
+		this.appKey = appKey;
+	}
 	public int getSid() {
 		return sid;
 	}

@@ -1,12 +1,21 @@
 package cn.jpush.webim.socketio.bean;
 
 public class AddOrDelGroupMember {
+	private String appKey;
 	private int sid;
 	private long juid;
 	private long uid;
+	private long toUid;
 	private long gid;
 	private int member_count;
 	private String username;
+	
+	public String getAppKey() {
+		return appKey;
+	}
+	public void setAppKey(String appKey) {
+		this.appKey = appKey;
+	}
 	public int getSid() {
 		return sid;
 	}
@@ -42,6 +51,12 @@ public class AddOrDelGroupMember {
 	}
 	public void setUsername(String username) {
 		this.username = username;
+	}
+	public long getToUid() {
+		return toUid;
+	}
+	public void setToUid(long toUid) {
+		this.toUid = toUid;
 	}
 	
 }

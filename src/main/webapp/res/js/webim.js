@@ -1,4 +1,4 @@
-// http://jpushim.qiniudn.com/qiniu/voice/93362B160589C678 
+// http://jpushim.qiniudn.com/qiniu/voice/3D0347EEF8EA0E81
 // http://jpushim.qiniudn.com/qiniu/voice/42CEA721E2D354CE  ok
 // http://api.qiniu.com/status/get/prefop?id=54fd71797823de40686571f6 
 /*-------------------第三方调用方式----------------------*/
@@ -124,7 +124,6 @@ var uploadProgressFunc = function(progress){
 	//  添加自己想要的上传进度处理方式
 };
 
-//"msg_body":{"height":1944,"width":2592,"media_crc32":122296625,"media_id":"/qiniu/image/AAEFD27079985755"}
 var uploadCompleteFunc = function(mediaId){
 	imageContent.media_id = "/" + mediaId;
 	var src = JPushIM.QiNiuMediaUrl + "/" + mediaId + '?imageView2/2/h/100';
@@ -148,12 +147,10 @@ var getUploadPicMetaInfoResp = function(data){
 	imageContent.media_crc32 = data.crc32;
 	var toUserName = $('#'+curChatUserId).attr('username');
 	if(isSingleOrGroup=='single'){
-		console.log('single pic msg');
   		var message =  JPushIM.buildMessageContent(juid, sid,"single", "image", toUserName, curChatUserId,
 					uid, user_name, Date.parse(new Date())/1000, imageContent);
   		JPushIM.chatEvent(message);
   	} else if(isSingleOrGroup=='group'){
-  		console.log('group pic msg');
   		var message =  JPushIM.buildMessageContent(juid, sid, "group", "image", curChatGroupId, curChatGroupId,
 				uid, user_name, Date.parse(new Date())/1000, imageContent);
   		JPushIM.chatEvent(message);
@@ -258,17 +255,46 @@ var getGroupMemberListResp = function(data){
 	if(data=='false'){
 		alert('获取群组成员失败');
 	} else {
+		var memberList = $('#groupMemberInfoListUL li');
+		for(var i=0; i<memberList.length-1; i++){
+			$(memberList[i]).remove();
+		}
 		var length = data.length;
 		for(var i=0; i<length; i++){
 			var uid = data[i].uid;
 			var username = data[i].username;
-			var ele = "<li id="+ uid + " onclick='showMemberInfo(this);'>" +
-							"<img src='../../res/img/head/header2.jpg'/>" +
+			var ele = "<li id="+ uid + " onmouseover='showDelMemMark(this);' onmouseout='hideDelMemMark(this);' >" +
+							"<img id="+ uid +" class='del-mark' src='../../res/img/head/del.png' onclick='delGroupMember(this);' />" +
+							"<img id="+ uid +" onclick='showMemberInfo(this);' class='avator' src='../../res/img/head/header2.jpg'/>" +
 							"<p class='profileName'>"+username+"</p></li>";
 			 $('#addNewMember').before(ele);
 		}
 	}
 };
+
+//  删除群成员时 UI 标记
+var showDelMemMark = function(dom){
+	var id = $(dom).attr('id');
+	$('img[class="del-mark"][id='+id+']').css({"display":"block"}); 
+};
+
+var hideDelMemMark = function(dom){
+	var id = $(dom).attr('id');
+	$('img[class="del-mark"][id='+id+']').css({'display':'none'});
+};
+
+//  删除群成员
+var delGroupMember = function(dom){
+	var toUid = $(dom).attr('id');
+	JPushIM.delGroupMemberEvent({
+		sid: sid,
+		juid: juid,
+		uid: uid,
+		toUid: toUid, 
+		gid: curChatGroupId,
+		member_count: 1,
+	});
+}
 
 //  聊天消息处理
 var chatEventResp = function(data){
@@ -286,10 +312,17 @@ var eventNotificationResp = function(data){
 	data = jQuery.parseJSON(data);
 	var eventType = data.eventType;
 	var gid = data.gid;
-	var message = data.message;
-	console.log('gid: '+gid+", type: "+eventType+", msg: "+message);
+	var message = "";
 	var domList = $('div.chat01_content');
 	var length = domList.length;
+	if(eventType==10){
+		message = data.message;
+	} else if(eventType==9 || eventType==11){
+		var toUid = data.toUid;
+		var name = $('#groupMemberInfoListUL li#'+toUid+' .profileName').html();
+		message = name+' 退出群聊';
+		$('groupMemberInfoListUL li#'+toUid).remove();
+	}
 	for(var i=0; i<length; i++){
 		var id = $(domList[i]).attr('id');
 		var tid = id.split('-')[1];
@@ -302,12 +335,12 @@ var eventNotificationResp = function(data){
 			var ele = $(eletext);
 			ele[0].setAttribute("class", "chat-content-event");
 			ele[0].setAttribute("className", "chat-content-event");
-			ele[0].style.backgroundColor = "#9EB867";
-				
-			for ( var j = 0; j < ele.length; j++) {
-					lineDiv.appendChild(ele[j]);
-			}
+			ele[0].style.backgroundColor = "#E8EAED";
 			
+			for ( var j = 0; j < ele.length; j++) {
+				lineDiv.appendChild(ele[j]);
+			}
+				
 			var msgContentDiv = document.getElementById(id);
 			lineDiv.style.textAlign = "center";
 			msgContentDiv.appendChild(lineDiv);	
@@ -354,9 +387,6 @@ var showChooseFileDialog = function(){
 	
 //  左边栏仿tab处理
 $('#conversionTab').click(function(){
-	/*$("#conversionlist").css({
-		display:"block"
-	});*/
 	$("#conversionlist").fadeIn('normal');
 	$("#contractlist").css({
 		display:"none"
@@ -370,9 +400,6 @@ $('#conversionTab').click(function(){
 });
 
 $('#friendsTab').click(function(){
-	/*$("#contractlist").css({
-		display:"block"
-	});*/
 	$("#contractlist").fadeIn('normal');
 	$("#conversionlist").css({
 		display:"none"
@@ -386,9 +413,6 @@ $('#friendsTab').click(function(){
 });
 
 $('#groupsTab').click(function(){
-	/*$('#grouplist').css({
-		display:"block"
-	});*/
 	$('#grouplist').fadeIn('normal');
 	$("#conversionlist").css({
 		display:"none"
@@ -519,15 +543,6 @@ var addToConversionList = function(id){
 		"class" : "rect-msg-display-style"
 	});
 	
-	/*if(isSingleOrGroup=='single'){
-		node.onclick = function(){
-			chooseConversionSingleDivClick(this);
-		};
-	} else if(isSingleOrGroup=='group'){
-		node.onclick = function(){
-			chooseConversionGroupDivClick(this);
-		};
-	}*/
 	$('#conversionlistUL').prepend(node);
 	$('#'+newId).append(recr_msg_elem);
 }
@@ -535,7 +550,6 @@ var addToConversionList = function(id){
 //  更新会话列表中的最近消息状态
 var updateConversionRectMsg = function(id, msg){
 	$('#'+id+'-rect-msg').html(msg);
-	//emojify.run();
 }
 
 
@@ -628,7 +642,6 @@ var showContactChatDiv = function(chatUserId) {
 	contentDiv.style.display = "block";
 	var contactLi = document.getElementById(chatUserId);
 	var conversionLi = document.getElementById('conversion-'+chatUserId);
-	//var contactLi = $('[id='+chatUserId+']');
 	if(contactLi == null){
 		return;
 	}
@@ -636,7 +649,6 @@ var showContactChatDiv = function(chatUserId) {
 		conversionLi.style.backgroundColor = "#B0E0E6";
 	}
 	contactLi.style.backgroundColor = "#B0E0E6";
-	//contactLi.css({'background-color':'#B0E0E6'});
 	var chatName = $('#'+chatUserId).attr('username');
 	var dispalyTitle = "与 " + chatName + " 聊天中";
 	document.getElementById(talkToDivId).children[0].innerHTML = dispalyTitle;
@@ -652,7 +664,6 @@ var showGroupChatDiv = function(chatGroupId) {
 	contentDiv.style.display = "block";
 	var contactLi = document.getElementById(chatGroupId);
 	var conversionLi = document.getElementById('conversion-'+chatGroupId);
-	//var contactLi = $('[id='+chatGroupId+']');
 	if(contactLi==null){
 		return;
 	}
@@ -660,7 +671,6 @@ var showGroupChatDiv = function(chatGroupId) {
 		conversionLi.style.backgroundColor = "#B0E0E6";
 	}
 	contactLi.style.backgroundColor = "#B0E0E6";
-	//contactLi.css({'background-color':'#B0E0E6'});
 	var group_name = $('#'+chatGroupId).attr("displayName");
 	var dispalyTitle = "正在 " + group_name + " 群里聊天中";
 	document.getElementById(talkToDivId).children[0].innerHTML = dispalyTitle;
@@ -670,10 +680,8 @@ var showGroupChatDiv = function(chatGroupId) {
 var hiddenContactChatDiv = function(chatUserId) {
 	var contactLi = document.getElementById(chatUserId);
 	var conversionLi = document.getElementById('conversion-'+chatUserId);
-	//var contactLi = $('[id='+chatUserId+']');
 	if (contactLi) {
 		contactLi.style.backgroundColor = "";
-		//contactLi.css({'background-color':''});
 	}
 	if(conversionLi){
 		conversionLi.style.backgroundColor = "";
@@ -709,7 +717,6 @@ var chooseContactDivClick = function(li) {
 		chatUserId = li.id.split('-')[1];
 		hideUnreadMsgMark(chatUserId);
 	}
-	//curChatUserSessionId = li.sessionId;
 	if ((chatUserId != curChatUserId)) {
 		if (curChatUserId == null) {
 			createContactChatDiv(chatUserId);
@@ -815,7 +822,7 @@ var appendMsgSendByOthers = function(name, message, contact, chattype, contentTy
 			var mediaIds = mediaId.split('/');
 			var path = "";
 			if('qiniu'==mediaIds[1]){
-				path = JPushIM.QiNiuMediaUrl + mediaId;
+				path = JPushIM.QiNiuMediaUrl + mediaId +'.mp3';
 			} else if('upyun'==mediaIds[1]){
 				path = JPushIM.UpYunVoiceMediaUrl + mediaId;
 			}
@@ -834,11 +841,7 @@ var appendMsgSendByOthers = function(name, message, contact, chattype, contentTy
 			lineDiv.appendChild(ele[j]);
 		}
 					
-		//if (curChatUserId.indexOf(contact) < 0) {
-			showUnreadMsgMark(name);
-			//contactLi.style.backgroundColor = "#FF4500";
-			//contactLi.css({'background-color':'#FF4500'});
-		//}
+		showUnreadMsgMark(name);
 			 
 		var msgContentDiv = getContactChatDiv(contactDivId);
 		lineDiv.style.textAlign = "left";
@@ -853,7 +856,6 @@ var appendMsgSendByOthers = function(name, message, contact, chattype, contentTy
 			document.getElementById(msgCardDivId).appendChild(msgContentDiv);
 		}
 		msgContentDiv.scrollTop = msgContentDiv.scrollHeight;
-		//emojify.run();
 		return lineDiv;
 	}
 	if(chattype=='group'){
@@ -863,10 +865,10 @@ var appendMsgSendByOthers = function(name, message, contact, chattype, contentTy
 		}
 		
 		var contactDivId = contact;
-		var contactLi = getContactLi('conversion-'+name);
+		var contactLi = getContactLi('conversion-'+contact);
 		if(contactLi==null){
 			addToConversionList(contactDivId);
-			contactLi = getContactLi('conversion-'+name);
+			contactLi = getContactLi('conversion-'+contact);
 		}
 		var date = new Date();
 		var time = date.toLocaleTimeString();
@@ -909,7 +911,7 @@ var appendMsgSendByOthers = function(name, message, contact, chattype, contentTy
 			var mediaIds = mediaId.split('/');
 			var path = "";
 			if('qiniu'==mediaIds[1]){
-				path = JPushIM.QiNiuMediaUrl + mediaId;
+				path = JPushIM.QiNiuMediaUrl + mediaId + '.mp3';
 			} else if('upyun'==mediaIds[1]){
 				path = JPushIM.UpYunVoiceMediaUrl + mediaId;
 			}
@@ -947,7 +949,6 @@ var appendMsgSendByOthers = function(name, message, contact, chattype, contentTy
 			document.getElementById(msgCardDivId).appendChild(msgContentDiv);
 		}
 		msgContentDiv.scrollTop = msgContentDiv.scrollHeight;
-		//emojify.run();
 		return lineDiv;
 	}
 };
@@ -1085,7 +1086,6 @@ var appendPicMsgSendByMe = function(message) {
 //  选择联系人的处理
 var getContactLi = function(chatUserId) {
 	return document.getElementById(chatUserId);
-	//return $('[id='+chatUserId+']');
 };
 
 //  emoji 选择框
@@ -1093,7 +1093,6 @@ var showEmotionDialog = function() {
 	$('#wl_faces_box').css({
 		"display" : "block"
 	});
-	//emojify.run();
 };
 
 //  表情选择div的关闭方法
@@ -1124,15 +1123,6 @@ var picfile;
 $('#file').on('change', function(){
 	picfile = this;
 });
-
-//  发送图片消息
-/*var sendPicFile = function(){
-	var myDate = new Date();
-	var mytime = myDate.getTime();
-	appendPicMsgSendByMe("<img onclick='zoomOut(this)' id="+mytime+" width='100px;' height='70px;' style='cursor:pointer'></img>");
-	preivew(picfile, mytime);
-	//$('#file').val('');
-}*/
 
 //  点击浏览原图
 var zoomOut = function(obj){
@@ -1230,9 +1220,19 @@ var addNewMember = function(){
 var showMemberInfo = function(dom){
 	var uid = $(dom).attr('id');
 	var username = $('li#'+uid+' p.profileName').html();
+	$('#groupMemberDetailId').val(uid);
 	$('p.groupMemberDetailName').html(username);
 	$('#showGroupMemberDetailInfoModal').modal('show');
 }
+
+// 新建与群成员的聊天会话  
+var startNewChatWithGroupMember = function(){
+	var toUid = $('#groupMemberDetailId').val();
+	var toUserName = $('p.groupMemberDetailName').html();
+	hideGroupInfoPanel();
+	hiddenGroupChatDiv(curChatGroupId);
+	showContactChatDiv(toUid);
+};
 
 //  更新未读消息数显示(增加未读消息数量)
 var updateAddUnreadMsgInfo = function(){
@@ -1269,7 +1269,7 @@ var flashTitle = function(){
 
 //  消息提示
 var notifyUnreadMsg = function(){ 
-	intervalId = setInterval("flashTitle()",2500);
+	intervalId = setInterval("flashTitle()",2000);
 }
 
 //  表情面板切换---> 符号表情
