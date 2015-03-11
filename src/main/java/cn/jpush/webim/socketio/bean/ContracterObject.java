@@ -1,7 +1,7 @@
 package cn.jpush.webim.socketio.bean;
 
 public class ContracterObject {
-	private String appkey;
+	private String appKey;
 	private long uid;
 	private String user_name;
 	private String session_id;
@@ -30,11 +30,11 @@ public class ContracterObject {
 	public void setUid(long uid) {
 		this.uid = uid;
 	}
-	public String getAppkey() {
-		return appkey;
+	public String getAppKey() {
+		return appKey;
 	}
-	public void setAppkey(String appkey) {
-		this.appkey = appkey;
+	public void setAppKey(String appKey) {
+		this.appKey = appKey;
 	}
 	
 }

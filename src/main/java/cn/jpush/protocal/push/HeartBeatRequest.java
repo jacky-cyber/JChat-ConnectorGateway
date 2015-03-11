@@ -1,7 +1,11 @@
 package cn.jpush.protocal.push;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
 import cn.jpush.protocal.im.request.BaseRequest;
 import cn.jpush.protocal.utils.Command;
+import cn.jpush.protocal.utils.ProtocolUtil;
 
 public class HeartBeatRequest extends BaseRequest {
 
@@ -12,10 +16,10 @@ public class HeartBeatRequest extends BaseRequest {
 
 	@Override
 	public void buidRequestBody() {
-		/*ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		try{
-			bos.write(ProtocolUtil.intToByteArray(this.cmd, 1));  
-			bos.write(ProtocolUtil.intToByteArray(this.ver, 1));
+			bos.write(ProtocolUtil.intToByteArray(2, 1));  
+			bos.write(ProtocolUtil.intToByteArray(this.version, 1));
 			this.mBody = bos.toByteArray();
 		} catch (Exception e) {
 			try {
@@ -23,7 +27,7 @@ public class HeartBeatRequest extends BaseRequest {
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
-		}*/
+		}
 	}
 
 }

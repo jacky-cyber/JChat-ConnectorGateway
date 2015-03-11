@@ -170,9 +170,9 @@ public class WebImServer {
 					log.info("user login success.");
 				} else {
 					data.setUid(0);
-					//client.sendEvent("loginEvent", data);
+					client.sendEvent("loginEvent", data);
 					log.info("user login failed.");
-//					return;
+					return;
 				}
 				
 				log.info("add user and session client to map.");
@@ -199,7 +199,7 @@ public class WebImServer {
 				//   设置数据 用于心跳
 				jpushIMTcpClient.getjPushClientHandler().setSid(pushLoginResponseBean.getSid());
 				jpushIMTcpClient.getjPushClientHandler().setJuid(juid);
-				//    向客户端发 SID 和 JUId
+				//   向客户端发 SID 和 JUId
 				data.setJuid(juid);
 				data.setSid(pushLoginResponseBean.getSid());
 				client.sendEvent("loginEvent", data);
@@ -218,7 +218,7 @@ public class WebImServer {
 			@Override
 			public void onData(SocketIOClient client, ContracterObject data,
 					AckRequest ackSender) throws Exception {
-				String appkey = data.getAppkey();
+				String appkey = data.getAppKey();
 				String user_name = data.getUser_name();
 				if(user_name==null || "".equals(user_name) || data==null){
 					log.error("client arguments error: no user name.");
@@ -237,7 +237,7 @@ public class WebImServer {
 						log.info("userid: "+userInfo.getUid());
 					}
 				}
-	  
+	         
 				client.sendEvent("getContracterList", contractersList);
 				
 			}	 
@@ -249,7 +249,7 @@ public class WebImServer {
 			public void onData(SocketIOClient client, ContracterObject data,
 					AckRequest ackSender) throws Exception {
 				//String curUserName = data.getUser_name();
-				String appkey = data.getAppkey();
+				String appkey = data.getAppKey();
 				long uid = data.getUid();
 				if(uid==0 || data==null){
 					log.error("client arguments error: no user name.");
@@ -257,11 +257,11 @@ public class WebImServer {
 				}
 				
 				List<Group> groupsList = new ArrayList<Group>();
-				Group group = new Group();
+				/*Group group = new Group();
 				group.setAppkey(appkey);
 				group.setGid(72);
 				group.setGroup_name("group01");
-				groupsList.add(group);
+				groupsList.add(group);*/
 				/*HttpResponseWrapper result = APIProxy.getGroupList(String.valueOf(uid));
 				if(result.isOK()){
 					String groupListJson = result.content;
@@ -274,8 +274,12 @@ public class WebImServer {
 							String groupInfoJson = groupResult.content;
 							Group group = gson.fromJson(groupInfoJson, Group.class);
 							groupsList.add(group);
+						} else {
+							log.info("获取群："+gid+" 的详细信息失败");
 						}
 					}
+				} else {
+					log.info("获取用户的群列表失败");
 				}*/
 				client.sendEvent("getGroupsList", groupsList);
 			}	 

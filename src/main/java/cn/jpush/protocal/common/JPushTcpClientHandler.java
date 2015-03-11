@@ -80,8 +80,10 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 		// 下线相关用户
 		if(channel!=null){
 			long uid = WebImServer.pushChannelToUsernameMap.get(channel);
-			SocketIOClient sessionClient = WebImServer.userNameToSessionCilentMap.get(uid);
-			sessionClient.sendEvent("disconnect", "");
+			if(0!=uid){
+				SocketIOClient sessionClient = WebImServer.userNameToSessionCilentMap.get(uid);
+				sessionClient.sendEvent("disconnect", "");
+			}
 		}
 	}
 

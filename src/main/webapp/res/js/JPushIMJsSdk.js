@@ -7181,7 +7181,7 @@ JPushIM = (function() {
 	    };
 	   JPushIM.getGroupListEvent = function(options) {
 		   this.socket.emit('getGroupsList', {
-			   appkey: this.appKey,
+			   appKey: this.appKey,
 			   uid: options.uid
 	        });
 	    };
@@ -7288,7 +7288,6 @@ JPushIM = (function() {
 	                  console.log(err);
 	                	},
 	               'UploadComplete': function(data) {
-	            	   console.log('....data: '+data);
 	            	   /*var src = JPushIM.mediaUrl +"/"+ mediaId + '?imageView2/2/h/100';
 	                	UploadCompleteFunc(src);*/
 	            	   UploadCompleteFunc(mediaId);

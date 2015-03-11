@@ -33,8 +33,8 @@ JPushIM.connect();
 
 //初始化IM业务配置
 JPushIM.init({
-	//appKey : 'ab5e82b23ee58621a01de671',//
-	appKey : '4f7aef34fb361292c566a1cd',
+	appKey : 'ab5e82b23ee58621a01de671',
+	//appKey : '4f7aef34fb361292c566a1cd',
 	secrect : 'master secrect',
 	onConnect : function(){
 		connectResp();
@@ -95,7 +95,7 @@ var loginResp = function(data){
 	} else {
 		$('#waitLoginmodal').css({"display":"none"});
 		alert('登陆失败，可能您的帐号不对.');
-		location.reload();   //  重新加载
+		location.reload(); 
 		return;
 	}
 	createConversionlistUL();  //  创建会话列表
