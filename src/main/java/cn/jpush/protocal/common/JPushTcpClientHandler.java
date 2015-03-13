@@ -98,7 +98,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 		log.info("client handler receive msg from server");
 		if(msg instanceof PushRegResponseBean){
 			PushRegResponseBean bean = (PushRegResponseBean) msg;
-			log.info("客户端解析push reg response后的结果为：");
+			log.info("客户端解析push reg response后的结果如下：");
 			log.info(bean.getResponse_code()+","+bean.getReg_id()+","+bean.getDevice_id()+", "+bean.getPasswd());
 			//  添加uid到pool
 			UidResourcesPool.addUidToPool(bean.getUid());

@@ -33,8 +33,8 @@ JPushIM.connect();
 
 //初始化IM业务配置
 JPushIM.init({
-	appKey : 'ab5e82b23ee58621a01de671',
-	//appKey : '4f7aef34fb361292c566a1cd',
+	//appKey : 'ab5e82b23ee58621a01de671',
+	appKey : '4f7aef34fb361292c566a1cd',
 	secrect : 'master secrect',
 	onConnect : function(){
 		connectResp();

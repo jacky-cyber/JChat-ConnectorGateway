@@ -52,9 +52,6 @@ import io.netty.handler.timeout.IdleStateHandler;
 
 public class JPushTcpClient {
 	private static Logger log = (Logger) LoggerFactory.getLogger(JPushTcpClient.class);
-	//private static final String HOST = "183.232.38.229";
-	//private static final int PORT = SystemConfig.getIntProperty("jpush.server.port"); 
-	//private static final String HOST = SystemConfig.getProperty("jpush.server.host");
 	
 	private static final int PORT = SystemConfig.getIntProperty("im.server.port"); 
 	private static final String HOST = SystemConfig.getProperty("im.server.host");
@@ -87,7 +84,6 @@ public class JPushTcpClient {
 								.addLast(new ImProtocalClientEncoder())
 								.addLast(new ImProtocalClientDecoder())
 								.addLast(jPushClientHandler);
-					
 			}	
 		});		
 	}
@@ -130,7 +126,7 @@ public class JPushTcpClient {
 			//client.init();
 			log.info("success to connect the server.");
 			Channel channel = client.getChannel(); 
-			//long juid = UidResourcesPool.getUid();
+			long juid = UidResourcesPool.getUid();
 			//PushLoginRequestBean req = new PushLoginRequestBean(juid, "a", ProtocolUtil.md5Encrypt("756371956"), 10800, "ebbd49c14a649e0fa4f01f3f", 0);
 			PushRegRequestBean req = new PushRegRequestBean("b095c7a18792bd8b$$ $$com.android.mypushdemo180src$$ebbd49c14a649e0fa4f01f3f",
 																			"1.8.0", "4.4.2,19$$SCH-I959$$I959KEUHND6$$ja3gduosctc$$developer-default$$1.8.0$$0$$1080*1920", 

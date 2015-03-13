@@ -382,60 +382,39 @@ public class ProtocolUtil {
 	
 	public static PushRegResponseBean getPushRegResponseBean(ByteBuf in) throws UnsupportedEncodingException{
 		int code = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
-		PushRegResponseBean bean = null;
-		if(0==code){
-			long uid = ProtocolUtil.byteArrayToLong(in.readBytes(8).array());
-			int passwd_len = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
-			String passwd = new String(in.readBytes(passwd_len).array(),"utf-8");
-			int regid_len = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
-			String regid = new String(in.readBytes(regid_len).array(),"utf-8");
-			//int deviceid_len = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
-			//String deviceid = new String(in.readBytes(deviceid_len).array(),"utf-8");
-			in.discardReadBytes();
-			bean = new PushRegResponseBean(code, uid, passwd, regid, "");
-		} else {
-			int message_len = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
-			String message = new String(in.readBytes(message_len).array(),"utf-8");
-			log.error("push reg exception: "+message);
-		}
+		long uid = ProtocolUtil.byteArrayToLong(in.readBytes(8).array());
+		int passwd_len = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
+		String passwd = new String(in.readBytes(passwd_len).array(),"utf-8");
+		int regid_len = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
+		String regid = new String(in.readBytes(regid_len).array(),"utf-8");
+		//int deviceid_len = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
+		//String deviceid = new String(in.readBytes(deviceid_len).array(),"utf-8");
+		in.discardReadBytes();
+		PushRegResponseBean bean = new PushRegResponseBean(code, uid, passwd, regid, "");
 		return bean;
 	}
 	
 	public static PushLoginResponseBean getPushLoginResponseBean(ByteBuf in) throws UnsupportedEncodingException{
 		int code = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
-		PushLoginResponseBean bean = null;
-		if(0==code){
-			int sid = ProtocolUtil.byteArrayToInt(in.readBytes(4).array());
-			int server_version = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
-			int session_key_len = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
-			String session_key = new String(in.readBytes(session_key_len).array(),"utf-8");
-			int server_time = ProtocolUtil.byteArrayToInt(in.readBytes(4).array());
-			in.discardReadBytes();
-			bean = new PushLoginResponseBean(code, sid, server_version, session_key, server_time);
-		} else {
-			int message_len = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
-			String message = new String(in.readBytes(message_len).array(),"utf-8");
-			log.error("push login exception: "+message);
-		}
+		int sid = ProtocolUtil.byteArrayToInt(in.readBytes(4).array());
+		int server_version = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
+		int session_key_len = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
+		String session_key = new String(in.readBytes(session_key_len).array(),"utf-8");
+		int server_time = ProtocolUtil.byteArrayToInt(in.readBytes(4).array());
+		in.discardReadBytes();
+		PushLoginResponseBean bean = new PushLoginResponseBean(code, sid, server_version, session_key, server_time);
 		return bean;
 	}
 	
 	public static PushLogoutResponseBean getPushLogoutResponseBean(ByteBuf in) throws UnsupportedEncodingException{
 		int code = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
-		PushLogoutResponseBean bean = null;
-		if(0==code){
-			in.discardReadBytes();
-			bean = new PushLogoutResponseBean(code);
-		} else {
-			int message_len = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
-			String message = new String(in.readBytes(message_len).array(),"utf-8");
-			log.error("push logout exception: "+message);
-		}
+		in.discardReadBytes();
+		PushLogoutResponseBean bean = new PushLogoutResponseBean(code);
 		return bean;
 	}
 	
 	public static PushMessageRequestBean getPushMessageRequestBean(ByteBuf in) throws UnsupportedEncodingException{
-		in.readBytes(4); //  这里是个 push message 请求，不是响应，注意头的长度.
+		//in.readBytes(4); //  这里是个 push message 请求，不是响应，注意头的长度.
 		int msgtype = ProtocolUtil.byteArrayToInt(in.readBytes(1).array());
 		int msgid = ProtocolUtil.byteArrayToInt(in.readBytes(8).array());
 		int message_len = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());

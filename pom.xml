@@ -128,7 +128,7 @@
       </plugin>  
         
         <!-- 打包 jar -->
-      <!-- <plugin>
+      <plugin>
 			<groupId>org.apache.maven.plugins</groupId>
 			<artifactId>maven-jar-plugin</artifactId>
 			<configuration>
@@ -136,7 +136,7 @@
 					<manifest>
 						<addClasspath>true</addClasspath>
 						<classpathPrefix>lib/</classpathPrefix>
-						<mainClass>com.jpush.protocal.common.JPushTcpServer</mainClass> 
+						<mainClass>cn.jpush.webim.server.WebImServer</mainClass> 
 					</manifest>
 				</archive>
 			</configuration>
@@ -174,7 +174,7 @@
             	</goals>  
             </execution>  
          </executions>  
-       </plugin> -->  
+       </plugin>
         <!-- ........ -->
     </plugins>  
   </build>

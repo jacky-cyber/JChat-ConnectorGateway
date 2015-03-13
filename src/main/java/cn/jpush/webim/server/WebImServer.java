@@ -94,7 +94,6 @@ public class WebImServer {
 	private static HashMap<Long, Channel> userNameToPushChannelMap = new HashMap<Long, Channel>();
 	public static HashMap<Channel, Long> pushChannelToUsernameMap = new HashMap<Channel, Long>();
 	public static CountDownLatch pushLoginInCountDown;
-	private static String APPKEY;
   	private static final String HOST_NAME = SystemConfig.getProperty("webim.server.host");  
 	private static final int PORT = SystemConfig.getIntProperty("webim.server.port");
 	private Gson gson = new Gson();
@@ -132,7 +131,9 @@ public class WebImServer {
 			public void onDisconnect(SocketIOClient client) {
 				log.error("disconnect from client: "+client.getSessionId()+" disconnect.");
 				// 处理缓存数据(管理在线用户列表)
-			
+				onlineCount--;
+				log.info("当前在线人数： "+onlineCount);
+				
 				long uid = sessionClientToUserNameMap.get(client);
 				sessionClientToUserNameMap.remove(client);
 				userNameToSessionCilentMap.remove(uid);
@@ -410,7 +411,7 @@ public class WebImServer {
 					long addUid = 0L;
 					long juid = data.getJuid();
 					long gid = data.getGid();
-					HttpResponseWrapper resultWrapper = APIProxy.getUserInfo(APPKEY, user_name);
+					HttpResponseWrapper resultWrapper = APIProxy.getUserInfo(appKey, user_name);
 					if(resultWrapper.isOK()){
 						User userInfo = gson.fromJson(resultWrapper.content, User.class);
 						addUid = userInfo.getUid();
