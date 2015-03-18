@@ -24,6 +24,7 @@ public class PushLoginRequest extends BaseRequest {
 			bos.write(ProtocolUtil.intToByteArray(content.getClient_version(), 4));
 			this.writeTLV2(bos, content.getAppkey());
 			bos.write(ProtocolUtil.intToByteArray(content.getPlayform(), 1));
+			bos.write(ProtocolUtil.intToByteArray(64, 1));
 			this.mBody = bos.toByteArray();
 		} catch (Exception e) {
 			try {

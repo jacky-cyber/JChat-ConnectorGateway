@@ -3,13 +3,6 @@ package cn.jpush.webim.server;
 import io.netty.channel.Channel;
 
 import java.awt.image.BufferedImage;
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
@@ -23,7 +16,8 @@ import java.util.zip.CheckedInputStream;
 
 import javax.imageio.ImageIO;
 
-import jpushim.s2b.JpushimSdk2B.UpdateGroupInfo;
+import jpushim.s2b.JpushimSdk2B.ChatMsg;
+import jpushim.s2b.JpushimSdk2B.EventNotification;
 
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +31,9 @@ import cn.jpush.protocal.im.bean.SendGroupMsgRequestBean;
 import cn.jpush.protocal.im.bean.SendSingleMsgRequestBean;
 import cn.jpush.protocal.im.bean.UpdateGroupInfoRequestBean;
 import cn.jpush.protocal.im.req.proto.ImAddGroupMemberRequestProto;
+import cn.jpush.protocal.im.req.proto.ImChatMsgSyncRequestProto;
 import cn.jpush.protocal.im.req.proto.ImDeleteGroupMemberRequestProto;
+import cn.jpush.protocal.im.req.proto.ImEventSyncRequestProto;
 import cn.jpush.protocal.im.req.proto.ImLoginRequestProto;
 import cn.jpush.protocal.im.req.proto.ImLogoutRequestProto;
 import cn.jpush.protocal.im.req.proto.ImSendGroupMsgRequestProto;
@@ -75,6 +71,7 @@ import cn.jpush.webim.socketio.bean.UpdateGroupInfoBean;
 import cn.jpush.webim.socketio.bean.User;
 import cn.jpush.webim.socketio.bean.UserList;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -104,7 +101,7 @@ public class WebImServer {
 	
 	public void init() {
 		 config = new Configuration();
-		 config.setHostname(HOST_NAME);
+		 //config.setHostname(HOST_NAME);
 		 config.setPort(PORT);
 		 config.setTransports(Transport.WEBSOCKET);
 		 server = new SocketIOServer(config);
@@ -134,16 +131,20 @@ public class WebImServer {
 				onlineCount--;
 				log.info("当前在线人数： "+onlineCount);
 				
-				long uid = sessionClientToUserNameMap.get(client);
-				sessionClientToUserNameMap.remove(client);
-				userNameToSessionCilentMap.remove(uid);
-				Channel channel = userNameToPushChannelMap.get(uid);
-				userNameToPushChannelMap.remove(uid);
-				pushChannelToUsernameMap.remove(channel);
-				if(channel!=null)
-					channel.close();   //  断开与push server的长连接
-				// 向其他成员发送下线通知
-				// ...
+				if(client!=null){
+					long uid = sessionClientToUserNameMap.get(client);
+					if(0!=uid){
+						userNameToSessionCilentMap.remove(uid);
+						Channel channel = userNameToPushChannelMap.get(uid);
+						userNameToPushChannelMap.remove(uid);
+						pushChannelToUsernameMap.remove(channel);
+						if(channel!=null)
+							channel.close();   //  断开与push server的长连接
+						// 向其他成员发送下线通知
+						// ...
+					}
+					sessionClientToUserNameMap.remove(client);
+				}	
 			}
 		});
 		 
@@ -263,43 +264,51 @@ public class WebImServer {
 				group.setGid(72);
 				group.setGroup_name("group01");
 				groupsList.add(group);*/
-				/*HttpResponseWrapper result = APIProxy.getGroupList(String.valueOf(uid));
+				log.info("get user's group -- uid: "+uid);
+				HttpResponseWrapper result = APIProxy.getGroupList(String.valueOf(uid));
 				if(result.isOK()){
 					String groupListJson = result.content;
-					log.info("group list: "+groupListJson);
-					ArrayList<Long> list = gson.fromJson(groupListJson, new TypeToken<ArrayList<Long>>(){}.getType());
-					for(Long gid:list){
-						log.info("gid: "+gid);
-						HttpResponseWrapper groupResult = APIProxy.getGroupInfo(String.valueOf(gid));
-						if(groupResult.isOK()){
-							String groupInfoJson = groupResult.content;
-							Group group = gson.fromJson(groupInfoJson, Group.class);
+					List<Group> groupList = gson.fromJson(groupListJson, new TypeToken<ArrayList<Group>>(){}.getType());
+					//  从群组详情中补充群组的信息
+					for(Group group: groupList){
+						HttpResponseWrapper groupInfoResult = APIProxy.getGroupInfo(String.valueOf(group.getGid()));
+						if(groupInfoResult.isOK()){
+							String groupInfoJson = groupInfoResult.content;
+							group = gson.fromJson(groupInfoJson, Group.class);
 							groupsList.add(group);
-						} else {
-							log.info("获取群："+gid+" 的详细信息失败");
 						}
 					}
 				} else {
 					log.info("获取用户的群列表失败");
-				}*/
+				}
 				client.sendEvent("getGroupsList", groupsList);
 			}	 
 		});
 		
 		// 获取群组成员列表
-		server.addEventListener("getGroupMemberList", String.class, new DataListener<String>() {
+		server.addEventListener("getGroupMemberList", HashMap.class, new DataListener<HashMap>() {
 			@Override
-			public void onData(SocketIOClient client, String data,
+			public void onData(SocketIOClient client, HashMap data,
 					AckRequest ackSender) throws Exception {
 				if(data==null || data.equals("")){
 					log.error("client arguments error: no gid.");
 					return;
 				}
 				log.info("get group member list...");
-				String gid = data;
+				String appKey = (String) data.get("appKey");
+				String gid = String.valueOf(data.get("gid"));
+				ArrayList<HashMap> resultList = new ArrayList<HashMap>();
 				HttpResponseWrapper resultWrapper = APIProxy.getGroupMemberList(gid);
 				if(resultWrapper.isOK()){
-					client.sendEvent("getGroupMemberList", resultWrapper.content);
+					List<GroupMember> groupList = gson.fromJson(resultWrapper.content, new TypeToken<ArrayList<GroupMember>>(){}.getType());
+					for(GroupMember member:groupList){
+						HttpResponseWrapper wrapper = APIProxy.getUserInfoByUid(appKey, String.valueOf(member.getUid()));
+						if(wrapper.isOK()){
+							HashMap map = gson.fromJson(wrapper.content, HashMap.class);
+							resultList.add(map);
+						}
+					}
+					client.sendEvent("getGroupMemberList", gson.toJson(resultList));
 				} else {
 					client.sendEvent("getGroupMemberList", "false");
 				}
@@ -443,6 +452,53 @@ public class WebImServer {
 				DeleteGroupMemberRequestBean bean = new DeleteGroupMemberRequestBean(gid, 1, list);
 				List<Integer> cookie = new ArrayList<Integer>();
 				ImDeleteGroupMemberRequestProto req = new ImDeleteGroupMemberRequestProto(Command.JPUSH_IM.DEL_GROUP_MEMBER, 1, uid, appKey, sid, juid, cookie, bean);
+				Channel channel = userNameToPushChannelMap.get(uid);
+				channel.writeAndFlush(req);
+			}
+		});
+		
+		//  离线消息送达返回
+		server.addEventListener("chatMsgSyncResp", ChatObject.class, new DataListener<ChatObject>() {
+			@Override
+			public void onData(SocketIOClient client, ChatObject data,
+					AckRequest ackSender) throws Exception {
+				String appkey = data.getAppKey();
+				long uid = data.getUid();
+				long juid = data.getJuid();
+				int sid = data.getSid();
+				long messageId = data.getMessageId();
+				int iMsgType = data.getiMsgType();   
+				log.info("离线消息反馈 -- msgId: "+messageId+", msgType: "+iMsgType);
+				List<Integer> cookie = new ArrayList<Integer>();
+				ChatMsg.Builder chatMsg = ChatMsg.newBuilder();
+				chatMsg.setMsgid(messageId);
+				chatMsg.setMsgType(iMsgType);
+				ChatMsg chatMsgBean = chatMsg.build();
+				ImChatMsgSyncRequestProto req = new ImChatMsgSyncRequestProto(Command.JPUSH_IM.SYNC_MSG, 1, uid,
+						appkey, sid, juid, cookie, chatMsgBean);
+				Channel channel = userNameToPushChannelMap.get(uid);
+				channel.writeAndFlush(req);
+			}
+		});
+		
+		//  事件下发送达返回
+		server.addEventListener("eventSyncResp", HashMap.class, new DataListener<HashMap>() {
+			@Override
+			public void onData(SocketIOClient client, HashMap data,
+					AckRequest ackSender) throws Exception {
+				String appkey = (String) data.get("appKey");
+				long uid = Long.parseLong((String)data.get("uid"));
+				long juid = Long.parseLong((String)data.get("juid"));
+				int sid = Integer.parseInt((String)data.get("sid"));
+				long eventId = Long.parseLong((String)data.get("eventId"));
+				int eventType = Integer.parseInt((String)data.get("eventType"));   
+				log.info("事件同步反馈 -- eventId: "+eventId+", eventType: "+eventType);
+				List<Integer> cookie = new ArrayList<Integer>();
+				EventNotification.Builder eventNotification = EventNotification.newBuilder();
+				eventNotification.setEventId(eventId);
+				eventNotification.setEventType(eventType);
+				ImEventSyncRequestProto req = new ImEventSyncRequestProto(Command.JPUSH_IM.SYNC_EVENT, 1, uid,
+						appkey, sid, juid, cookie, eventNotification);
 				Channel channel = userNameToPushChannelMap.get(uid);
 				channel.writeAndFlush(req);
 			}

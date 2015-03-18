@@ -31,7 +31,7 @@ public class ImLoginRequestProto extends BaseProtobufRequest {
 		loginBuilder = JpushimSdk2B.Login.newBuilder();
 		loginBuilder.setUsername(ByteString.copyFromUtf8(bean.getUsername()));
 		loginBuilder.setPassword(ByteString.copyFromUtf8(bean.getPassword()));
-		loginBuilder.setPlatform(Command.DEVICE_TYPE.ANDROID);  // need modify
+		loginBuilder.setPlatform(Command.DEVICE_TYPE.ANDROID);  
 		bodyBuilder.setLogin(loginBuilder);
 		protocalBuilder.setBody(bodyBuilder);
 	}

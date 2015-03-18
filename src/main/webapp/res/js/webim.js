@@ -1,6 +1,4 @@
-// http://jpushim.qiniudn.com/qiniu/voice/3D0347EEF8EA0E81
-// http://jpushim.qiniudn.com/qiniu/voice/42CEA721E2D354CE  ok
-// http://api.qiniu.com/status/get/prefop?id=54fd71797823de40686571f6 
+
 /*-------------------第三方调用方式----------------------*/
 
 //  自己的业务需要添加的变量
@@ -33,8 +31,8 @@ JPushIM.connect();
 
 //初始化IM业务配置
 JPushIM.init({
-	//appKey : 'ab5e82b23ee58621a01de671',
-	appKey : '4f7aef34fb361292c566a1cd',
+	appKey : 'ab5e82b23ee58621a01de671',
+	//appKey : '4f7aef34fb361292c566a1cd',
 	secrect : 'master secrect',
 	onConnect : function(){
 		connectResp();
@@ -59,6 +57,9 @@ JPushIM.init({
 	},
 	onChatEvent : function(data){
 		chatEventResp(data);
+	},
+	onMsgSyncEvent : function(data){
+		msgSyncResp(data);
 	},
 	onAddFriendCmd : function(data){
 		addFriendCmdResp(data);
@@ -107,6 +108,14 @@ var loginResp = function(data){
 			'uid' : uid
 	};
 	JPushIM.getGroupListEvent(options);
+	$("body").eq(0).css({
+		"background-image":"url('../../res/img/bg/imbg001.png')",
+		"background-attachment":"fixed",
+		"background-repeat":"no-repeat",
+		"background-size":"cover",
+		"-moz-background-size":"cover",
+		"-webkit-background-size":"cover"
+	});
 	$('#waitLoginmodal').css({"display":"none"});
 	$('#content').css({"display":"block"});
 };
@@ -216,7 +225,7 @@ var getGroupsListResp = function(data){
 			'id' : data[i].gid,
 			'chat' : 'chat',
 			'onclick': 'chooseGroupDivClick(this)',
-			'displayName' : data[i].group_name,
+			'displayName' : data[i].name,
 		});
 		
 		var imgelem = document.createElement("img");
@@ -234,7 +243,7 @@ var getGroupsListResp = function(data){
 		$(spanelem).attr({
 			"class" : "contractor-display-style"
 		});
-		spanelem.innerHTML = data[i].group_name;
+		spanelem.innerHTML = data[i].name;
 		lielem.appendChild(spanelem);
 		uielem.appendChild(lielem);
 	}
@@ -300,6 +309,26 @@ var delGroupMember = function(dom){
 var chatEventResp = function(data){
 	updateAddUnreadMsgInfo();
 	appendMsgSendByOthers(data.userName, data.message, data.toUserName, data.msgType, data.contentType);
+	JPushIM.chatMsgSyncResp({
+		uid : curUserId,
+		juid : juid,
+		sid : sid,
+		messageId : data.messageId,
+		iMsgType : data.iMsgType
+	});
+};
+
+//  消息下发处理
+var msgSyncResp = function(data){
+	updateAddUnreadMsgInfo();
+	appendMsgSendByOthers(data.userName, data.message, data.toUserName, data.msgType, data.contentType);
+	JPushIM.chatMsgSyncResp({
+		uid : curUserId,
+		juid : juid,
+		sid : sid,
+		messageId : data.messageId,
+		iMsgType : data.iMsgType
+	});
 };
 
 //  处理添加好友请求的响应
@@ -310,6 +339,17 @@ var addFriendCmdResp = function(data){
 //  事件通知响应处理
 var eventNotificationResp = function(data){
 	data = jQuery.parseJSON(data);
+	
+	var eventId = data.eventId;
+	var eventType = data.eventType;
+	JPushIM.eventSyncResp({
+		uid : curUserId,
+		juid : juid,
+		sid : sid,
+		eventId : eventId,
+		eventType : eventType
+	});
+	
 	var eventType = data.eventType;
 	var gid = data.gid;
 	var message = "";
@@ -366,6 +406,8 @@ var logoutResp = function(data){
 $('#login_submit').click(function(){
 	console.log('user login submit.');
 	$('#loginPanel').css({"display":"none"});
+	document.body.style.backgroundImage = '';
+	document.body.style.backgroundColor = '#FFFFFF';
 	$('#waitLoginmodal').css({"display":"block"}); 
 	var message = 'user:'+user_name+'login';
 	user_name = $('#user_name').val();
@@ -735,6 +777,9 @@ var chooseContactDivClick = function(li) {
 		"display" : "none"
 	});	
 	isSingleOrGroup = "single";
+	$('#roomInfo').css({
+		"visibility": "hidden"
+	});
 };
 
 //  切换群组聊天窗口div
@@ -763,6 +808,9 @@ var chooseGroupDivClick = function(li) {
 	}
 	curChatGroupId = chatGroupId;
 	isSingleOrGroup = "group";
+	$('#roomInfo').css({
+		"visibility": "visible"
+	});
 };
 	 
 //   添加对方发送的聊天信息到显示面板

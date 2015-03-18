@@ -7084,7 +7084,8 @@ if(typeof jQuery == 'undefined'){
 
 JPushIM = (function() {
 		var JPushIM = {};
-	   JPushIM.url = 'http://127.0.0.1:9092';  //  IM Server 地址
+	   //JPushIM.url = 'http://114.119.7.196:9092';  //  IM Server 地址
+		JPushIM.url = 'http://114.119.7.194:9092';
 	   JPushIM.QiNiuMediaUrl = 'http://jpushim.qiniudn.com';  //  media storage 地址
 	   JPushIM.UpYunVoiceMediaUrl = 'http://cvoice.b0.upaiyun.com';
 	   
@@ -7127,6 +7128,10 @@ JPushIM = (function() {
 		  });
 		  this.socket.on('chatEvent', function(data){
 			  options.onChatEvent(data);
+			  emojify.run();
+		  });
+		  this.socket.on('msgSyncEvent', function(data){
+			  options.onMsgSyncEvent(data);
 			  emojify.run();
 		  });
 		  this.socket.on('addFriendCmd', function(data){
@@ -7188,7 +7193,10 @@ JPushIM = (function() {
 	        });
 	    };
 	   JPushIM.getGroupMemberListEvent = function(gid){
-		   this.socket.emit('getGroupMemberList', gid);
+		   this.socket.emit('getGroupMemberList', {
+			   appKey: this.appKey,
+			   gid: gid
+		   });
 	    };
 	   JPushIM.updateGroupNameEvent = function(options){
 		   this.socket.emit('updateGroupName', {
@@ -7227,6 +7235,26 @@ JPushIM = (function() {
 		   this.socket.emit('chatEvent', options);
 		   emojify.run();
 	    };
+	   JPushIM.chatMsgSyncResp = function(options){
+		   this.socket.emit('chatMsgSyncResp', {
+			   appKey: this.appKey,
+			   uid : options.uid,
+				juid : options.juid,
+				sid : options.sid,
+				messageId : options.messageId,
+				iMsgType : options.iMsgType
+		   });
+		};
+		JPushIM.eventSyncResp = function(options){
+			   this.socket.emit('eventSyncResp', {
+				   appKey: this.appKey,
+				   uid : options.uid,
+					juid : options.juid,
+					sid : options.sid,
+					eventId : options.eventId,
+					eventType : options.eventType
+			   });
+		};
 	   JPushIM.addFriendCmd = function(options){
 		   this.socket.emit('addFriendCmd', options);
 	    };

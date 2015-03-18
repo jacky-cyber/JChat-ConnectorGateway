@@ -1,5 +1,8 @@
 package cn.jpush.protocal.encoder;
 
+import jpushim.s2b.JpushimSdk2B.ChatMsg;
+import jpushim.s2b.JpushimSdk2B.ChatMsgSync;
+import jpushim.s2b.JpushimSdk2B.EventNotification;
 import jpushim.s2b.JpushimSdk2B.Packet;
 
 import org.slf4j.LoggerFactory;
@@ -8,8 +11,10 @@ import ch.qos.logback.classic.Logger;
 import cn.jpush.protocal.common.JPushTcpClient;
 import cn.jpush.protocal.common.JPushTcpClientHandler;
 import cn.jpush.protocal.im.req.proto.ImAddGroupMemberRequestProto;
+import cn.jpush.protocal.im.req.proto.ImChatMsgSyncRequestProto;
 import cn.jpush.protocal.im.req.proto.ImCreateGroupRequestProto;
 import cn.jpush.protocal.im.req.proto.ImDeleteGroupMemberRequestProto;
+import cn.jpush.protocal.im.req.proto.ImEventSyncRequestProto;
 import cn.jpush.protocal.im.req.proto.ImExitGroupRequestProto;
 import cn.jpush.protocal.im.req.proto.ImLoginRequestProto;
 import cn.jpush.protocal.im.req.proto.ImLogoutRequestProto;
@@ -95,7 +100,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			log.info("im logout request...");
 			ImLogoutRequestProto req = (ImLogoutRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
-			ImRequest request = new ImRequest(1,  2, req.getSid(), req.getJuid(), reqProtobuf);
+			ImRequest request = new ImRequest(1,  1, req.getSid(), req.getJuid(), reqProtobuf);
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 		}
@@ -155,7 +160,27 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 		}
-		
+		if(msg instanceof ImChatMsgSyncRequestProto){  //  返回同步消息表示已收到
+			log.info("im chat msg sync message fallback...");
+			ImChatMsgSyncRequestProto req = (ImChatMsgSyncRequestProto) msg;
+			Packet reqProtobuf = req.buildProtoBufProtocal();
+			//log.info("Proto to String: "+reqProtobuf.toString());
+			log.info("sync msg data -- sid: "+req.getSid()+", juid: "+req.getJuid()+
+						"， msgid: "+((ChatMsg)req.getBean()).getMsgid()+", type: "+((ChatMsg)req.getBean()).getMsgType());
+			ImRequest request = new ImRequest(1, 1, req.getSid(), req.getJuid(), reqProtobuf);
+			byte[] data = request.getRequestPackage();
+			out.writeBytes(data);
+		}
+		if(msg instanceof ImEventSyncRequestProto){  //  返回同步事件表示已处理
+			log.info("im chat msg sync message fallback...");
+			ImEventSyncRequestProto req = (ImEventSyncRequestProto) msg;
+			Packet reqProtobuf = req.buildProtoBufProtocal();
+			//log.info("Proto to String: "+reqProtobuf.toString());
+			log.info("sync event notification data -- eventid: "+((EventNotification)req.getBean()).getEventId()+", type: "+((EventNotification)req.getBean()).getEventType());
+			ImRequest request = new ImRequest(1, 1, req.getSid(), req.getJuid(), reqProtobuf);
+			byte[] data = request.getRequestPackage();
+			out.writeBytes(data);
+		}
 	}
 
 }

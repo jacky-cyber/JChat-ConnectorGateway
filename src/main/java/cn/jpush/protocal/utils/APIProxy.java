@@ -40,6 +40,13 @@ public final class APIProxy {
 		return result;
 	}
 	
+	//  获取用户信息通过uid
+	public static HttpResponseWrapper getUserInfoByUid(String appkey, String uid) throws Exception{
+		String url = API_URL + "/users/" + uid + "?idtype=uid";
+		HttpResponseWrapper result = NativeHttpClient.doGet(url, appkey, true);
+		return result;
+	}
+	
 	//  获取群组列表
 	public static HttpResponseWrapper getGroupList(String uid) throws Exception{
 		String url = API_URL + "/users/"+uid+"/groups/";
@@ -64,11 +71,11 @@ public final class APIProxy {
 	
 	public static void main(String[] argus) throws Exception{
 		HttpResponseWrapper result = null;
-		//result = APIProxy.register(APPKEY, "p005", "p005");
-		//result = APIProxy.getUserInfo(APPKEY, "p001");
+		//result = APIProxy.register(APPKEY, "p001", "p001");
+		result = APIProxy.getUserInfo(APPKEY, "p001");
 		//result = APIProxy.getGroupInfo("10000227");
-		//result = APIProxy.getGroupList("10000132");
-	   result = APIProxy.getGroupMemberList("10000227");
+		//result = APIProxy.getGroupList("10000191");
+	   //result = APIProxy.getGroupMemberList("10000227");
 		System.out.println("result: "+result.isOK()+", "+result.content);
 	}
 	

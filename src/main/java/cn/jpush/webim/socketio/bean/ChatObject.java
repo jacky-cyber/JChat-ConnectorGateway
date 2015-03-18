@@ -12,6 +12,8 @@ public class ChatObject {
 	private String message;
 	private String msgType;
 	private String contentType;
+	private long messageId;
+	private int iMsgType;
 	public ChatObject(){};
 	public ChatObject(String userName, String message){
 		this.userName = userName;
@@ -82,6 +84,18 @@ public class ChatObject {
 	}
 	public void setJuid(long juid) {
 		this.juid = juid;
+	}
+	public long getMessageId() {
+		return messageId;
+	}
+	public void setMessageId(long messageId) {
+		this.messageId = messageId;
+	}
+	public int getiMsgType() {
+		return iMsgType;
+	}
+	public void setiMsgType(int iMsgType) {
+		this.iMsgType = iMsgType;
 	}
 	
 	

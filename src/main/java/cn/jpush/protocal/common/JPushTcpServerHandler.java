@@ -170,7 +170,7 @@ public class JPushTcpServerHandler extends ChannelInboundHandlerAdapter {
 
 		}
 		else {
-			int cmd = (int) msg;
+			int cmd = Integer.parseInt((String) msg);
 			if(cmd==Command.KKPUSH_LOGOUT.COMMAND){  //  push 登出
 				log.info("logout bean cmd:"+cmd);
 				PushLogoutResponseBean respBean = new PushLogoutResponseBean(0); 

@@ -3,6 +3,8 @@ package cn.jpush.protocal.common;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.net.ssl.SSLEngine;
+
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
@@ -48,6 +50,7 @@ import io.netty.handler.codec.protobuf.ProtobufDecoder;
 import io.netty.handler.codec.protobuf.ProtobufEncoder;
 import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder;
 import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
+import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 
 public class JPushTcpClient {
@@ -80,7 +83,13 @@ public class JPushTcpClient {
 		b.handler(new ChannelInitializer<SocketChannel>() {
 			@Override
 			protected void initChannel(SocketChannel ch) throws Exception {
-				ch.pipeline().addLast("idleStateHandler", new IdleStateHandler(100, 100, 0))
+				/*SSLEngine engine = SecureChatSslContextFactory.getServerContext().createSSLEngine();
+	         engine.setNeedClientAuth(true); 
+	         engine.setUseClientMode(false);
+	         engine.setWantClientAuth(true);
+	         engine.setEnabledProtocols(new String[]{"SSLv3"});*/
+				ch.pipeline()/*.addLast("ssl", new SslHandler(engine))*/
+								.addLast("idleStateHandler", new IdleStateHandler(100, 100, 0))
 								.addLast(new ImProtocalClientEncoder())
 								.addLast(new ImProtocalClientDecoder())
 								.addLast(jPushClientHandler);

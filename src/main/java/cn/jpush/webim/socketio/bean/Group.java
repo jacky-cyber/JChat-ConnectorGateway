@@ -2,7 +2,7 @@ package cn.jpush.webim.socketio.bean;
 
 public class Group {
 	 private long gid; 
-	 private String group_name; 
+	 private String name; 
 	 private String group_desc;
 	 private String appkey;
 	 private int group_level;
@@ -15,11 +15,12 @@ public class Group {
 	public void setGid(long gid) {
 		this.gid = gid;
 	}
-	public String getGroup_name() {
-		return group_name;
+	
+	public String getName() {
+		return name;
 	}
-	public void setGroup_name(String group_name) {
-		this.group_name = group_name;
+	public void setName(String name) {
+		this.name = name;
 	}
 	public String getGroup_desc() {
 		return group_desc;
