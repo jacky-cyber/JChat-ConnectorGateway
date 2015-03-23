@@ -396,13 +396,21 @@ public class ProtocolUtil {
 	
 	public static PushLoginResponseBean getPushLoginResponseBean(ByteBuf in) throws UnsupportedEncodingException{
 		int code = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
-		int sid = ProtocolUtil.byteArrayToInt(in.readBytes(4).array());
-		int server_version = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
-		int session_key_len = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
-		String session_key = new String(in.readBytes(session_key_len).array(),"utf-8");
-		int server_time = ProtocolUtil.byteArrayToInt(in.readBytes(4).array());
+		PushLoginResponseBean bean = null;
+		if(code==0){
+			int sid = ProtocolUtil.byteArrayToInt(in.readBytes(4).array());
+			int server_version = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
+			int session_key_len = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
+			String session_key = new String(in.readBytes(session_key_len).array(),"utf-8");
+			int server_time = ProtocolUtil.byteArrayToInt(in.readBytes(4).array());
+			bean = new PushLoginResponseBean(code, sid, server_version, session_key, server_time);
+		} else {
+			log.error("push login exception -- code: "+code);
+			int message_len = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
+			String message = new String(in.readBytes(message_len).array(),"utf-8");
+			log.info("push login error info: "+message);
+		}
 		in.discardReadBytes();
-		PushLoginResponseBean bean = new PushLoginResponseBean(code, sid, server_version, session_key, server_time);
 		return bean;
 	}
 	

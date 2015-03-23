@@ -63,10 +63,13 @@ import cn.jpush.webim.socketio.bean.AddOrDelGroupMember;
 import cn.jpush.webim.socketio.bean.ChatMessage;
 import cn.jpush.webim.socketio.bean.ChatObject;
 import cn.jpush.webim.socketio.bean.ContracterObject;
+import cn.jpush.webim.socketio.bean.EventSyncRespBean;
 import cn.jpush.webim.socketio.bean.Group;
 import cn.jpush.webim.socketio.bean.GroupList;
 import cn.jpush.webim.socketio.bean.GroupMember;
 import cn.jpush.webim.socketio.bean.LogoutBean;
+import cn.jpush.webim.socketio.bean.MsgBody;
+import cn.jpush.webim.socketio.bean.MsgContentBean;
 import cn.jpush.webim.socketio.bean.UpdateGroupInfoBean;
 import cn.jpush.webim.socketio.bean.User;
 import cn.jpush.webim.socketio.bean.UserList;
@@ -87,12 +90,14 @@ import com.qiniu.api.rs.PutPolicy;
 public class WebImServer {
 	private static Logger log = (Logger) LoggerFactory.getLogger(WebImServer.class);
 	public static HashMap<Long, SocketIOClient> userNameToSessionCilentMap = new HashMap<Long, SocketIOClient>();
-	private static HashMap<SocketIOClient, Long> sessionClientToUserNameMap = new HashMap<SocketIOClient, Long>();
-	private static HashMap<Long, Channel> userNameToPushChannelMap = new HashMap<Long, Channel>();
+	public static HashMap<String, SocketIOClient> userToSessionCilentMap = new HashMap<String, SocketIOClient>();
+	public static HashMap<SocketIOClient, Long> sessionClientToUserNameMap = new HashMap<SocketIOClient, Long>();
+	public static HashMap<Long, Channel> userNameToPushChannelMap = new HashMap<Long, Channel>();
+	public static HashMap<String, Channel> userToPushChannelMap = new HashMap<String, Channel>();
 	public static HashMap<Channel, Long> pushChannelToUsernameMap = new HashMap<Channel, Long>();
-	public static CountDownLatch pushLoginInCountDown;
-  	private static final String HOST_NAME = SystemConfig.getProperty("webim.server.host");  
+	public static HashMap<Long, String> uidToTokenMap = new HashMap<Long, String>();
 	private static final int PORT = SystemConfig.getIntProperty("webim.server.port");
+	public static CountDownLatch pushLoginInCountDown;
 	private Gson gson = new Gson();
 	private Configuration config;
 	private SocketIOServer server;
@@ -132,18 +137,18 @@ public class WebImServer {
 				log.info("当前在线人数： "+onlineCount);
 				
 				if(client!=null){
-					long uid = sessionClientToUserNameMap.get(client);
+					long uid = WebImServer.sessionClientToUserNameMap.get(client);
 					if(0!=uid){
-						userNameToSessionCilentMap.remove(uid);
-						Channel channel = userNameToPushChannelMap.get(uid);
-						userNameToPushChannelMap.remove(uid);
-						pushChannelToUsernameMap.remove(channel);
+						WebImServer.userNameToSessionCilentMap.remove(uid);
+						Channel channel = WebImServer.userNameToPushChannelMap.get(uid);
+						WebImServer.userNameToPushChannelMap.remove(uid);
+						WebImServer.pushChannelToUsernameMap.remove(channel);
 						if(channel!=null)
 							channel.close();   //  断开与push server的长连接
 						// 向其他成员发送下线通知
 						// ...
+						WebImServer.sessionClientToUserNameMap.remove(client);
 					}
-					sessionClientToUserNameMap.remove(client);
 				}	
 			}
 		});
@@ -163,7 +168,7 @@ public class WebImServer {
 				long uid = 0L;
 				 
 				//  获取用户ID
-				HttpResponseWrapper resultWrapper = APIProxy.getUserInfo(appkey, user_name);
+				/*HttpResponseWrapper resultWrapper = APIProxy.getUserInfo(appkey, user_name);
 				if(resultWrapper.isOK()){
 					User userInfo = gson.fromJson(resultWrapper.content, User.class);
 					uid = userInfo.getUid();
@@ -179,20 +184,26 @@ public class WebImServer {
 				
 				log.info("add user and session client to map.");
 				userNameToSessionCilentMap.put(uid,	client);
-				sessionClientToUserNameMap.put(client, uid);
+				sessionClientToUserNameMap.put(client, uid);*/
+				
+				userToSessionCilentMap.put(user_name, client);
 				
 				// 获取uid
-				long juid = UidResourcesPool.getUid();
+				//long juid = UidResourcesPool.getUid();
+				Map<String, String> juidData = UidResourcesPool.getUidAndPassword();
+				long juid = Long.parseLong(String.valueOf(juidData.get("uid")));
+				String juid_password = String.valueOf(juidData.get("password"));
 				pushLoginInCountDown = new CountDownLatch(1);
-				log.info("用户："+user_name+"接入，获取juid："+juid);
+				log.info("用户："+user_name+"接入，获取juid："+juid+", password: "+juid_password);
 				// jpush 接入相关
 				log.info("build user connection to jpush.");
 				jpushIMTcpClient = new JPushTcpClient();
 				Channel pushChannel = jpushIMTcpClient.getChannel();
-				userNameToPushChannelMap.put(uid, pushChannel);
-				pushChannelToUsernameMap.put(pushChannel, uid);
+				userToPushChannelMap.put(user_name, pushChannel);
+				//userNameToPushChannelMap.put(uid, pushChannel);
+				//pushChannelToUsernameMap.put(pushChannel, uid);
 				//  JPush login
-				PushLoginRequestBean pushLoginBean = new PushLoginRequestBean(juid, "a", ProtocolUtil.md5Encrypt("756371956"), 10800, appkey, 0);
+				PushLoginRequestBean pushLoginBean = new PushLoginRequestBean(juid, "a", ProtocolUtil.md5Encrypt(juid_password), 10800, appkey, 0);
 				pushChannel.writeAndFlush(pushLoginBean);
 				pushLoginInCountDown.await();  //  等待push login返回数据
 				PushLoginResponseBean pushLoginResponseBean = jpushIMTcpClient.getjPushClientHandler().getPushLoginResponseBean();
@@ -201,10 +212,11 @@ public class WebImServer {
 				//   设置数据 用于心跳
 				jpushIMTcpClient.getjPushClientHandler().setSid(pushLoginResponseBean.getSid());
 				jpushIMTcpClient.getjPushClientHandler().setJuid(juid);
+				
 				//   向客户端发 SID 和 JUId
 				data.setJuid(juid);
 				data.setSid(pushLoginResponseBean.getSid());
-				client.sendEvent("loginEvent", data);
+				client.sendEvent("loginEventGetSJ", data);
 				
 				//   IM Login
 				LoginRequestBean bean = new LoginRequestBean(user_name, StringUtils.toMD5(password));
@@ -215,6 +227,23 @@ public class WebImServer {
 			}
 		 });
 		 
+		 //  客户端绑定
+		 server.addEventListener("bindSocketIoClientEvent", ContracterObject.class, new DataListener<ContracterObject>() {
+				@Override
+				public void onData(SocketIOClient client, ContracterObject data,
+						AckRequest ackSender) throws Exception {
+					String userName = data.getUser_name();
+					long uid = data.getUid();
+					log.info("username: "+userName+", uid: "+uid);
+					//SocketIOClient mClient = WebImServer.userToSessionCilentMap.get(userName);
+					WebImServer.userNameToSessionCilentMap.put(data.getUid(), client);
+					WebImServer.userToSessionCilentMap.remove(userName);
+					WebImServer.sessionClientToUserNameMap.put(client, uid);
+					client.sendEvent("bindSocketIoClientEvent", "");
+					log.info("uid--session_client 已绑定完成");
+				}
+		 });
+		 
 		 // 获取联系人列表
 		 server.addEventListener("getContracterList", ContracterObject.class, new DataListener<ContracterObject>() {
 			@Override
@@ -222,6 +251,9 @@ public class WebImServer {
 					AckRequest ackSender) throws Exception {
 				String appkey = data.getAppKey();
 				String user_name = data.getUser_name();
+				long uid = data.getUid();
+				String token = WebImServer.uidToTokenMap.get(uid);
+				
 				if(user_name==null || "".equals(user_name) || data==null){
 					log.error("client arguments error: no user name.");
 					return;
@@ -232,7 +264,7 @@ public class WebImServer {
 				//  模拟用户列表
 				for(int i=1; i<4; i++){
 					String username = "p00"+i;
-					HttpResponseWrapper userResult = APIProxy.getUserInfo(appkey, username);
+					HttpResponseWrapper userResult = APIProxy.getUserInfo(appkey, username, token);
 					if(userResult.isOK()){
 						User userInfo = gson.fromJson(userResult.content, User.class);
 						contractersList.add(userInfo);
@@ -250,9 +282,11 @@ public class WebImServer {
 			@Override
 			public void onData(SocketIOClient client, ContracterObject data,
 					AckRequest ackSender) throws Exception {
-				//String curUserName = data.getUser_name();
+				String curUserName = data.getUser_name();
 				String appkey = data.getAppKey();
 				long uid = data.getUid();
+				String token = WebImServer.uidToTokenMap.get(uid);
+						
 				if(uid==0 || data==null){
 					log.error("client arguments error: no user name.");
 					return;
@@ -265,13 +299,13 @@ public class WebImServer {
 				group.setGroup_name("group01");
 				groupsList.add(group);*/
 				log.info("get user's group -- uid: "+uid);
-				HttpResponseWrapper result = APIProxy.getGroupList(String.valueOf(uid));
+				HttpResponseWrapper result = APIProxy.getGroupList(String.valueOf(uid), token);
 				if(result.isOK()){
 					String groupListJson = result.content;
 					List<Group> groupList = gson.fromJson(groupListJson, new TypeToken<ArrayList<Group>>(){}.getType());
 					//  从群组详情中补充群组的信息
 					for(Group group: groupList){
-						HttpResponseWrapper groupInfoResult = APIProxy.getGroupInfo(String.valueOf(group.getGid()));
+						HttpResponseWrapper groupInfoResult = APIProxy.getGroupInfo(String.valueOf(group.getGid()), token);
 						if(groupInfoResult.isOK()){
 							String groupInfoJson = groupInfoResult.content;
 							group = gson.fromJson(groupInfoJson, Group.class);
@@ -297,12 +331,14 @@ public class WebImServer {
 				log.info("get group member list...");
 				String appKey = (String) data.get("appKey");
 				String gid = String.valueOf(data.get("gid"));
+				long uid = Long.parseLong(String.valueOf(data.get("uid")));
+				String token = WebImServer.uidToTokenMap.get(uid);
 				ArrayList<HashMap> resultList = new ArrayList<HashMap>();
-				HttpResponseWrapper resultWrapper = APIProxy.getGroupMemberList(gid);
+				HttpResponseWrapper resultWrapper = APIProxy.getGroupMemberList(gid, token);
 				if(resultWrapper.isOK()){
 					List<GroupMember> groupList = gson.fromJson(resultWrapper.content, new TypeToken<ArrayList<GroupMember>>(){}.getType());
 					for(GroupMember member:groupList){
-						HttpResponseWrapper wrapper = APIProxy.getUserInfoByUid(appKey, String.valueOf(member.getUid()));
+						HttpResponseWrapper wrapper = APIProxy.getUserInfoByUid(appKey, String.valueOf(member.getUid()), token);
 						if(wrapper.isOK()){
 							HashMap map = gson.fromJson(wrapper.content, HashMap.class);
 							resultList.add(map);
@@ -321,20 +357,35 @@ public class WebImServer {
 			 public void onData(SocketIOClient client, ChatMessage data, AckRequest ackRequest) {
 				 log.info("message -- juid: "+data.getJuid()+", sid: "+data.getSid());
 				 log.info("message: "+ data.getMsg_body() +" from: "+data.getFrom_name()+" to: "+data.getTarget_name());
+				 log.info("all content: "+gson.toJson(data));
 				 String appKey = data.getAppKey();
 				 int sid = data.getSid(); 
 				 Channel channel = userNameToPushChannelMap.get(data.getFrom_id());
+				 
+				 MsgContentBean msgContent = new MsgContentBean();
+				 msgContent.setVersion(Integer.parseInt(data.getVersion()));
+				 msgContent.setTarget_type(data.getTarget_type());
+				 msgContent.setTarget_id(data.getTarget_id());
+				 msgContent.setTarget_name(data.getTarget_name());
+				 msgContent.setFrom_type(data.getFrom_type());
+				 msgContent.setFrom_id(String.valueOf(data.getFrom_id()));
+				 msgContent.setFrom_name(data.getFrom_name());
+				 msgContent.setFrom_platform("web");
+				 msgContent.setCreate_time(Integer.parseInt(data.getCreate_time()));
+				 msgContent.setMsg_type(data.getMsg_type());
+				 msgContent.setMsg_body(gson.fromJson(data.getMsg_body().toString(), MsgBody.class));
+				 
 				 if(channel==null)
 					 log.info("当前用户与jpush的连接已断开.");
 				 if("single".equals(data.getTarget_type())){
-					 SendSingleMsgRequestBean bean = new SendSingleMsgRequestBean(Long.parseLong(data.getTarget_name()), gson.toJson(data));  //  为了和移动端保持一致，注意这里用target_name来存储id，避免再查一次
+					 SendSingleMsgRequestBean bean = new SendSingleMsgRequestBean(Long.parseLong(data.getTarget_name()), gson.toJson(msgContent));  //  为了和移动端保持一致，注意这里用target_name来存储id，避免再查一次
 					 List<Integer> cookie = new ArrayList<Integer>();
 					 ImSendSingleMsgRequestProto req = new ImSendSingleMsgRequestProto(Command.JPUSH_IM.SENDMSG_SINGAL, 1, data.getFrom_id(), appKey, sid, data.getJuid(), cookie, bean);
 					 channel.writeAndFlush(req);
 				 } else if("group".equals(data.getTarget_type())){
-					 SendGroupMsgRequestBean bean = new SendGroupMsgRequestBean(Long.parseLong(data.getTarget_id()), gson.toJson(data));
+					 SendGroupMsgRequestBean bean = new SendGroupMsgRequestBean(Long.parseLong(data.getTarget_id()), gson.toJson(msgContent));
 					 List<Integer> cookie = new ArrayList<Integer>();
-					 ImSendGroupMsgRequestProto req = new ImSendGroupMsgRequestProto(Command.JPUSH_IM.SENDMSG_GROUP, 1, Long.parseLong(data.getTarget_id()), appKey, sid, data.getJuid(), cookie, bean);
+					 ImSendGroupMsgRequestProto req = new ImSendGroupMsgRequestProto(Command.JPUSH_IM.SENDMSG_GROUP, 1, data.getFrom_id(), appKey, sid, data.getJuid(), cookie, bean);
 					 channel.writeAndFlush(req);
 				 }
 			 }
@@ -482,23 +533,24 @@ public class WebImServer {
 		});
 		
 		//  事件下发送达返回
-		server.addEventListener("eventSyncResp", HashMap.class, new DataListener<HashMap>() {
+		server.addEventListener("eventSyncResp", EventSyncRespBean.class, new DataListener<EventSyncRespBean>() {
 			@Override
-			public void onData(SocketIOClient client, HashMap data,
+			public void onData(SocketIOClient client, EventSyncRespBean data,
 					AckRequest ackSender) throws Exception {
-				String appkey = (String) data.get("appKey");
-				long uid = Long.parseLong((String)data.get("uid"));
-				long juid = Long.parseLong((String)data.get("juid"));
-				int sid = Integer.parseInt((String)data.get("sid"));
-				long eventId = Long.parseLong((String)data.get("eventId"));
-				int eventType = Integer.parseInt((String)data.get("eventType"));   
+				String appkey = data.getAppKey();
+				long uid = data.getUid();
+				long juid = data.getJuid();
+				int sid = data.getSid();
+				long eventId = data.getEventId();
+				int eventType = data.getEventType();
 				log.info("事件同步反馈 -- eventId: "+eventId+", eventType: "+eventType);
 				List<Integer> cookie = new ArrayList<Integer>();
 				EventNotification.Builder eventNotification = EventNotification.newBuilder();
 				eventNotification.setEventId(eventId);
 				eventNotification.setEventType(eventType);
+				EventNotification eventNotificationBean = eventNotification.build();
 				ImEventSyncRequestProto req = new ImEventSyncRequestProto(Command.JPUSH_IM.SYNC_EVENT, 1, uid,
-						appkey, sid, juid, cookie, eventNotification);
+						appkey, sid, juid, cookie, eventNotificationBean);
 				Channel channel = userNameToPushChannelMap.get(uid);
 				channel.writeAndFlush(req);
 			}

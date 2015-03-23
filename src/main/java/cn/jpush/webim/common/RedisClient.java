@@ -1,5 +1,6 @@
 package cn.jpush.webim.common;
 
+import cn.jpush.protocal.utils.SystemConfig;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -7,8 +8,8 @@ import redis.clients.jedis.ShardedJedis;
 import redis.clients.jedis.ShardedJedisPool;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 public class RedisClient {
-  private final  String BASE_URL = "114.119.7.195";
-  private final  int PORT = 16380;
+  private final  String BASE_URL = SystemConfig.getProperty("redis.server.host");
+  private final  int PORT = SystemConfig.getIntProperty("redis.server.port");;
   public  int MAXTOTAL = 1000;
   public  int MAXIDL = 200;
   public  int MAXWAITMILLIS = 10000;

@@ -164,7 +164,6 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			log.info("im chat msg sync message fallback...");
 			ImChatMsgSyncRequestProto req = (ImChatMsgSyncRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
-			//log.info("Proto to String: "+reqProtobuf.toString());
 			log.info("sync msg data -- sid: "+req.getSid()+", juid: "+req.getJuid()+
 						"， msgid: "+((ChatMsg)req.getBean()).getMsgid()+", type: "+((ChatMsg)req.getBean()).getMsgType());
 			ImRequest request = new ImRequest(1, 1, req.getSid(), req.getJuid(), reqProtobuf);
@@ -172,10 +171,9 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			out.writeBytes(data);
 		}
 		if(msg instanceof ImEventSyncRequestProto){  //  返回同步事件表示已处理
-			log.info("im chat msg sync message fallback...");
+			log.info("im event sync message fallback...");
 			ImEventSyncRequestProto req = (ImEventSyncRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
-			//log.info("Proto to String: "+reqProtobuf.toString());
 			log.info("sync event notification data -- eventid: "+((EventNotification)req.getBean()).getEventId()+", type: "+((EventNotification)req.getBean()).getEventType());
 			ImRequest request = new ImRequest(1, 1, req.getSid(), req.getJuid(), reqProtobuf);
 			byte[] data = request.getRequestPackage();

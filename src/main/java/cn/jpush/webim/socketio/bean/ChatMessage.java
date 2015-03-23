@@ -132,17 +132,33 @@ public class ChatMessage {
 	}
 	
 	public class MsgBody{
-		private String content;
+		private String text;
 		private String media_id; 
-		private long media_crc32; 
+		private long media_crc32;
+		private int duration;
 		private int width;
 		private int height;
 		private String format;
-		public String getContent() {
-			return content;
+		private String img_link;
+		private String extras;
+		
+		public int getDuration() {
+			return duration;
 		}
-		public void setContent(String content) {
-			this.content = content;
+		public void setDuration(int duration) {
+			this.duration = duration;
+		}
+		public String getImg_link() {
+			return img_link;
+		}
+		public void setImg_link(String img_link) {
+			this.img_link = img_link;
+		}
+		public String getText() {
+			return text;
+		}
+		public void setText(String text) {
+			this.text = text;
 		}
 		public String getMedia_id() {
 			return media_id;
@@ -173,6 +189,13 @@ public class ChatMessage {
 		}
 		public void setFormat(String format) {
 			this.format = format;
+		}
+		
+		public String getExtras() {
+			return extras;
+		}
+		public void setExtras(String extras) {
+			this.extras = extras;
 		}
 		public String toString(){
 			Gson gson = new Gson();

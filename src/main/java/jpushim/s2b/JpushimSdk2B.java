@@ -8730,6 +8730,24 @@ public final class JpushimSdk2B {
      * <code>optional bytes description = 6;</code>
      */
     com.google.protobuf.ByteString getDescription();
+
+    // optional uint32 ctime = 7;
+    /**
+     * <code>optional uint32 ctime = 7;</code>
+     *
+     * <pre>
+     * event_id created time
+     * </pre>
+     */
+    boolean hasCtime();
+    /**
+     * <code>optional uint32 ctime = 7;</code>
+     *
+     * <pre>
+     * event_id created time
+     * </pre>
+     */
+    int getCtime();
   }
   /**
    * Protobuf type {@code jpushim.s2b.EventNotification}
@@ -8826,6 +8844,11 @@ public final class JpushimSdk2B {
             case 50: {
               bitField0_ |= 0x00000010;
               description_ = input.readBytes();
+              break;
+            }
+            case 56: {
+              bitField0_ |= 0x00000020;
+              ctime_ = input.readUInt32();
               break;
             }
           }
@@ -9002,6 +9025,30 @@ public final class JpushimSdk2B {
       return description_;
     }
 
+    // optional uint32 ctime = 7;
+    public static final int CTIME_FIELD_NUMBER = 7;
+    private int ctime_;
+    /**
+     * <code>optional uint32 ctime = 7;</code>
+     *
+     * <pre>
+     * event_id created time
+     * </pre>
+     */
+    public boolean hasCtime() {
+      return ((bitField0_ & 0x00000020) == 0x00000020);
+    }
+    /**
+     * <code>optional uint32 ctime = 7;</code>
+     *
+     * <pre>
+     * event_id created time
+     * </pre>
+     */
+    public int getCtime() {
+      return ctime_;
+    }
+
     private void initFields() {
       eventId_ = 0L;
       eventType_ = 0;
@@ -9009,6 +9056,7 @@ public final class JpushimSdk2B {
       gid_ = 0L;
       toUidlist_ = java.util.Collections.emptyList();
       description_ = com.google.protobuf.ByteString.EMPTY;
+      ctime_ = 0;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -9039,6 +9087,9 @@ public final class JpushimSdk2B {
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         output.writeBytes(6, description_);
+      }
+      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+        output.writeUInt32(7, ctime_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -9077,6 +9128,10 @@ public final class JpushimSdk2B {
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(6, description_);
+      }
+      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(7, ctime_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -9206,6 +9261,8 @@ public final class JpushimSdk2B {
         bitField0_ = (bitField0_ & ~0x00000010);
         description_ = com.google.protobuf.ByteString.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000020);
+        ctime_ = 0;
+        bitField0_ = (bitField0_ & ~0x00000040);
         return this;
       }
 
@@ -9259,6 +9316,10 @@ public final class JpushimSdk2B {
           to_bitField0_ |= 0x00000010;
         }
         result.description_ = description_;
+        if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
+          to_bitField0_ |= 0x00000020;
+        }
+        result.ctime_ = ctime_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -9299,6 +9360,9 @@ public final class JpushimSdk2B {
         }
         if (other.hasDescription()) {
           setDescription(other.getDescription());
+        }
+        if (other.hasCtime()) {
+          setCtime(other.getCtime());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -9621,6 +9685,55 @@ public final class JpushimSdk2B {
         return this;
       }
 
+      // optional uint32 ctime = 7;
+      private int ctime_ ;
+      /**
+       * <code>optional uint32 ctime = 7;</code>
+       *
+       * <pre>
+       * event_id created time
+       * </pre>
+       */
+      public boolean hasCtime() {
+        return ((bitField0_ & 0x00000040) == 0x00000040);
+      }
+      /**
+       * <code>optional uint32 ctime = 7;</code>
+       *
+       * <pre>
+       * event_id created time
+       * </pre>
+       */
+      public int getCtime() {
+        return ctime_;
+      }
+      /**
+       * <code>optional uint32 ctime = 7;</code>
+       *
+       * <pre>
+       * event_id created time
+       * </pre>
+       */
+      public Builder setCtime(int value) {
+        bitField0_ |= 0x00000040;
+        ctime_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional uint32 ctime = 7;</code>
+       *
+       * <pre>
+       * event_id created time
+       * </pre>
+       */
+      public Builder clearCtime() {
+        bitField0_ = (bitField0_ & ~0x00000040);
+        ctime_ = 0;
+        onChanged();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:jpushim.s2b.EventNotification)
     }
 
@@ -9696,6 +9809,24 @@ public final class JpushimSdk2B {
      * <code>optional .jpushim.s2b.MessageContent content = 5;</code>
      */
     jpushim.s2b.JpushimSdk2B.MessageContentOrBuilder getContentOrBuilder();
+
+    // optional uint32 ctime = 6;
+    /**
+     * <code>optional uint32 ctime = 6;</code>
+     *
+     * <pre>
+     * msgid created time
+     * </pre>
+     */
+    boolean hasCtime();
+    /**
+     * <code>optional uint32 ctime = 6;</code>
+     *
+     * <pre>
+     * msgid created time
+     * </pre>
+     */
+    int getCtime();
   }
   /**
    * Protobuf type {@code jpushim.s2b.ChatMsg}
@@ -9779,6 +9910,11 @@ public final class JpushimSdk2B {
                 content_ = subBuilder.buildPartial();
               }
               bitField0_ |= 0x00000010;
+              break;
+            }
+            case 48: {
+              bitField0_ |= 0x00000020;
+              ctime_ = input.readUInt32();
               break;
             }
           }
@@ -9915,12 +10051,37 @@ public final class JpushimSdk2B {
       return content_;
     }
 
+    // optional uint32 ctime = 6;
+    public static final int CTIME_FIELD_NUMBER = 6;
+    private int ctime_;
+    /**
+     * <code>optional uint32 ctime = 6;</code>
+     *
+     * <pre>
+     * msgid created time
+     * </pre>
+     */
+    public boolean hasCtime() {
+      return ((bitField0_ & 0x00000020) == 0x00000020);
+    }
+    /**
+     * <code>optional uint32 ctime = 6;</code>
+     *
+     * <pre>
+     * msgid created time
+     * </pre>
+     */
+    public int getCtime() {
+      return ctime_;
+    }
+
     private void initFields() {
       fromUid_ = 0L;
       fromGid_ = 0L;
       msgid_ = 0L;
       msgType_ = 0;
       content_ = jpushim.s2b.JpushimSdk2B.MessageContent.getDefaultInstance();
+      ctime_ = 0;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -9948,6 +10109,9 @@ public final class JpushimSdk2B {
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         output.writeMessage(5, content_);
+      }
+      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+        output.writeUInt32(6, ctime_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -9977,6 +10141,10 @@ public final class JpushimSdk2B {
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(5, content_);
+      }
+      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(6, ctime_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -10109,6 +10277,8 @@ public final class JpushimSdk2B {
           contentBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00000010);
+        ctime_ = 0;
+        bitField0_ = (bitField0_ & ~0x00000020);
         return this;
       }
 
@@ -10161,6 +10331,10 @@ public final class JpushimSdk2B {
         } else {
           result.content_ = contentBuilder_.build();
         }
+        if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+          to_bitField0_ |= 0x00000020;
+        }
+        result.ctime_ = ctime_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -10191,6 +10365,9 @@ public final class JpushimSdk2B {
         }
         if (other.hasContent()) {
           mergeContent(other.getContent());
+        }
+        if (other.hasCtime()) {
+          setCtime(other.getCtime());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -10482,6 +10659,55 @@ public final class JpushimSdk2B {
           content_ = null;
         }
         return contentBuilder_;
+      }
+
+      // optional uint32 ctime = 6;
+      private int ctime_ ;
+      /**
+       * <code>optional uint32 ctime = 6;</code>
+       *
+       * <pre>
+       * msgid created time
+       * </pre>
+       */
+      public boolean hasCtime() {
+        return ((bitField0_ & 0x00000020) == 0x00000020);
+      }
+      /**
+       * <code>optional uint32 ctime = 6;</code>
+       *
+       * <pre>
+       * msgid created time
+       * </pre>
+       */
+      public int getCtime() {
+        return ctime_;
+      }
+      /**
+       * <code>optional uint32 ctime = 6;</code>
+       *
+       * <pre>
+       * msgid created time
+       * </pre>
+       */
+      public Builder setCtime(int value) {
+        bitField0_ |= 0x00000020;
+        ctime_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional uint32 ctime = 6;</code>
+       *
+       * <pre>
+       * msgid created time
+       * </pre>
+       */
+      public Builder clearCtime() {
+        bitField0_ = (bitField0_ & ~0x00000020);
+        ctime_ = 0;
+        onChanged();
+        return this;
       }
 
       // @@protoc_insertion_point(builder_scope:jpushim.s2b.ChatMsg)
@@ -16971,42 +17197,43 @@ public final class JpushimSdk2B {
       "_uidlist\030\003 \003(\003\"K\n\016DelGroupMember\022\013\n\003gid\030" +
       "\001 \001(\003\022\024\n\014member_count\030\002 \001(\005\022\026\n\016member_ui" +
       "dlist\030\003 \003(\003\":\n\017UpdateGroupInfo\022\013\n\003gid\030\001 " +
-      "\001(\003\022\014\n\004name\030\002 \001(\014\022\014\n\004info\030\003 \001(\014\"\201\001\n\021Even" +
+      "\001(\003\022\014\n\004name\030\002 \001(\014\022\014\n\004info\030\003 \001(\014\"\220\001\n\021Even" +
       "tNotification\022\020\n\010event_id\030\001 \001(\003\022\022\n\nevent" +
       "_type\030\002 \001(\005\022\020\n\010from_uid\030\003 \001(\003\022\013\n\003gid\030\004 \001" +
       "(\003\022\022\n\nto_uidlist\030\005 \003(\003\022\023\n\013description\030\006 " +
-      "\001(\014\"|\n\007ChatMsg\022\020\n\010from_uid\030\001 \001(\003\022\020\n\010from" +
-      "_gid\030\002 \001(\003\022\r\n\005msgid\030\003 \001(\003\022\020\n\010msg_type\030\004 " +
-      "\001(\005\022,\n\007content\030\005 \001(\0132\033.jpushim.s2b.Messa",
-      "geContent\"5\n\013ChatMsgSync\022&\n\010chat_msg\030\001 \003" +
-      "(\0132\024.jpushim.s2b.ChatMsg\"e\n\tEventSync\022\020\n" +
-      "\010event_id\030\001 \001(\003\022\022\n\nevent_type\030\002 \001(\005\022\020\n\010f" +
-      "rom_uid\030\003 \001(\003\022\013\n\003gid\030\004 \001(\003\022\023\n\013descriptio" +
-      "n\030\005 \001(\014\"C\n\013EventAnswer\022\020\n\010event_id\030\001 \001(\003" +
-      "\022\022\n\nevent_type\030\002 \001(\005\022\016\n\006answer\030\003 \001(\005\"\244\006\n" +
-      "\014ProtocolBody\022!\n\005login\030\001 \001(\0132\022.jpushim.s" +
-      "2b.Login\022#\n\006logout\030\002 \001(\0132\023.jpushim.s2b.L" +
-      "ogout\022*\n\nsingle_msg\030\003 \001(\0132\026.jpushim.s2b." +
-      "SingleMsg\022(\n\tgroup_msg\030\004 \001(\0132\025.jpushim.s",
-      "2b.GroupMsg\022*\n\nadd_friend\030\005 \001(\0132\026.jpushi" +
-      "m.s2b.AddFriend\022*\n\ndel_friend\030\006 \001(\0132\026.jp" +
-      "ushim.s2b.DelFriend\022,\n\013update_memo\030\007 \001(\013" +
-      "2\027.jpushim.s2b.UpdateMemo\022.\n\014create_grou" +
-      "p\030\010 \001(\0132\030.jpushim.s2b.CreateGroup\022*\n\nexi" +
-      "t_group\030\t \001(\0132\026.jpushim.s2b.ExitGroup\0225\n" +
-      "\020add_group_member\030\n \001(\0132\033.jpushim.s2b.Ad" +
-      "dGroupMember\0225\n\020del_group_member\030\013 \001(\0132\033" +
-      ".jpushim.s2b.DelGroupMember\0227\n\021update_gr" +
-      "oup_info\030\014 \001(\0132\034.jpushim.s2b.UpdateGroup",
-      "Info\022:\n\022event_notification\030\r \001(\0132\036.jpush" +
-      "im.s2b.EventNotification\022*\n\010chat_msg\030\016 \001" +
-      "(\0132\030.jpushim.s2b.ChatMsgSync\022*\n\nevent_sy" +
-      "nc\030\017 \001(\0132\026.jpushim.s2b.EventSync\022.\n\014even" +
-      "t_answer\030\020 \001(\0132\030.jpushim.s2b.EventAnswer" +
-      "\022)\n\ncommon_rep\030\024 \001(\0132\025.jpushim.s2b.Respo" +
-      "nse\"Z\n\006Packet\022\'\n\004head\030\001 \001(\0132\031.jpushim.s2" +
-      "b.ProtocolHead\022\'\n\004body\030\002 \001(\0132\031.jpushim.s" +
-      "2b.ProtocolBody"
+      "\001(\014\022\r\n\005ctime\030\007 \001(\r\"\213\001\n\007ChatMsg\022\020\n\010from_u" +
+      "id\030\001 \001(\003\022\020\n\010from_gid\030\002 \001(\003\022\r\n\005msgid\030\003 \001(" +
+      "\003\022\020\n\010msg_type\030\004 \001(\005\022,\n\007content\030\005 \001(\0132\033.j",
+      "pushim.s2b.MessageContent\022\r\n\005ctime\030\006 \001(\r" +
+      "\"5\n\013ChatMsgSync\022&\n\010chat_msg\030\001 \003(\0132\024.jpus" +
+      "him.s2b.ChatMsg\"e\n\tEventSync\022\020\n\010event_id" +
+      "\030\001 \001(\003\022\022\n\nevent_type\030\002 \001(\005\022\020\n\010from_uid\030\003" +
+      " \001(\003\022\013\n\003gid\030\004 \001(\003\022\023\n\013description\030\005 \001(\014\"C" +
+      "\n\013EventAnswer\022\020\n\010event_id\030\001 \001(\003\022\022\n\nevent" +
+      "_type\030\002 \001(\005\022\016\n\006answer\030\003 \001(\005\"\244\006\n\014Protocol" +
+      "Body\022!\n\005login\030\001 \001(\0132\022.jpushim.s2b.Login\022" +
+      "#\n\006logout\030\002 \001(\0132\023.jpushim.s2b.Logout\022*\n\n" +
+      "single_msg\030\003 \001(\0132\026.jpushim.s2b.SingleMsg",
+      "\022(\n\tgroup_msg\030\004 \001(\0132\025.jpushim.s2b.GroupM" +
+      "sg\022*\n\nadd_friend\030\005 \001(\0132\026.jpushim.s2b.Add" +
+      "Friend\022*\n\ndel_friend\030\006 \001(\0132\026.jpushim.s2b" +
+      ".DelFriend\022,\n\013update_memo\030\007 \001(\0132\027.jpushi" +
+      "m.s2b.UpdateMemo\022.\n\014create_group\030\010 \001(\0132\030" +
+      ".jpushim.s2b.CreateGroup\022*\n\nexit_group\030\t" +
+      " \001(\0132\026.jpushim.s2b.ExitGroup\0225\n\020add_grou" +
+      "p_member\030\n \001(\0132\033.jpushim.s2b.AddGroupMem" +
+      "ber\0225\n\020del_group_member\030\013 \001(\0132\033.jpushim." +
+      "s2b.DelGroupMember\0227\n\021update_group_info\030",
+      "\014 \001(\0132\034.jpushim.s2b.UpdateGroupInfo\022:\n\022e" +
+      "vent_notification\030\r \001(\0132\036.jpushim.s2b.Ev" +
+      "entNotification\022*\n\010chat_msg\030\016 \001(\0132\030.jpus" +
+      "him.s2b.ChatMsgSync\022*\n\nevent_sync\030\017 \001(\0132" +
+      "\026.jpushim.s2b.EventSync\022.\n\014event_answer\030" +
+      "\020 \001(\0132\030.jpushim.s2b.EventAnswer\022)\n\ncommo" +
+      "n_rep\030\024 \001(\0132\025.jpushim.s2b.Response\"Z\n\006Pa" +
+      "cket\022\'\n\004head\030\001 \001(\0132\031.jpushim.s2b.Protoco" +
+      "lHead\022\'\n\004body\030\002 \001(\0132\031.jpushim.s2b.Protoc" +
+      "olBody"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -17114,13 +17341,13 @@ public final class JpushimSdk2B {
           internal_static_jpushim_s2b_EventNotification_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_jpushim_s2b_EventNotification_descriptor,
-              new java.lang.String[] { "EventId", "EventType", "FromUid", "Gid", "ToUidlist", "Description", });
+              new java.lang.String[] { "EventId", "EventType", "FromUid", "Gid", "ToUidlist", "Description", "Ctime", });
           internal_static_jpushim_s2b_ChatMsg_descriptor =
             getDescriptor().getMessageTypes().get(17);
           internal_static_jpushim_s2b_ChatMsg_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_jpushim_s2b_ChatMsg_descriptor,
-              new java.lang.String[] { "FromUid", "FromGid", "Msgid", "MsgType", "Content", });
+              new java.lang.String[] { "FromUid", "FromGid", "Msgid", "MsgType", "Content", "Ctime", });
           internal_static_jpushim_s2b_ChatMsgSync_descriptor =
             getDescriptor().getMessageTypes().get(18);
           internal_static_jpushim_s2b_ChatMsgSync_fieldAccessorTable = new

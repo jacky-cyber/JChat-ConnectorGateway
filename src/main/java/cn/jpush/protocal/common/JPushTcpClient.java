@@ -2,6 +2,7 @@ package cn.jpush.protocal.common;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import javax.net.ssl.SSLEngine;
 
@@ -34,6 +35,7 @@ import cn.jpush.protocal.push.PushLogoutRequest;
 import cn.jpush.protocal.push.PushRegRequestBean;
 import cn.jpush.protocal.utils.Command;
 import cn.jpush.protocal.utils.ProtocolUtil;
+import cn.jpush.protocal.utils.StringUtils;
 import cn.jpush.protocal.utils.SystemConfig;
 import cn.jpush.webim.common.UidResourcesPool;
 import io.netty.bootstrap.Bootstrap;
@@ -129,17 +131,50 @@ public class JPushTcpClient {
 		this.jPushClientHandler = jPushClientHandler;
 	}
 
+	public static String getStringRandom(int length) {  
+		String val = "";  
+	   Random random = new Random();  
+	   for(int i = 0; i < length; i++) {  
+		   String charOrNum = random.nextInt(2) % 2 == 0 ? "char" : "num";  
+	        //输出字母还是数字  
+	      if( "char".equalsIgnoreCase(charOrNum) ) {  
+	                //输出是大写字母还是小写字母  
+	                int temp = random.nextInt(2) % 2 == 0 ? 65 : 97;  
+	                val += (char)(random.nextInt(26) + temp);  
+	            } else if( "num".equalsIgnoreCase(charOrNum) ) {  
+	                val += String.valueOf(random.nextInt(10));  
+	            }  
+	        }  
+	        return val;  
+	    }  
+	
+	public static String getIntRandom(int length) {  
+		String val = "";  
+	   Random random = new Random();  
+	   for(int i = 0; i < length; i++) {  
+		   	val += String.valueOf(random.nextInt(10));  
+	    }  
+	      return val;  
+	    }  
+	
 	public static void main(String[] args) {
 		JPushTcpClient client = new JPushTcpClient();
 		try {
 			//client.init();
 			log.info("success to connect the server.");
 			Channel channel = client.getChannel(); 
-			long juid = UidResourcesPool.getUid();
-			//PushLoginRequestBean req = new PushLoginRequestBean(juid, "a", ProtocolUtil.md5Encrypt("756371956"), 10800, "ebbd49c14a649e0fa4f01f3f", 0);
-			PushRegRequestBean req = new PushRegRequestBean("b095c7a18792bd8b$$ $$com.android.mypushdemo180src$$ebbd49c14a649e0fa4f01f3f",
-																			"1.8.0", "4.4.2,19$$SCH-I959$$I959KEUHND6$$ja3gduosctc$$developer-default$$1.8.0$$0$$1080*1920", 
-																		"", 0, 0, 0, "1$$a72007a3fb00024bde5191f4f7c27702$$00000000$$b095c7a18792bd8b$$CC:3A:61:BD:CB:3D");
+			//long juid = UidResourcesPool.getUid();
+			PushLoginRequestBean req = new PushLoginRequestBean(1268846131, "a", ProtocolUtil.md5Encrypt("2600424017"), 10800, "ebbd49c14a649e0fa4f01f3f", 0);
+			String imei = getIntRandom(15);
+			String imsi = getIntRandom(15);
+			String deviceId = getStringRandom(32);
+			String arg2 = imei+"$$"+imsi+"$$com.android.mypushdemo180src$$ebbd49c14a649e0fa4f01f3f";
+			String arg3 = "1$$"+deviceId+"$$00000000$$b095c7a18792bd8b$$CC:3A:61:BD:CB:3D";
+			//"b095c7a18792bd8b$$ $$com.android.mypushdemo180src$$ebbd49c14a649e0fa4f01f3f"
+			//String uu = "1$$a72007a3fb00024bde5191f4f7c27702$$00000000$$b095c7a18792bd8b$$CC:3A:61:BD:CB:3D";
+			//PushRegRequestBean req = new PushRegRequestBean(arg2,
+			//																"1.8.0", "4.4.2,19$$SCH-I959$$I959KEUHND6$$ja3gduosctc$$developer-default$$1.8.0$$0$$1080*1920", 
+			//															"", 0, 0, 0, arg3);
 			//PushLogoutRequest req = new PushLogoutRequest(7, 1, 0, 1153535375);
 			//HeartBeatRequest req = new HeartBeatRequest(2, 1, 0, 1153535375);
 			/******  im 业务     *********/
@@ -192,7 +227,10 @@ public class JPushTcpClient {
 			List<Integer> cookie = new ArrayList<Integer>();
 			cookie.add(123);
 			ImUpdateGroupInfoRequestProto req = new ImUpdateGroupInfoRequestProto(Command.JPUSH_IM.UPDATE_GROUP_INFO, 1, 23321, SystemConfig.getProperty("jpush.appkey"), cookie, bean);*/
-			
+			String mm = StringUtils.toMD5("1111");
+			System.out.println(" 1 pwd: "+mm);
+			mm = StringUtils.toMD5(mm);
+			System.out.println(" 2 pwd: "+mm);
 			client.sendRequest(channel, req);
 		} catch (InterruptedException e) {
 			log.error("connect server exception."+e.getMessage());

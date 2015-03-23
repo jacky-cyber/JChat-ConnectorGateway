@@ -1,5 +1,7 @@
 package cn.jpush.protocal.utils;
 
+import io.netty.handler.codec.base64.Base64Encoder;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -10,6 +12,7 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -17,7 +20,9 @@ import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 
 import com.google.gson.JsonParseException;
+import com.hazelcast.util.Base64;
 
+import sun.misc.*;
 public class StringUtils {
 	private StringUtils() {
 	}
@@ -277,6 +282,12 @@ public class StringUtils {
 		}
 		return flg;
 	}
+	
+	public static String getAuthorizationBase64(String appKey,
+			String masterSecret) { 
+		String encodeKey = appKey + ":" + masterSecret;
+		return String.valueOf(Base64.encode(encodeKey.getBytes()));
+	}
 
 	public static String parseLocaleToString(Locale locale) {
 		String language = "zh_CN";
@@ -290,6 +301,32 @@ public class StringUtils {
 
 	}
 
+	public static String getStringRandom(int length) {  
+		String val = "";  
+	   Random random = new Random();  
+	   for(int i = 0; i < length; i++) {  
+		   String charOrNum = random.nextInt(2) % 2 == 0 ? "char" : "num";  
+	        //输出字母还是数字  
+	      if( "char".equalsIgnoreCase(charOrNum) ) {  
+	                //输出是大写字母还是小写字母  
+	                int temp = random.nextInt(2) % 2 == 0 ? 65 : 97;  
+	                val += (char)(random.nextInt(26) + temp);  
+	            } else if( "num".equalsIgnoreCase(charOrNum) ) {  
+	                val += String.valueOf(random.nextInt(10));  
+	            }  
+	        }  
+	        return val;  
+	} 
+	
+	public static String getIntRandom(int length) {  
+		String val = "";  
+	   Random random = new Random();  
+	   for(int i = 0; i < length; i++) {  
+		   val += String.valueOf(random.nextInt(10));  
+	    }  
+	   return val;  
+	}  
+	
 	// generate emial code
 	public static String getEmailToken(String emial) {
 		String token = getRandomChars(3) + "-" + getRandomChars(3) + "-"

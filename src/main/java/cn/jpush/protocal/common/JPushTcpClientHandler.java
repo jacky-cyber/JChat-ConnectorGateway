@@ -1,10 +1,8 @@
 package cn.jpush.protocal.common;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import jpushim.s2b.JpushimSdk2B.AddGroupMember;
 import jpushim.s2b.JpushimSdk2B.ChatMsg;
@@ -35,9 +33,12 @@ import cn.jpush.protocal.push.PushLogoutResponseBean;
 import cn.jpush.protocal.push.PushMessageRequestBean;
 import cn.jpush.protocal.push.PushRegResponseBean;
 import cn.jpush.protocal.utils.APIProxy;
+import cn.jpush.protocal.utils.BASE64Utils;
 import cn.jpush.protocal.utils.Command;
 import cn.jpush.protocal.utils.HttpResponseWrapper;
 import cn.jpush.protocal.utils.ProtocolUtil;
+import cn.jpush.protocal.utils.StringUtils;
+import cn.jpush.protocal.utils.TcpCode;
 import cn.jpush.socketio.SocketIOClient;
 import cn.jpush.webim.common.RedisClient;
 import cn.jpush.webim.common.UidResourcesPool;
@@ -47,6 +48,7 @@ import cn.jpush.webim.socketio.bean.ChatObject;
 import cn.jpush.webim.socketio.bean.ContracterObject;
 import cn.jpush.webim.socketio.bean.GroupMember;
 import cn.jpush.webim.socketio.bean.GroupMemberList;
+import cn.jpush.webim.socketio.bean.MsgContentBean;
 import cn.jpush.webim.socketio.bean.User;
 import cn.jpush.webim.socketio.bean.UserList;
 
@@ -102,7 +104,9 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 			log.info("客户端解析push reg response后的结果如下：");
 			log.info(bean.getResponse_code()+","+bean.getReg_id()+","+bean.getDevice_id()+", "+bean.getPasswd());
 			//  添加uid到pool
-			UidResourcesPool.addUidToPool(bean.getUid());
+			long juid = bean.getUid();
+			String password = bean.getPasswd();
+			UidResourcesPool.addUidToPool(juid, password);
 			UidResourcesPool.capacityCountDown.countDown();
 			if(UidResourcesPool.capacityCountDown.getCount()==0){
 				UidResourcesPool.produceResourceSemaphore.release();
@@ -115,6 +119,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 			WebImServer.pushLoginInCountDown.countDown();
 			log.info("客户端解析push login response后的结果为：");
 			log.info("code: "+pushLoginResponseBean.getResponse_code()+", server-time: "+pushLoginResponseBean.getServer_time()+", server-version: "+pushLoginResponseBean.getServer_version());
+			
 		}
 		if(msg instanceof PushLogoutResponseBean){
 			PushLogoutResponseBean bean = (PushLogoutResponseBean) msg;
@@ -182,9 +187,33 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 				case Command.JPUSH_IM.LOGIN:
 					log.info("im login response...");
 					Login loginBean = ProtocolUtil.getLogin(protocol);
-					log.info("login data, username: "+loginBean.getUsername().toStringUtf8()+", password: "+loginBean.getPassword().toStringUtf8());
+					String userName = loginBean.getUsername().toStringUtf8();
+					log.info("login data, username: "+userName+", password: "+loginBean.getPassword().toStringUtf8());
 					Response loginResp = ProtocolUtil.getCommonResp(protocol);
-					log.info("login response data: code: "+loginResp.getCode()+", message: "+loginResp.getMessage().toStringUtf8());
+					int code = loginResp.getCode();
+					log.info("login response data: code: "+code+", message: "+loginResp.getMessage().toStringUtf8());
+					
+					if(code==TcpCode.IM.SUCCESS){
+						long uid = protocol.getHead().getUid();
+						String password = loginBean.getPassword().toStringUtf8();
+						
+						String stoken = (APIProxy.getToken(String.valueOf(uid), password)).content;
+						Map tokenMap = gson.fromJson(stoken, HashMap.class);
+						String _token = (String) tokenMap.get("token");
+						String token = BASE64Utils.encodeString(uid+":"+_token);
+						WebImServer.uidToTokenMap.put(uid, token);
+						
+						WebImServer.userToSessionCilentMap.get(userName).sendEvent("loginEventGetUID", uid);
+						
+						Channel channel = WebImServer.userToPushChannelMap.get(userName);
+						WebImServer.userNameToPushChannelMap.put(uid, channel);
+						WebImServer.pushChannelToUsernameMap.put(channel, uid);
+						WebImServer.userToPushChannelMap.remove(userName);
+					} 
+					if(code==TcpCode.IM.Login_UNLEAGAL_PASSWORD){
+						WebImServer.userToSessionCilentMap.get(userName).sendEvent("IMException", TcpCode.IM.Login_UNLEAGAL_PASSWORD);
+					}
+					
 					break;
 				case Command.JPUSH_IM.LOGOUT:
 					log.info("im logout response...");
@@ -203,36 +232,38 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					Response singleMsgResp = ProtocolUtil.getCommonResp(protocol);
 					log.info("single msg response data: code: "+singleMsgResp.getCode()+", message: "+singleMsgResp.getMessage().toStringUtf8());
 					//  消息下发
-					HashMap<String, Object> _dataMap = gson.fromJson(singleMsgBean.getContent().getContent().toStringUtf8(), HashMap.class);
-					String _appkey = (String) _dataMap.get("appKey");
-					HttpResponseWrapper _resultWrapper = APIProxy.getUserInfo(_appkey, String.valueOf(_dataMap.get("target_id")));
-					if(_resultWrapper.isOK()){
-						User userInfo = gson.fromJson(_resultWrapper.content, User.class);
-						_dataMap.put("target_id", userInfo.getUid());
-						sessionClient = WebImServer.userNameToSessionCilentMap.get(userInfo.getUid());
-					}
-					ChatMessage _content = gson.fromJson(gson.toJson(_dataMap), ChatMessage.class);
-					
-					if(sessionClient!=null){
-						log.info("get username's session client: "+sessionClient.getSessionId());
-						ChatObject chatMsgData = new ChatObject();	
-						chatMsgData.setToUserName(_content.getTarget_id()+"");
-						chatMsgData.setUserName(_content.getFrom_id()+"");
-						chatMsgData.setMessage(_content.getMsg_body().toString());
-						chatMsgData.setMsgType("single");
-						chatMsgData.setMessageId(singleMsgBean.getMsgid());  //  消息ID
-						chatMsgData.setiMsgType(3);  //  消息类型
-						if("text".equals(_content.getMsg_type())){
-							chatMsgData.setContentType("text");
-						} else if("image".equals(_content.getMsg_type())){
-							chatMsgData.setContentType("image");
-						} else if("voice".equals(_content.getMsg_type())){
-							chatMsgData.setContentType("voice");
-						}
-						sessionClient.sendEvent("chatEvent", chatMsgData);
-					} else {
-						log.info("用户不在线......");
-					}
+//					HashMap<String, Object> _dataMap = gson.fromJson(singleMsgBean.getContent().getContent().toStringUtf8(), HashMap.class);
+//					String _appkey = (String) _dataMap.get("appKey");
+//					long ss_uid = protocol.getHead().getUid();
+//					String ss_token = WebImServer.uidToTokenMap.get(ss_uid);
+//					HttpResponseWrapper _resultWrapper = APIProxy.getUserInfo(_appkey, String.valueOf(_dataMap.get("target_id")), ss_token);
+//					if(_resultWrapper.isOK()){
+//						User userInfo = gson.fromJson(_resultWrapper.content, User.class);
+//						_dataMap.put("target_id", userInfo.getUid());
+//						sessionClient = WebImServer.userNameToSessionCilentMap.get(userInfo.getUid());
+//					}
+//					ChatMessage _content = gson.fromJson(gson.toJson(_dataMap), ChatMessage.class);
+//					 
+//					if(sessionClient!=null){
+//						log.info("get username's session client: "+sessionClient.getSessionId());
+//						ChatObject chatMsgData = new ChatObject();	
+//						chatMsgData.setToUserName(_content.getTarget_id()+"");
+//						chatMsgData.setUserName(_content.getFrom_id()+"");
+//						chatMsgData.setMessage(_content.getMsg_body().toString());
+//						chatMsgData.setMsgType("single");
+//						chatMsgData.setMessageId(singleMsgBean.getMsgid());  //  消息ID
+//						chatMsgData.setiMsgType(3);  //  消息类型
+//						if("text".equals(_content.getMsg_type())){
+//							chatMsgData.setContentType("text");
+//						} else if("image".equals(_content.getMsg_type())){
+//							chatMsgData.setContentType("image");
+//						} else if("voice".equals(_content.getMsg_type())){
+//							chatMsgData.setContentType("voice");
+//						}
+//						sessionClient.sendEvent("chatEvent", chatMsgData);
+//					} else {
+//						log.info("用户不在线......");
+//					}
 					
 					break;
 				case Command.JPUSH_IM.SENDMSG_GROUP:
@@ -242,32 +273,32 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					Response groupMsgResp = ProtocolUtil.getCommonResp(protocol);
 					log.info("group msg response data: code: "+groupMsgResp.getCode()+", message: "+groupMsgResp.getMessage().toStringUtf8());				
 					//  消息下发
-					HashMap<String, Object> gdataMap = gson.fromJson(groupMsgBean.getContent().getContent().toStringUtf8(), HashMap.class);
-					//long gid = Long.parseLong((String) gdataMap.get("target_id"));
-					ChatMessage gcontent = gson.fromJson(gson.toJson(gdataMap), ChatMessage.class);
-					//  找群成员
-					Channel mchannel = ctx.channel();
-					if(mchannel!=null){
-						long uid = WebImServer.pushChannelToUsernameMap.get(mchannel);
-						sessionClient = WebImServer.userNameToSessionCilentMap.get(uid);
-						ChatObject chatMsgData = new ChatObject();	
-						chatMsgData.setToUserName(gcontent.getTarget_id()+"");
-						chatMsgData.setUserName(gcontent.getFrom_id()+"");
-						chatMsgData.setMessage(gcontent.getMsg_body().toString());
-						chatMsgData.setMsgType("group");
-						chatMsgData.setMessageId(groupMsgBean.getMsgid());  //  消息ID
-						chatMsgData.setiMsgType(4);  //  消息类型
-						if("text".endsWith(gcontent.getMsg_type())){
-							chatMsgData.setContentType("text");
-						} else if("image".endsWith(gcontent.getMsg_type())){
-							chatMsgData.setContentType("image");
-						} else if("voice".equals(gcontent.getMsg_type())){
-							chatMsgData.setContentType("voice");
-						}
-						if(uid!=gcontent.getFrom_id()){
-							sessionClient.sendEvent("chatEvent", chatMsgData);
-						}
-					}
+//					HashMap<String, Object> gdataMap = gson.fromJson(groupMsgBean.getContent().getContent().toStringUtf8(), HashMap.class);
+//					//long gid = Long.parseLong((String) gdataMap.get("target_id"));
+//					ChatMessage gcontent = gson.fromJson(gson.toJson(gdataMap), ChatMessage.class);
+//					//  找群成员
+//					Channel mchannel = ctx.channel();
+//					if(mchannel!=null){
+//						long _uid = WebImServer.pushChannelToUsernameMap.get(mchannel);
+//						sessionClient = WebImServer.userNameToSessionCilentMap.get(_uid);
+//						ChatObject chatMsgData = new ChatObject();	
+//						chatMsgData.setToUserName(gcontent.getTarget_id()+"");
+//						chatMsgData.setUserName(gcontent.getFrom_id()+"");
+//						chatMsgData.setMessage(gcontent.getMsg_body().toString());
+//						chatMsgData.setMsgType("group");
+//						chatMsgData.setMessageId(groupMsgBean.getMsgid());  //  消息ID
+//						chatMsgData.setiMsgType(4);  //  消息类型
+//						if("text".endsWith(gcontent.getMsg_type())){
+//							chatMsgData.setContentType("text");
+//						} else if("image".endsWith(gcontent.getMsg_type())){
+//							chatMsgData.setContentType("image");
+//						} else if("voice".equals(gcontent.getMsg_type())){
+//							chatMsgData.setContentType("voice");
+//						}
+//						if(_uid!=gcontent.getFrom_id()){
+//							sessionClient.sendEvent("chatEvent", chatMsgData);
+//						}
+//					}
 					
 					break;
 				case Command.JPUSH_IM.CREATE_GROUP:
@@ -316,11 +347,12 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					String description = eventNotification.getDescription().toStringUtf8();
 					log.info("im event -- event type: "+sync_eventType+", uid: "+sync_uid+
 								", gid: "+sync_gid+", toUid: "+sync_toUid+", desc: "+description);
+					String mtoken = WebImServer.uidToTokenMap.get(sync_uid);
 					HashMap<String, Object> data = new HashMap<String, Object>();
 					data.put("eventId", eventNotification.getEventId());
 					data.put("eventType", eventNotification.getEventType());
 					if(sync_eventType == Command.JPUSH_IM.ADD_GROUP_MEMBER){  // 添加群成员的事件通知
-						HttpResponseWrapper mresultWrapper = APIProxy.getGroupMemberList(String.valueOf(sync_gid));
+						HttpResponseWrapper mresultWrapper = APIProxy.getGroupMemberList(String.valueOf(sync_gid), mtoken);
 						if(mresultWrapper.isOK()){
 							JsonParser parser = new JsonParser();
 							JsonArray Jarray = parser.parse(mresultWrapper.content).getAsJsonArray();
@@ -345,7 +377,9 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 						data.put("toUid", sync_toUid);
 					}
 					long userId = WebImServer.pushChannelToUsernameMap.get(ctx.channel());
-					sessionClient = WebImServer.userNameToSessionCilentMap.get(userId);
+					if(userId!=0){
+						sessionClient = WebImServer.userNameToSessionCilentMap.get(userId);
+					}
 					if(sessionClient!=null){
 						sessionClient.sendEvent("eventNotification", gson.toJson(data));
 					} else {
@@ -356,23 +390,37 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 				case Command.JPUSH_IM.SYNC_MSG:
 					log.info("im sync msg......");
 					//String appkey = protocol.getHead().getAppkey().toStringUtf8();
+					/*Set<Long> set = WebImServer.userNameToSessionCilentMap.keySet();
+					Iterator<Long> iterator = set.iterator();
+					while(iterator.hasNext()){
+						log.info("map data: "+iterator.next());
+					}*/
+					
 					ChatMsgSync chatMsgSync = ProtocolUtil.getChatMsgSync(protocol);
 					int msgCount = chatMsgSync.getChatMsgCount();
 					List<ChatMsg> chatMsgList = chatMsgSync.getChatMsgList();
+					long _uid = protocol.getHead().getUid();
+					String _mtoken = WebImServer.uidToTokenMap.get(_uid);
 					for(int i=0; i<msgCount; i++){
 						ChatMsg chatMsg = chatMsgList.get(i);
 						log.info("sync msg data: "+chatMsg.getContent().getContent().toStringUtf8());
 						HashMap<String, Object> dataMap = gson.fromJson(chatMsg.getContent().getContent().toStringUtf8(), HashMap.class);
 						String target_type = (String)dataMap.get("target_type");
 						if("single".equals(target_type)){   //  single
-							String appkey = (String) dataMap.get("appKey");
-							HttpResponseWrapper resultWrapper = APIProxy.getUserInfo(appkey, String.valueOf(dataMap.get("target_id")));
+							/*String appkey = (String) dataMap.get("appKey");
+							String targetId = String.valueOf(dataMap.get("target_id"));
+							HttpResponseWrapper resultWrapper = APIProxy.getUserInfo(appkey, targetId, _mtoken);
 							if(resultWrapper.isOK()){
 								User userInfo = gson.fromJson(resultWrapper.content, User.class);
 								dataMap.put("target_id", userInfo.getUid());
 								sessionClient = WebImServer.userNameToSessionCilentMap.get(userInfo.getUid());
+							}*/
+							Channel _channel = ctx.channel();
+							if(_channel!=null){
+								long _muid = WebImServer.pushChannelToUsernameMap.get(_channel);
+								sessionClient = WebImServer.userNameToSessionCilentMap.get(_muid);
 							}
-							ChatMessage content = gson.fromJson(gson.toJson(dataMap), ChatMessage.class);
+							MsgContentBean content = gson.fromJson(gson.toJson(dataMap), MsgContentBean.class);
 							
 							if(sessionClient!=null){
 								log.info("get username's session client: "+sessionClient.getSessionId());
@@ -390,18 +438,19 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 								} else if("voice".equals(content.getMsg_type())){
 									chatMsgData.setContentType("voice");
 								}
+								log.info("return single msg string: "+gson.toJson(chatMsgData));
 								sessionClient.sendEvent("chatEvent", chatMsgData);
 							} else {
 								log.info("用户不在线......");
 							}
 						} else if("group".equals(target_type)){   //  group
 							long gid = Long.parseLong((String) dataMap.get("target_id"));
-							ChatMessage content = gson.fromJson(gson.toJson(dataMap), ChatMessage.class);
+							MsgContentBean content = gson.fromJson(gson.toJson(dataMap), MsgContentBean.class);
 							//  找群成员
-							Channel channel = ctx.channel();
-							if(channel!=null){
-								long uid = WebImServer.pushChannelToUsernameMap.get(channel);
-								sessionClient = WebImServer.userNameToSessionCilentMap.get(uid);
+							Channel _channel = ctx.channel();
+							if(_channel!=null){
+								long _muid = WebImServer.pushChannelToUsernameMap.get(_channel);
+								sessionClient = WebImServer.userNameToSessionCilentMap.get(_muid);
 								ChatObject chatMsgData = new ChatObject();	
 								chatMsgData.setToUserName(content.getTarget_id()+"");
 								chatMsgData.setUserName(content.getFrom_id()+"");
@@ -416,9 +465,18 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 								} else if("voice".equals(content.getMsg_type())){
 									chatMsgData.setContentType("voice");
 								}
-								if(uid!=content.getFrom_id()){
-									sessionClient.sendEvent("chatEvent", chatMsgData);
-								}
+								/*String appkey = (String) dataMap.get("appKey");
+								HttpResponseWrapper resultWrapper = APIProxy.getUserInfo(appkey, content.getFrom_id(), _mtoken);
+								if(resultWrapper.isOK()){
+									User userInfo = gson.fromJson(resultWrapper.content, User.class);
+									sessionClient = WebImServer.userNameToSessionCilentMap.get(userInfo.getUid());
+									if(_muid!=userInfo.getUid()){
+										sessionClient.sendEvent("chatEvent", chatMsgData);
+									}
+								}*/
+								log.info("return group msg string: "+gson.toJson(chatMsgData));
+								sessionClient.sendEvent("chatEvent", chatMsgData);
+								
 							}
 						}
 					}	
