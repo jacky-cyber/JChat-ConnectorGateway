@@ -102,7 +102,6 @@ public class WebImServer {
 	private Configuration config;
 	private SocketIOServer server;
 	private JPushTcpClient jpushIMTcpClient;
-	private int onlineCount;
 	
 	public void init() {
 		 config = new Configuration();
@@ -114,7 +113,7 @@ public class WebImServer {
 	
 	public void configMessageEventAndStart() throws InterruptedException{
 		if(config==null||server==null){
-			log.error("you have not init the config and server. please do this first.");
+			log.warn("you have not init the config and server. please do this first.");
 			return;
 		} 
 		
@@ -122,7 +121,7 @@ public class WebImServer {
 		 server.addConnectListener(new ConnectListener() {
 			@Override
 			public void onConnect(SocketIOClient client) {
-				log.info("connect from client, session id: "+ client.getSessionId()+", 接入方式: "+client.getTransport());
+				log.debug(String.format("connect from web client -- the session id is %s, client transport method is %s", client.getSessionId(), client.getTransport()));
 				client.sendEvent("connectEvent", "");
 			}
 		 });
@@ -131,10 +130,7 @@ public class WebImServer {
 		 server.addDisconnectListener(new DisconnectListener() {
 			@Override
 			public void onDisconnect(SocketIOClient client) {
-				log.error("disconnect from client: "+client.getSessionId()+" disconnect.");
-				// 处理缓存数据(管理在线用户列表)
-				onlineCount--;
-				log.info("当前在线人数： "+onlineCount);
+				log.debug(String.format("the connection is disconnect -- the session id is %s", client.getSessionId()));
 				
 				if(client!=null){
 					long uid = WebImServer.sessionClientToUserNameMap.get(client);
@@ -142,12 +138,15 @@ public class WebImServer {
 						WebImServer.userNameToSessionCilentMap.remove(uid);
 						Channel channel = WebImServer.userNameToPushChannelMap.get(uid);
 						WebImServer.userNameToPushChannelMap.remove(uid);
-						WebImServer.pushChannelToUsernameMap.remove(channel);
-						if(channel!=null)
-							channel.close();   //  断开与push server的长连接
-						// 向其他成员发送下线通知
-						// ...
 						WebImServer.sessionClientToUserNameMap.remove(client);
+						if(channel!=null){
+							WebImServer.pushChannelToUsernameMap.remove(channel);
+							channel.close();   //  断开与push server的长连接
+						} else {
+							log.warn(String.format("user: %s get channel to jpush server is empty", uid));
+						}
+						// 向其他成员发送下线通知
+						// to do
 					}
 				}	
 			}
@@ -158,62 +157,35 @@ public class WebImServer {
 			@Override
 			public void onData(SocketIOClient client, ChatObject data,
 					AckRequest ackSender) throws Exception {
-				log.info("user: "+data.getUserName()+" begin login");
-				onlineCount++;
-				log.info("当前在线人数： "+onlineCount);
+				log.info(String.format("user: %s login", data.getUserName()));
 				String appkey = data.getAppKey();
 				String user_name = data.getUserName();
 				String password = data.getPassword();
-				log.info("login user info, appkey: "+appkey+", name: "+user_name+", pwd: "+password);
-				long uid = 0L;
-				 
-				//  获取用户ID
-				/*HttpResponseWrapper resultWrapper = APIProxy.getUserInfo(appkey, user_name);
-				if(resultWrapper.isOK()){
-					User userInfo = gson.fromJson(resultWrapper.content, User.class);
-					uid = userInfo.getUid();
-					data.setUid(uid);
-					//client.sendEvent("loginEvent", data);  //  向客户端返回uid
-					log.info("user login success.");
-				} else {
-					data.setUid(0);
-					client.sendEvent("loginEvent", data);
-					log.info("user login failed.");
-					return;
-				}
-				
-				log.info("add user and session client to map.");
-				userNameToSessionCilentMap.put(uid,	client);
-				sessionClientToUserNameMap.put(client, uid);*/
-				
+				log.info(String.format("user info appkey: %s, username: %s, password: ", appkey, user_name, password));
 				userToSessionCilentMap.put(user_name, client);
-				
 				// 获取uid
-				//long juid = UidResourcesPool.getUid();
 				Map<String, String> juidData = UidResourcesPool.getUidAndPassword();
 				long juid = Long.parseLong(String.valueOf(juidData.get("uid")));
 				String juid_password = String.valueOf(juidData.get("password"));
 				pushLoginInCountDown = new CountDownLatch(1);
-				log.info("用户："+user_name+"接入，获取juid："+juid+", password: "+juid_password);
-				// jpush 接入相关
-				log.info("build user connection to jpush.");
+				
 				jpushIMTcpClient = new JPushTcpClient();
 				Channel pushChannel = jpushIMTcpClient.getChannel();
 				userToPushChannelMap.put(user_name, pushChannel);
-				//userNameToPushChannelMap.put(uid, pushChannel);
-				//pushChannelToUsernameMap.put(pushChannel, uid);
-				//  JPush login
+				
 				PushLoginRequestBean pushLoginBean = new PushLoginRequestBean(juid, "a", ProtocolUtil.md5Encrypt(juid_password), 10800, appkey, 0);
 				pushChannel.writeAndFlush(pushLoginBean);
+				log.info(String.format("user: %s begin jpush login, juid: %d, password: %s", user_name, juid, juid_password));
+				
 				pushLoginInCountDown.await();  //  等待push login返回数据
 				PushLoginResponseBean pushLoginResponseBean = jpushIMTcpClient.getjPushClientHandler().getPushLoginResponseBean();
-				log.info("get response data: sid: "+pushLoginResponseBean.getSid());
+				log.info(String.format("user: %s jpush login response, code: %d, sid: %d", user_name, pushLoginResponseBean.getResponse_code(), pushLoginResponseBean.getSid()));
 				
 				//   设置数据 用于心跳
 				jpushIMTcpClient.getjPushClientHandler().setSid(pushLoginResponseBean.getSid());
 				jpushIMTcpClient.getjPushClientHandler().setJuid(juid);
 				
-				//   向客户端发 SID 和 JUId
+				//  向客户端返回 SID 和 JUId
 				data.setJuid(juid);
 				data.setSid(pushLoginResponseBean.getSid());
 				client.sendEvent("loginEventGetSJ", data);
@@ -222,8 +194,8 @@ public class WebImServer {
 				LoginRequestBean bean = new LoginRequestBean(user_name, StringUtils.toMD5(password));
 				List<Integer> cookie = new ArrayList<Integer>();
 				ImLoginRequestProto req = new ImLoginRequestProto(Command.JPUSH_IM.LOGIN, 1, 0, pushLoginResponseBean.getSid(), juid, appkey, cookie, bean);
-				log.info("开始发送 IM Login 请求.......");
 				pushChannel.writeAndFlush(req);
+				log.info(String.format("user: %s begin IM login", user_name));
 			}
 		 });
 		 
@@ -234,13 +206,12 @@ public class WebImServer {
 						AckRequest ackSender) throws Exception {
 					String userName = data.getUser_name();
 					long uid = data.getUid();
-					log.info("username: "+userName+", uid: "+uid);
-					//SocketIOClient mClient = WebImServer.userToSessionCilentMap.get(userName);
-					WebImServer.userNameToSessionCilentMap.put(data.getUid(), client);
+					log.info(String.format("user: %s bindSocketIoClientEvent rebind relationship, uid: %d", userName, uid));
+					WebImServer.userNameToSessionCilentMap.put(uid, client);
 					WebImServer.userToSessionCilentMap.remove(userName);
 					WebImServer.sessionClientToUserNameMap.put(client, uid);
 					client.sendEvent("bindSocketIoClientEvent", "");
-					log.info("uid--session_client 已绑定完成");
+					log.info(String.format("user: %s rebind relationship success", userName));
 				}
 		 });
 		 
@@ -253,14 +224,12 @@ public class WebImServer {
 				String user_name = data.getUser_name();
 				long uid = data.getUid();
 				String token = WebImServer.uidToTokenMap.get(uid);
-				
+				log.info(String.format("user: %s begin to get contracter list", user_name));
 				if(user_name==null || "".equals(user_name) || data==null){
-					log.error("client arguments error: no user name.");
+					log.warn(String.format("user getcontracter error, because data is empty"));
 					return;
 				}
-				
 				List<User> contractersList = new ArrayList<User>();
-				
 				//  模拟用户列表
 				for(int i=1; i<4; i++){
 					String username = "p00"+i;
@@ -268,12 +237,10 @@ public class WebImServer {
 					if(userResult.isOK()){
 						User userInfo = gson.fromJson(userResult.content, User.class);
 						contractersList.add(userInfo);
-						log.info("userid: "+userInfo.getUid());
 					}
 				}
-	         
 				client.sendEvent("getContracterList", contractersList);
-				
+				log.info(String.format("user: %s get contracter success", user_name));
 			}	 
 		});
 		 
@@ -282,28 +249,19 @@ public class WebImServer {
 			@Override
 			public void onData(SocketIOClient client, ContracterObject data,
 					AckRequest ackSender) throws Exception {
-				String curUserName = data.getUser_name();
-				String appkey = data.getAppKey();
 				long uid = data.getUid();
 				String token = WebImServer.uidToTokenMap.get(uid);
-						
+				log.info(String.format("getGroupList toke: %s", token));
+				log.info(String.format("user: %d begin to get group list", uid));
 				if(uid==0 || data==null){
-					log.error("client arguments error: no user name.");
+					log.warn(String.format("user getcontracter error, because data is empty"));
 					return;
 				}
-				
 				List<Group> groupsList = new ArrayList<Group>();
-				/*Group group = new Group();
-				group.setAppkey(appkey);
-				group.setGid(72);
-				group.setGroup_name("group01");
-				groupsList.add(group);*/
-				log.info("get user's group -- uid: "+uid);
 				HttpResponseWrapper result = APIProxy.getGroupList(String.valueOf(uid), token);
 				if(result.isOK()){
 					String groupListJson = result.content;
 					List<Group> groupList = gson.fromJson(groupListJson, new TypeToken<ArrayList<Group>>(){}.getType());
-					//  从群组详情中补充群组的信息
 					for(Group group: groupList){
 						HttpResponseWrapper groupInfoResult = APIProxy.getGroupInfo(String.valueOf(group.getGid()), token);
 						if(groupInfoResult.isOK()){
@@ -313,27 +271,29 @@ public class WebImServer {
 						}
 					}
 				} else {
-					log.info("获取用户的群列表失败");
+					log.warn(String.format("get groups failture because call sdk api exception: %s", result.content));
 				}
 				client.sendEvent("getGroupsList", groupsList);
+				log.info(String.format("user: %d get group list success", uid));
 			}	 
 		});
 		
 		// 获取群组成员列表
 		server.addEventListener("getGroupMemberList", HashMap.class, new DataListener<HashMap>() {
+			@SuppressWarnings("rawtypes")
 			@Override
 			public void onData(SocketIOClient client, HashMap data,
 					AckRequest ackSender) throws Exception {
 				if(data==null || data.equals("")){
-					log.error("client arguments error: no gid.");
+					log.warn(String.format("user getcontracter error, because data is empty"));
 					return;
 				}
-				log.info("get group member list...");
 				String appKey = (String) data.get("appKey");
 				String gid = String.valueOf(data.get("gid"));
 				long uid = Long.parseLong(String.valueOf(data.get("uid")));
 				String token = WebImServer.uidToTokenMap.get(uid);
 				ArrayList<HashMap> resultList = new ArrayList<HashMap>();
+				log.info(String.format("user: %d begin get group: %s members", uid, gid));
 				HttpResponseWrapper resultWrapper = APIProxy.getGroupMemberList(gid, token);
 				if(resultWrapper.isOK()){
 					List<GroupMember> groupList = gson.fromJson(resultWrapper.content, new TypeToken<ArrayList<GroupMember>>(){}.getType());
@@ -345,7 +305,9 @@ public class WebImServer {
 						}
 					}
 					client.sendEvent("getGroupMemberList", gson.toJson(resultList));
+					log.warn(String.format("user: %d get group: %s member success", uid, gid));
 				} else {
+					log.warn(String.format("user: %d get group: %s member exception because call sdk api", uid, gid));
 					client.sendEvent("getGroupMemberList", "false");
 				}
 			}	 
@@ -355,9 +317,6 @@ public class WebImServer {
 		server.addEventListener("chatEvent", ChatMessage.class, new DataListener<ChatMessage>() {
 			 @Override
 			 public void onData(SocketIOClient client, ChatMessage data, AckRequest ackRequest) {
-				 log.info("message -- juid: "+data.getJuid()+", sid: "+data.getSid());
-				 log.info("message: "+ data.getMsg_body() +" from: "+data.getFrom_name()+" to: "+data.getTarget_name());
-				 log.info("all content: "+gson.toJson(data));
 				 String appKey = data.getAppKey();
 				 int sid = data.getSid(); 
 				 Channel channel = userNameToPushChannelMap.get(data.getFrom_id());
@@ -368,25 +327,32 @@ public class WebImServer {
 				 msgContent.setTarget_id(data.getTarget_id());
 				 msgContent.setTarget_name(data.getTarget_name());
 				 msgContent.setFrom_type(data.getFrom_type());
-				 msgContent.setFrom_id(String.valueOf(data.getFrom_id()));
+				 msgContent.setFrom_id(data.getFrom_name());
 				 msgContent.setFrom_name(data.getFrom_name());
 				 msgContent.setFrom_platform("web");
 				 msgContent.setCreate_time(Integer.parseInt(data.getCreate_time()));
 				 msgContent.setMsg_type(data.getMsg_type());
 				 msgContent.setMsg_body(gson.fromJson(data.getMsg_body().toString(), MsgBody.class));
 				 
-				 if(channel==null)
-					 log.info("当前用户与jpush的连接已断开.");
+				 String userName = data.getFrom_name();
+				 log.info(String.format("user: %s send chat msg, content is: ", userName, gson.toJson(data)));
+				 
+				 if(channel==null){
+					 log.warn("current user get channel to push server exception");
+					 return;
+				 } 
 				 if("single".equals(data.getTarget_type())){
 					 SendSingleMsgRequestBean bean = new SendSingleMsgRequestBean(Long.parseLong(data.getTarget_name()), gson.toJson(msgContent));  //  为了和移动端保持一致，注意这里用target_name来存储id，避免再查一次
 					 List<Integer> cookie = new ArrayList<Integer>();
 					 ImSendSingleMsgRequestProto req = new ImSendSingleMsgRequestProto(Command.JPUSH_IM.SENDMSG_SINGAL, 1, data.getFrom_id(), appKey, sid, data.getJuid(), cookie, bean);
 					 channel.writeAndFlush(req);
+					 log.info(String.format("user: %s begin send single chat msg", userName));
 				 } else if("group".equals(data.getTarget_type())){
 					 SendGroupMsgRequestBean bean = new SendGroupMsgRequestBean(Long.parseLong(data.getTarget_id()), gson.toJson(msgContent));
 					 List<Integer> cookie = new ArrayList<Integer>();
 					 ImSendGroupMsgRequestProto req = new ImSendGroupMsgRequestProto(Command.JPUSH_IM.SENDMSG_GROUP, 1, data.getFrom_id(), appKey, sid, data.getJuid(), cookie, bean);
 					 channel.writeAndFlush(req);
+					 log.info(String.format("user: %s begin send group chat msg", userName));
 				 }
 			 }
 		 });
@@ -396,11 +362,13 @@ public class WebImServer {
 			@Override
 			public void onData(SocketIOClient client, String data,
 					AckRequest ackSender) throws Exception {
+				log.info("user get upload token");
 				Mac mac = new Mac(Configure.QNCloudInterface.QN_ACCESS_KEY, Configure.QNCloudInterface.QN_SECRET_KEY);
 				PutPolicy putPolicy = new PutPolicy(Configure.QNCloudInterface.QN_BUCKETNAME);
 				putPolicy.expires = 14400;
 				String token = putPolicy.token(mac);
 				client.sendEvent("getUploadToken", token);
+				log.info("user get upload token success");
 			}
 		 });
 		 
@@ -409,6 +377,7 @@ public class WebImServer {
 			@Override
 			public void onData(SocketIOClient client, String data,
 					AckRequest ackSender) throws Exception {
+				log.info("user get upload file metainfo");
 				URL url = new URL(data);
 				URLConnection conn = url.openConnection();
 	         conn.setConnectTimeout(5 * 1000);
@@ -426,6 +395,7 @@ public class WebImServer {
 	         map.put("height", height);
 	         map.put("crc32", checksum);
 	         client.sendEvent("getUploadPicMetaInfo", gson.toJson(map));
+	         log.info("user get upload file metainfo success");
 			}
 		 });
 		 
@@ -443,18 +413,20 @@ public class WebImServer {
 			@Override
 			public void onData(SocketIOClient client, UpdateGroupInfoBean data,
 					AckRequest ackSender) throws Exception {
-				log.info("update group member info, group id: "+data.getGid()+", name: "+data.getGroup_name());
 				String appKey = data.getAppKey();
 				long gid = data.getGid();
 				long uid = data.getUid();
 				int sid = data.getSid();
 				long juid = data.getJuid();
 				String group_name = data.getGroup_name();
+				String userName = data.getUser_name();
+				log.info(String.format("user: %s update group: %d name, new group name is %s", userName, gid, group_name));
 				UpdateGroupInfoRequestBean bean = new UpdateGroupInfoRequestBean(gid, group_name, "");
 				List<Integer> cookie = new ArrayList<Integer>();
 				ImUpdateGroupInfoRequestProto req = new ImUpdateGroupInfoRequestProto(Command.JPUSH_IM.UPDATE_GROUP_INFO, 1, uid, appKey, sid, juid, cookie, bean);
 				Channel channel = userNameToPushChannelMap.get(data.getUid());
 				channel.writeAndFlush(req);
+				log.info(String.format("user: %s send update group name request", userName));
 			}
 		});
 		
@@ -463,7 +435,6 @@ public class WebImServer {
 			@Override
 				public void onData(SocketIOClient client, AddOrDelGroupMember data,
 						AckRequest ackSender) throws Exception {
-					log.info("add group member info, group id: "+data);
 					String user_name = data.getUsername();
 					String appKey = data.getAppKey();
 					int sid = data.getSid();
@@ -471,10 +442,14 @@ public class WebImServer {
 					long addUid = 0L;
 					long juid = data.getJuid();
 					long gid = data.getGid();
-					HttpResponseWrapper resultWrapper = APIProxy.getUserInfo(appKey, user_name);
+					log.info(String.format("user: %d add group member, the member is %s", uid, user_name));
+					String token = WebImServer.uidToTokenMap.get(uid);
+					log.info("call sdk api: getUserInfo");
+					HttpResponseWrapper resultWrapper = APIProxy.getUserInfo(appKey, user_name, token);
 					if(resultWrapper.isOK()){
 						User userInfo = gson.fromJson(resultWrapper.content, User.class);
 						addUid = userInfo.getUid();
+						log.info("success call sdk api: getUserInfo");
 					}
 					List<Long> list = new ArrayList<Long>();
 					list.add(addUid);
@@ -483,6 +458,7 @@ public class WebImServer {
 					ImAddGroupMemberRequestProto req = new ImAddGroupMemberRequestProto(Command.JPUSH_IM.ADD_GROUP_MEMBER, 1, uid, appKey, sid, juid,cookie, bean);
 					Channel channel = userNameToPushChannelMap.get(uid);
 					channel.writeAndFlush(req);
+					log.info(String.format("user: %d begin send add group member request", uid));
 				}
 		});
 		
@@ -491,13 +467,13 @@ public class WebImServer {
 		@Override
 			public void onData(SocketIOClient client, AddOrDelGroupMember data,
 					AckRequest ackSender) throws Exception {
-				log.info("del group member info, group id: "+data);
 				String appKey = data.getAppKey();
 				int sid = data.getSid();
 				long uid = data.getUid();
 				long delUid = data.getToUid();
 				long juid = data.getJuid();
 				long gid = data.getGid();
+				log.info(String.format("user: %d delete group: %d member uid: %d", uid, gid, delUid));
 				List<Long> list = new ArrayList<Long>();
 				list.add(delUid);	
 				DeleteGroupMemberRequestBean bean = new DeleteGroupMemberRequestBean(gid, 1, list);
@@ -505,6 +481,7 @@ public class WebImServer {
 				ImDeleteGroupMemberRequestProto req = new ImDeleteGroupMemberRequestProto(Command.JPUSH_IM.DEL_GROUP_MEMBER, 1, uid, appKey, sid, juid, cookie, bean);
 				Channel channel = userNameToPushChannelMap.get(uid);
 				channel.writeAndFlush(req);
+				log.info(String.format("user: %d send delGroupMember request", uid));
 			}
 		});
 		
@@ -519,7 +496,7 @@ public class WebImServer {
 				int sid = data.getSid();
 				long messageId = data.getMessageId();
 				int iMsgType = data.getiMsgType();   
-				log.info("离线消息反馈 -- msgId: "+messageId+", msgType: "+iMsgType);
+				log.info(String.format("user: %d sync msg feedback, msgId is %d, msgType is %d", uid, messageId, iMsgType));
 				List<Integer> cookie = new ArrayList<Integer>();
 				ChatMsg.Builder chatMsg = ChatMsg.newBuilder();
 				chatMsg.setMsgid(messageId);
@@ -529,6 +506,7 @@ public class WebImServer {
 						appkey, sid, juid, cookie, chatMsgBean);
 				Channel channel = userNameToPushChannelMap.get(uid);
 				channel.writeAndFlush(req);
+				log.info(String.format("user: %d send sync msg feedback request", uid));
 			}
 		});
 		
@@ -543,7 +521,7 @@ public class WebImServer {
 				int sid = data.getSid();
 				long eventId = data.getEventId();
 				int eventType = data.getEventType();
-				log.info("事件同步反馈 -- eventId: "+eventId+", eventType: "+eventType);
+				log.info(String.format("user: %d sync event feedback, eventId is %d, eventType is %d", uid, eventId, eventType));
 				List<Integer> cookie = new ArrayList<Integer>();
 				EventNotification.Builder eventNotification = EventNotification.newBuilder();
 				eventNotification.setEventId(eventId);
@@ -553,6 +531,7 @@ public class WebImServer {
 						appkey, sid, juid, cookie, eventNotificationBean);
 				Channel channel = userNameToPushChannelMap.get(uid);
 				channel.writeAndFlush(req);
+				log.info(String.format("user: %d send sync event feedback request", uid));
 			}
 		});
 		
