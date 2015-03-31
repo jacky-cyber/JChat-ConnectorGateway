@@ -21,6 +21,8 @@ import jpushim.s2b.JpushimSdk2B.EventNotification;
 
 import org.slf4j.LoggerFactory;
 
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.exceptions.JedisConnectionException;
 import ch.qos.logback.classic.Logger;
 import cn.jpush.protocal.common.JPushTcpClient;
 import cn.jpush.protocal.im.bean.AddGroupMemberRequestBean;
@@ -57,6 +59,7 @@ import cn.jpush.socketio.Transport;
 import cn.jpush.socketio.listener.ConnectListener;
 import cn.jpush.socketio.listener.DataListener;
 import cn.jpush.socketio.listener.DisconnectListener;
+import cn.jpush.webim.common.RedisClient;
 import cn.jpush.webim.common.UidResourcesPool;
 import cn.jpush.webim.socketio.bean.AddFriendCmd;
 import cn.jpush.webim.socketio.bean.AddOrDelGroupMember;
@@ -124,16 +127,18 @@ public class WebImServer {
 				log.debug(String.format("connect from web client -- the session id is %s, client transport method is %s", client.getSessionId(), client.getTransport()));
 				client.sendEvent("connectEvent", "");
 			}
-		 });
+		 }); 
 		 
 		 // 用户断开
 		 server.addDisconnectListener(new DisconnectListener() {
 			@Override
 			public void onDisconnect(SocketIOClient client) {
-				log.debug(String.format("the connection is disconnect -- the session id is %s", client.getSessionId()));
-				
 				if(client!=null){
-					long uid = WebImServer.sessionClientToUserNameMap.get(client);
+					log.debug(String.format("the connection is disconnect -- the session id is %s", client.getSessionId()));
+					long uid = 0L;
+					if(WebImServer.sessionClientToUserNameMap!=null){
+						uid = WebImServer.sessionClientToUserNameMap.get(client);
+					}
 					if(0!=uid){
 						WebImServer.userNameToSessionCilentMap.remove(uid);
 						Channel channel = WebImServer.userNameToPushChannelMap.get(uid);
@@ -161,6 +166,10 @@ public class WebImServer {
 				String appkey = data.getAppKey();
 				String user_name = data.getUserName();
 				String password = data.getPassword();
+				if(StringUtils.isEmpty(appkey)||StringUtils.isEmpty(user_name)||StringUtils.isEmpty(password)){
+					log.warn("user loginEvent does not pass enough data");
+					return;
+				}
 				log.info(String.format("user info appkey: %s, username: %s, password: ", appkey, user_name, password));
 				userToSessionCilentMap.put(user_name, client);
 				// 获取uid
@@ -169,8 +178,9 @@ public class WebImServer {
 				String juid_password = String.valueOf(juidData.get("password"));
 				pushLoginInCountDown = new CountDownLatch(1);
 				
-				jpushIMTcpClient = new JPushTcpClient();
+				jpushIMTcpClient = new JPushTcpClient(appkey);
 				Channel pushChannel = jpushIMTcpClient.getChannel();
+				
 				userToPushChannelMap.put(user_name, pushChannel);
 				
 				PushLoginRequestBean pushLoginBean = new PushLoginRequestBean(juid, "a", ProtocolUtil.md5Encrypt(juid_password), 10800, appkey, 0);
@@ -254,22 +264,31 @@ public class WebImServer {
 				log.info(String.format("getGroupList toke: %s", token));
 				log.info(String.format("user: %d begin to get group list", uid));
 				if(uid==0 || data==null){
-					log.warn(String.format("user getcontracter error, because data is empty"));
+					log.warn(String.format("user getgrouplist error, because data is empty"));
 					return;
 				}
 				List<Group> groupsList = new ArrayList<Group>();
 				HttpResponseWrapper result = APIProxy.getGroupList(String.valueOf(uid), token);
 				if(result.isOK()){
 					String groupListJson = result.content;
-					List<Group> groupList = gson.fromJson(groupListJson, new TypeToken<ArrayList<Group>>(){}.getType());
-					for(Group group: groupList){
-						HttpResponseWrapper groupInfoResult = APIProxy.getGroupInfo(String.valueOf(group.getGid()), token);
+					List<Long> gidList = gson.fromJson(groupListJson, new TypeToken<ArrayList<Long>>(){}.getType());
+					for(Long gid: gidList){
+						HttpResponseWrapper groupInfoResult = APIProxy.getGroupInfo(String.valueOf(gid), token);
 						if(groupInfoResult.isOK()){
 							String groupInfoJson = groupInfoResult.content;
-							group = gson.fromJson(groupInfoJson, Group.class);
+							Group group = gson.fromJson(groupInfoJson, Group.class);
 							groupsList.add(group);
 						}
 					}
+//					List<Group> groupList = gson.fromJson(groupListJson, new TypeToken<ArrayList<Group>>(){}.getType());
+//					for(Group group: groupList){
+//						HttpResponseWrapper groupInfoResult = APIProxy.getGroupInfo(String.valueOf(group.getGid()), token);
+//						if(groupInfoResult.isOK()){
+//							String groupInfoJson = groupInfoResult.content;
+//							group = gson.fromJson(groupInfoJson, Group.class);
+//							groupsList.add(group);
+//						}
+//					}
 				} else {
 					log.warn(String.format("get groups failture because call sdk api exception: %s", result.content));
 				}
@@ -330,7 +349,7 @@ public class WebImServer {
 				 msgContent.setFrom_id(data.getFrom_name());
 				 msgContent.setFrom_name(data.getFrom_name());
 				 msgContent.setFrom_platform("web");
-				 msgContent.setCreate_time(Integer.parseInt(data.getCreate_time()));
+				 msgContent.setCreate_time(data.getCreate_time());
 				 msgContent.setMsg_type(data.getMsg_type());
 				 msgContent.setMsg_body(gson.fromJson(data.getMsg_body().toString(), MsgBody.class));
 				 

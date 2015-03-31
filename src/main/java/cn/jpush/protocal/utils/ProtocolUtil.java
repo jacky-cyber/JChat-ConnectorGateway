@@ -205,6 +205,11 @@ public class ProtocolUtil {
 		byte[] data = intToByteArray(value);
 		return copyArray(data, outSize);
 	}
+	
+	public static byte[] stringToByteArray(String value, int outSize) {
+		byte[] data = value.getBytes();
+		return copyArray(data, outSize);
+	}
 
 	/**
 	 * convert long data to byte array

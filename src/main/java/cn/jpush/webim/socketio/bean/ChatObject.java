@@ -14,6 +14,8 @@ public class ChatObject {
 	private String contentType;
 	private long messageId;
 	private int iMsgType;
+	private int create_time;
+	private int code;
 	public ChatObject(){};
 	public ChatObject(String userName, String message){
 		this.userName = userName;
@@ -30,6 +32,13 @@ public class ChatObject {
 	}
 	public void setMessage(String message) {
 		this.message = message;
+	}
+	
+	public int getCreate_time() {
+		return create_time;
+	}
+	public void setCreate_time(int create_time) {
+		this.create_time = create_time;
 	}
 	public String getToUserName() {
 		return toUserName;
@@ -48,6 +57,13 @@ public class ChatObject {
 	}
 	public void setAppKey(String appKey) {
 		this.appKey = appKey;
+	}
+	
+	public int getCode() {
+		return code;
+	}
+	public void setCode(int code) {
+		this.code = code;
 	}
 	public String getPassword() {
 		return password;

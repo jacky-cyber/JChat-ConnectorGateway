@@ -97,11 +97,9 @@ public class UidResourcesPool {
 			jedis = redisClient.getJeids();
 			log.info("add data to uid pool, uid: "+uid);
 			jedis.lpush("im_uid_pool", String.valueOf(uid));
-			
 			Map<String, String> data = new HashMap<String, String>();
 			data.put("password", password);
 			jedis.hmset("im_uid_"+uid, data);
-			
 		} catch (JedisConnectionException e) {
 			log.error(e.getMessage());
 			redisClient.returnBrokenResource(jedis);
@@ -134,7 +132,7 @@ class ProduceUidResourcesThread implements Runnable{
 	@Override
 	public void run() {
 		log.info("produce uid pool resources.");
-		jpushClient = new JPushTcpClient();
+		jpushClient = new JPushTcpClient("ebbd49c14a649e0fa4f01f3f");
 		channel = jpushClient.getChannel();
 		// send jpush reg quest batch
 		for(int i=0; i<UidResourcesPool.DEFAULT_CAPACITY; i++){

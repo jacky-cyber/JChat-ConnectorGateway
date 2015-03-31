@@ -2,7 +2,7 @@ package cn.jpush.webim.socketio.bean;
 
 import com.google.gson.Gson;
 
-public class ChatMessage {
+public class ChatMessageObject {
 	private String appKey;
 	private String version;
 	private int sid;
@@ -12,7 +12,7 @@ public class ChatMessage {
 	private String target_id;
 	private String target_name;
 	private String from_type;
-	private long from_id;
+	private String from_id;
 	private String from_name;
 	private int create_time;
 	public Notification notification;
@@ -62,10 +62,10 @@ public class ChatMessage {
 	public void setFrom_type(String from_type) {
 		this.from_type = from_type;
 	}
-	public long getFrom_id() {
+	public String getFrom_id() {
 		return from_id;
 	}
-	public void setFrom_id(long from_id) {
+	public void setFrom_id(String from_id) {
 		this.from_id = from_id;
 	}
 	public String getFrom_name() {

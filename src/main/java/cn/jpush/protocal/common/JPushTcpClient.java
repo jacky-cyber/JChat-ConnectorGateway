@@ -38,6 +38,7 @@ import cn.jpush.protocal.utils.ProtocolUtil;
 import cn.jpush.protocal.utils.StringUtils;
 import cn.jpush.protocal.utils.SystemConfig;
 import cn.jpush.webim.common.UidResourcesPool;
+import cn.jpush.webim.socketio.bean.UdpRespBean;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -57,15 +58,22 @@ import io.netty.handler.timeout.IdleStateHandler;
 
 public class JPushTcpClient {
 	private static Logger log = (Logger) LoggerFactory.getLogger(JPushTcpClient.class);
-	
-	private static final int PORT = SystemConfig.getIntProperty("im.server.port"); 
-	private static final String HOST = SystemConfig.getProperty("im.server.host");
+	private int PORT;
+	private String HOST;
 	
 	private Bootstrap b;
 	private EventLoopGroup workGroup;
 	private JPushTcpClientHandler jPushClientHandler;
-
-	public JPushTcpClient(){
+	
+	public JPushTcpClient(String appkey){
+		UdpRespBean bean = JPushUdpClient.getSISRespBean(appkey);
+		List<String> list = bean.getIps();
+		for(String str: list){
+			log.info("ips: "+str);
+		}
+		String[] str = list.get(0).split(":");
+		this.HOST = str[0];
+		this.PORT = Integer.parseInt(str[1]);
 		b = new Bootstrap();
 		try {
 			this.init();
@@ -73,6 +81,15 @@ public class JPushTcpClient {
 			log.error("init client failture, please try again.");
 		}
 	}
+
+//	public JPushTcpClient(){
+//		b = new Bootstrap();
+//		try {
+//			this.init();
+//		} catch (InterruptedException e) {
+//			log.error("init client failture, please try again.");
+//		}
+//	}
 	
 	public void init() throws InterruptedException{
 		log.info("jpush tcp client is init......");
@@ -85,13 +102,7 @@ public class JPushTcpClient {
 		b.handler(new ChannelInitializer<SocketChannel>() {
 			@Override
 			protected void initChannel(SocketChannel ch) throws Exception {
-				/*SSLEngine engine = SecureChatSslContextFactory.getServerContext().createSSLEngine();
-	         engine.setNeedClientAuth(true); 
-	         engine.setUseClientMode(false);
-	         engine.setWantClientAuth(true);
-	         engine.setEnabledProtocols(new String[]{"SSLv3"});*/
-				ch.pipeline()/*.addLast("ssl", new SslHandler(engine))*/
-								.addLast("idleStateHandler", new IdleStateHandler(100, 100, 0))
+				ch.pipeline().addLast("idleStateHandler", new IdleStateHandler(100, 100, 0))
 								.addLast(new ImProtocalClientEncoder())
 								.addLast(new ImProtocalClientDecoder())
 								.addLast(jPushClientHandler);
@@ -158,7 +169,7 @@ public class JPushTcpClient {
 	    }  
 	
 	public static void main(String[] args) {
-		JPushTcpClient client = new JPushTcpClient();
+		JPushTcpClient client = new JPushTcpClient("ebbd49c14a649e0fa4f01f3f");
 		try {
 			//client.init();
 			log.info("success to connect the server.");
