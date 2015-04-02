@@ -7,6 +7,7 @@ public class ChatMessage {
 	private String version;
 	private int sid;
 	private long juid;
+	private long rid;
 	private String show_type;
 	private String target_type;
 	private String target_id;
@@ -43,6 +44,13 @@ public class ChatMessage {
 	}
 	public void setTarget_type(String target_type) {
 		this.target_type = target_type;
+	}
+	
+	public long getRid() {
+		return rid;
+	}
+	public void setRid(long rid) {
+		this.rid = rid;
 	}
 	public String getTarget_id() {
 		return target_id;

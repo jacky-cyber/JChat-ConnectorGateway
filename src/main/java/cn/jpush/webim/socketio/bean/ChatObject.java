@@ -6,6 +6,7 @@ public class ChatObject {
 	private long uid;
 	private long juid;
 	private int sid;
+	private long rid;
 	private String password;
 	private String toUserName;
 	private long toUid;
@@ -51,6 +52,13 @@ public class ChatObject {
 	}
 	public void setMsgType(String msgType) {
 		this.msgType = msgType;
+	}
+	
+	public long getRid() {
+		return rid;
+	}
+	public void setRid(long rid) {
+		this.rid = rid;
 	}
 	public String getAppKey() {
 		return appKey;

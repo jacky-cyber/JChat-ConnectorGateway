@@ -321,7 +321,7 @@ public class WebImServer {
 						if(wrapper.isOK()){
 							HashMap map = gson.fromJson(wrapper.content, HashMap.class);
 							resultList.add(map);
-						}
+						} 
 					}
 					client.sendEvent("getGroupMemberList", gson.toJson(resultList));
 					log.warn(String.format("user: %d get group: %s member success", uid, gid));
@@ -340,6 +340,7 @@ public class WebImServer {
 				 int sid = data.getSid(); 
 				 Channel channel = userNameToPushChannelMap.get(data.getFrom_id());
 				 
+				 long rid = data.getRid();  // 消息标示id
 				 MsgContentBean msgContent = new MsgContentBean();
 				 msgContent.setVersion(Integer.parseInt(data.getVersion()));
 				 msgContent.setTarget_type(data.getTarget_type());
@@ -363,13 +364,13 @@ public class WebImServer {
 				 if("single".equals(data.getTarget_type())){
 					 SendSingleMsgRequestBean bean = new SendSingleMsgRequestBean(Long.parseLong(data.getTarget_name()), gson.toJson(msgContent));  //  为了和移动端保持一致，注意这里用target_name来存储id，避免再查一次
 					 List<Integer> cookie = new ArrayList<Integer>();
-					 ImSendSingleMsgRequestProto req = new ImSendSingleMsgRequestProto(Command.JPUSH_IM.SENDMSG_SINGAL, 1, data.getFrom_id(), appKey, sid, data.getJuid(), cookie, bean);
+					 ImSendSingleMsgRequestProto req = new ImSendSingleMsgRequestProto(Command.JPUSH_IM.SENDMSG_SINGAL, 1, data.getFrom_id(), appKey, sid, data.getJuid(), rid, cookie, bean);
 					 channel.writeAndFlush(req);
 					 log.info(String.format("user: %s begin send single chat msg", userName));
 				 } else if("group".equals(data.getTarget_type())){
 					 SendGroupMsgRequestBean bean = new SendGroupMsgRequestBean(Long.parseLong(data.getTarget_id()), gson.toJson(msgContent));
 					 List<Integer> cookie = new ArrayList<Integer>();
-					 ImSendGroupMsgRequestProto req = new ImSendGroupMsgRequestProto(Command.JPUSH_IM.SENDMSG_GROUP, 1, data.getFrom_id(), appKey, sid, data.getJuid(), cookie, bean);
+					 ImSendGroupMsgRequestProto req = new ImSendGroupMsgRequestProto(Command.JPUSH_IM.SENDMSG_GROUP, 1, data.getFrom_id(), appKey, sid, data.getJuid(), rid, cookie, bean);
 					 channel.writeAndFlush(req);
 					 log.info(String.format("user: %s begin send group chat msg", userName));
 				 }

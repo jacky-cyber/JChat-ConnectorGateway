@@ -10,11 +10,13 @@ import com.google.protobuf.ByteString;
 public class ImSendSingleMsgRequestProto extends BaseProtobufRequest {
 	private int sid;
 	private long juid;
+	private long rid;
 	public ImSendSingleMsgRequestProto(int cmd, int version, long uid,
-			String appkey, int sid, long juid, List cookie, Object bean) {
+			String appkey, int sid, long juid, long rid, List cookie, Object bean) {
 		super(cmd, version, uid, appkey, cookie, bean);
 		this.sid = sid;
 		this.juid = juid;
+		this.rid = rid;
 	}
 
 	@Override
@@ -44,6 +46,14 @@ public class ImSendSingleMsgRequestProto extends BaseProtobufRequest {
 
 	public void setJuid(long juid) {
 		this.juid = juid;
+	}
+
+	public long getRid() {
+		return rid;
+	}
+
+	public void setRid(long rid) {
+		this.rid = rid;
 	}
 
 }

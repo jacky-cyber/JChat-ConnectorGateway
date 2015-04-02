@@ -18,7 +18,13 @@ public class JHead {
 	public int getCommandInResponse(){
 		this.buf.readBytes(3).array();
 		int command = ProtocolUtil.byteArrayToInt(this.buf.readBytes(1).array());
-		this.buf.readBytes(16).array();
+		//this.buf.readBytes(16).array();
 		return command;
+	}
+	
+	public long getRid(){
+		long rid = ProtocolUtil.byteArrayToLong(this.buf.readBytes(8).array());
+		this.buf.readBytes(8).array();
+		return rid;
 	}
 }

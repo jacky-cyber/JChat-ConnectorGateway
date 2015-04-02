@@ -16,6 +16,7 @@ import cn.jpush.protocal.push.PushMessageRequestBean;
 import cn.jpush.protocal.push.PushRegResponseBean;
 import cn.jpush.protocal.utils.Command;
 import cn.jpush.protocal.utils.ProtocolUtil;
+import cn.jpush.webim.socketio.bean.IMPacket;
 
 import com.google.gson.Gson;
 
@@ -52,7 +53,9 @@ public class ImProtocalClientDecoder extends ByteToMessageDecoder {
 				in.resetReaderIndex(); 
 				return;
 			} else {
-				int command = new JHead(in).getCommandInResponse();
+				JHead head = new JHead(in);
+				int command = head.getCommandInResponse();
+				long rid = head.getRid();
 				switch (command) {
 					case Command.KKPUSH_REG.COMMAND:
 						log.info("client decode recv JPUSH reg from jpush server");
@@ -86,7 +89,8 @@ public class ImProtocalClientDecoder extends ByteToMessageDecoder {
 						log.info("client decode recv IM command from jpush server");
 						in.readBytes(2);  // 有2B的body的长度
 						Packet protocol = JpushimSdk2B.Packet.parseFrom(in.readBytes(pkg_len-22).array());
-						out.add(protocol);
+						IMPacket imPacket = new IMPacket(rid, protocol);  //  rid 用于标示消息
+						out.add(imPacket);
 						break;
 						
 					case Command.JPUSH_ACK_RESP.COMMAND:

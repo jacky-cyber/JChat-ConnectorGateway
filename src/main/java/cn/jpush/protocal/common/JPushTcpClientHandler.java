@@ -50,6 +50,7 @@ import cn.jpush.webim.socketio.bean.ContracterObject;
 import cn.jpush.webim.socketio.bean.Group;
 import cn.jpush.webim.socketio.bean.GroupMember;
 import cn.jpush.webim.socketio.bean.GroupMemberList;
+import cn.jpush.webim.socketio.bean.IMPacket;
 import cn.jpush.webim.socketio.bean.MsgContentBean;
 import cn.jpush.webim.socketio.bean.User;
 import cn.jpush.webim.socketio.bean.UserList;
@@ -124,9 +125,11 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 			PushLogoutResponseBean bean = (PushLogoutResponseBean) msg;
 			log.info(String.format("client handler resolve jpush logout response data: %s", gson.toJson(bean)));
 		}
-		if(msg instanceof Packet){  
+		if(msg instanceof IMPacket){  
 			SocketIOClient sessionClient = null;
-			Packet protocol = (Packet) msg;
+			IMPacket imPacket = (IMPacket) msg;
+			long rid = imPacket.getRid();
+			Packet protocol = imPacket.getPacket();
 			int command = protocol.getHead().getCmd();
 			log.info(String.format("client handler resolve IM module, the IM Command is: %d", command));
 			switch (command) {
@@ -157,6 +160,14 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					if(imLoginRespCode==TcpCode.IM.LOGIN_UNLEAGAL_PASSWORD){
 						WebImServer.userToSessionCilentMap.get(userName).sendEvent("IMException", TcpCode.IM.LOGIN_UNLEAGAL_PASSWORD);
 						log.warn(String.format("client handler send event: %s, exception code: %d", "IMException", TcpCode.IM.LOGIN_UNLEAGAL_PASSWORD));
+					}
+					if(imLoginRespCode==TcpCode.IM.USER_UNEXIT){
+						WebImServer.userToSessionCilentMap.get(userName).sendEvent("IMException", TcpCode.IM.USER_UNEXIT);
+						log.warn(String.format("client handler send event: %s, exception code: %d", "IMException", TcpCode.IM.USER_UNEXIT));
+					}
+					if(imLoginRespCode==TcpCode.IM.USERNAME_WRONG){
+						WebImServer.userToSessionCilentMap.get(userName).sendEvent("IMException", TcpCode.IM.USERNAME_WRONG);
+						log.warn(String.format("client handler send event: %s, exception code: %d", "IMException", TcpCode.IM.USERNAME_WRONG));
 					}
 					
 					break;
@@ -191,9 +202,10 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 						ChatObject chatMsgData = new ChatObject();	
 						chatMsgData.setCode(imSingleMsgRespCode);
 						chatMsgData.setCreate_time(_content.getCreate_time());
+						chatMsgData.setRid(rid);
 						sessionClient.sendEvent("msgFeedBackEvent", chatMsgData);
 					} else {
-						log.warn("用户不在线......");
+						log.warn("the user is not online");
 					}
 					
 					break;
@@ -217,9 +229,10 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 						ChatObject chatMsgData = new ChatObject();	
 						chatMsgData.setCode(imGroupMsgRespCode);
 						chatMsgData.setCreate_time(gcontent.getCreate_time());
+						chatMsgData.setRid(rid);
 						sessionClient.sendEvent("msgFeedBackEvent", chatMsgData);
 					} else {
-						log.warn("用户不在线....消息");
+						log.warn("the user is not online");
 					}
 					break;
 				case Command.JPUSH_IM.CREATE_GROUP:
@@ -296,7 +309,6 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					long sync_uid = eventNotification.getFromUid();
 					long sync_gid = eventNotification.getGid();
 					long sync_toUid = eventNotification.getToUidlist(0);
-					//String description = eventNotification.getDescription().toStringUtf8();
 					String mtoken = WebImServer.uidToTokenMap.get(sync_uid);
 					HashMap<String, Object> data = new HashMap<String, Object>();
 					data.put("eventId", eventNotification.getEventId());
@@ -330,7 +342,6 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 							log.warn("client handler im sync event call sdk api getGroupMemberList failture");
 						}
 					} else if (sync_eventType == Command.JPUSH_IM.EXIT_GROUP || sync_eventType == Command.JPUSH_IM.DEL_GROUP_MEMBER){ // 退出群的事件通知
-						//String message = sync_toUid+" 退出群聊";
 						data.put("eventType", sync_eventType);
 						data.put("gid", sync_gid);
 						data.put("toUid", sync_toUid);
@@ -342,18 +353,15 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					if(sessionClient!=null){
 						sessionClient.sendEvent("eventNotification", gson.toJson(data));
 					} else {
-						log.warn("用户已断开");
+						log.warn("the user is not online");
 					}
 					break;
 	
 				case Command.JPUSH_IM.SYNC_MSG:
 					log.info(String.format("client handler resolve IM msg sync data: %s", protocol.toString()));
-					//String appkey = protocol.getHead().getAppkey().toStringUtf8();
 					ChatMsgSync chatMsgSync = ProtocolUtil.getChatMsgSync(protocol);
 					int msgCount = chatMsgSync.getChatMsgCount();
 					List<ChatMsg> chatMsgList = chatMsgSync.getChatMsgList();
-					//long _uid = protocol.getHead().getUid();
-					//String _mtoken = WebImServer.uidToTokenMap.get(_uid);
 					for(int i=0; i<msgCount; i++){
 						ChatMsg chatMsg = chatMsgList.get(i);
 						@SuppressWarnings("unchecked")
@@ -388,10 +396,10 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 								sessionClient.sendEvent("chatEvent", chatMsgData);
 								log.info(String.format("send ChatEvent Single Msg to Client: %s", gson.toJson(chatMsgData)));
 							} else {
-								log.warn("用户不在线......");
+								log.warn("the user is not online");
 							}
 						} else if("group".equals(target_type)){ 
-							long gid = Long.parseLong((String) dataMap.get("target_id"));
+							//long gid = Long.parseLong((String) dataMap.get("target_id"));
 							MsgContentBean content = gson.fromJson(gson.toJson(dataMap), MsgContentBean.class);
 							//  找群成员
 							Channel _channel = ctx.channel();
@@ -444,7 +452,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 			}*/
 			if(e.state()==IdleState.WRITER_IDLE){
 				log.info("client heartbeat...write idle:"+ctx.channel().toString());
-				// 太长时间没发数据，发送心跳避免连接被断开
+				// 心跳请求
 				HeartBeatRequest request = new HeartBeatRequest(2, 1, this.getSid(), this.getJuid());
 				ctx.channel().writeAndFlush(request);
 			}

@@ -35,6 +35,7 @@ import cn.jpush.protocal.push.PushLogoutRequest;
 import cn.jpush.protocal.push.PushRegRequest;
 import cn.jpush.protocal.push.PushRegRequestBean;
 import cn.jpush.protocal.utils.ProtocolUtil;
+import cn.jpush.protocal.utils.StringUtils;
 import cn.jpush.webim.common.UidResourcesPool;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -105,7 +106,8 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			ImSendSingleMsgRequestProto req = (ImSendSingleMsgRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
 			log.info(String.format("IM Single Msg request package: %s", reqProtobuf.toString()));
-			ImRequest request = new ImRequest(1, 1, req.getSid(), req.getJuid(), reqProtobuf);
+			long rid = req.getRid();
+			ImRequest request = new ImRequest(1, rid, req.getSid(), req.getJuid(), reqProtobuf);  // rid处理重发
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 			log.info("client IM Single Msg request success");
@@ -115,7 +117,8 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			ImSendGroupMsgRequestProto req = (ImSendGroupMsgRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
 			log.info(String.format("IM Group Msg request package: %s", reqProtobuf.toString()));
-			ImRequest request = new ImRequest(1, 1, req.getSid(), req.getJuid(), reqProtobuf);
+			long rid = req.getRid();
+			ImRequest request = new ImRequest(1, rid, req.getSid(), req.getJuid(), reqProtobuf);  // rid处理重发
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 			log.info("client IM Group Msg request success");

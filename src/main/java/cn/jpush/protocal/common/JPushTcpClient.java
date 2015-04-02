@@ -102,7 +102,7 @@ public class JPushTcpClient {
 		b.handler(new ChannelInitializer<SocketChannel>() {
 			@Override
 			protected void initChannel(SocketChannel ch) throws Exception {
-				ch.pipeline().addLast("idleStateHandler", new IdleStateHandler(100, 100, 0))
+				ch.pipeline().addLast("idleStateHandler", new IdleStateHandler(30, 30, 0))
 								.addLast(new ImProtocalClientEncoder())
 								.addLast(new ImProtocalClientDecoder())
 								.addLast(jPushClientHandler);
