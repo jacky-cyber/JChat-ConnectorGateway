@@ -6,13 +6,10 @@ import jpushim.s2b.JpushimSdk2B;
 import cn.jpush.protocal.im.bean.DeleteGroupMemberRequestBean;
 
 public class ImDeleteGroupMemberRequestProto extends BaseProtobufRequest {
-	private int sid;
-	private long juid;
+
 	public ImDeleteGroupMemberRequestProto(int cmd, int version, long uid,
 			String appkey, int sid, long juid, List cookie, Object bean) {
-		super(cmd, version, uid, appkey, cookie, bean);
-		this.sid = sid;
-		this.juid = juid;
+		super(cmd, version, uid, appkey, sid, juid, cookie, bean);
 	}
 
 	@Override
@@ -28,22 +25,6 @@ public class ImDeleteGroupMemberRequestProto extends BaseProtobufRequest {
 		}
 		bodyBuilder.setDelGroupMember(delGroupMemberBuilder);
 		protocalBuilder.setBody(bodyBuilder);
-	}
-
-	public int getSid() {
-		return sid;
-	}
-
-	public void setSid(int sid) {
-		this.sid = sid;
-	}
-
-	public long getJuid() {
-		return juid;
-	}
-
-	public void setJuid(long juid) {
-		this.juid = juid;
 	}
 
 }

@@ -46,7 +46,6 @@ import io.netty.handler.codec.MessageToByteEncoder;
  */
 public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 	private static Logger log = (Logger) LoggerFactory.getLogger(ImProtocalClientEncoder.class);
-	private static Gson gson = new Gson();
 	@Override
 	protected void encode(ChannelHandlerContext ctx, Object msg, ByteBuf out)
 			throws Exception {
@@ -128,7 +127,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			ImCreateGroupRequestProto req = (ImCreateGroupRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
 			log.info(String.format("IM Create Group request package: %s", reqProtobuf.toString()));
-			ImRequest request = new ImRequest(1, 1, 0, 1153535375, reqProtobuf);
+			ImRequest request = new ImRequest(1, 1, req.getSid(), req.getJuid(), reqProtobuf);
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 			log.info("client IM Create Group request success");
@@ -138,7 +137,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			ImExitGroupRequestProto req = (ImExitGroupRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
 			log.info(String.format("IM Exit Group request package: %s", reqProtobuf.toString()));
-			ImRequest request = new ImRequest(1, 1, 342, 343, reqProtobuf);
+			ImRequest request = new ImRequest(1, 1, req.getSid(), req.getJuid(), reqProtobuf);
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 			log.info("client IM Exit Group request success");

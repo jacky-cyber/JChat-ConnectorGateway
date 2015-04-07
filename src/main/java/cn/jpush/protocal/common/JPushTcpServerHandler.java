@@ -60,6 +60,7 @@ public class JPushTcpServerHandler extends ChannelInboundHandlerAdapter {
 	private static Logger log = (Logger) LoggerFactory.getLogger(JPushTcpServerHandler.class);
 	private Gson gson = new Gson();
 	private int count = 0;
+	@SuppressWarnings("unchecked")
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg)
 			throws Exception {

@@ -26,7 +26,9 @@ import redis.clients.jedis.exceptions.JedisConnectionException;
 import ch.qos.logback.classic.Logger;
 import cn.jpush.protocal.common.JPushTcpClient;
 import cn.jpush.protocal.im.bean.AddGroupMemberRequestBean;
+import cn.jpush.protocal.im.bean.CreateGroupRequestBean;
 import cn.jpush.protocal.im.bean.DeleteGroupMemberRequestBean;
+import cn.jpush.protocal.im.bean.ExitGroupRequestBean;
 import cn.jpush.protocal.im.bean.LoginRequestBean;
 import cn.jpush.protocal.im.bean.LogoutRequestBean;
 import cn.jpush.protocal.im.bean.SendGroupMsgRequestBean;
@@ -34,6 +36,7 @@ import cn.jpush.protocal.im.bean.SendSingleMsgRequestBean;
 import cn.jpush.protocal.im.bean.UpdateGroupInfoRequestBean;
 import cn.jpush.protocal.im.req.proto.ImAddGroupMemberRequestProto;
 import cn.jpush.protocal.im.req.proto.ImChatMsgSyncRequestProto;
+import cn.jpush.protocal.im.req.proto.ImCreateGroupRequestProto;
 import cn.jpush.protocal.im.req.proto.ImDeleteGroupMemberRequestProto;
 import cn.jpush.protocal.im.req.proto.ImEventSyncRequestProto;
 import cn.jpush.protocal.im.req.proto.ImLoginRequestProto;
@@ -66,7 +69,9 @@ import cn.jpush.webim.socketio.bean.AddOrDelGroupMember;
 import cn.jpush.webim.socketio.bean.ChatMessage;
 import cn.jpush.webim.socketio.bean.ChatObject;
 import cn.jpush.webim.socketio.bean.ContracterObject;
+import cn.jpush.webim.socketio.bean.CreateGroupBean;
 import cn.jpush.webim.socketio.bean.EventSyncRespBean;
+import cn.jpush.webim.socketio.bean.ExitGroupBean;
 import cn.jpush.webim.socketio.bean.Group;
 import cn.jpush.webim.socketio.bean.GroupList;
 import cn.jpush.webim.socketio.bean.GroupMember;
@@ -418,15 +423,6 @@ public class WebImServer {
 	         log.info("user get upload file metainfo success");
 			}
 		 });
-		 
-		 //  添加好友事件
-		 server.addEventListener("addFriendCmd", AddFriendCmd.class, new DataListener<AddFriendCmd>(){
-			@Override
-			public void onData(SocketIOClient client, AddFriendCmd data,
-					AckRequest ackSender) throws Exception {
-				log.info("add new friend cmd, from: "+data.getFrom()+", to: "+data.getTo());
-			}
-		 });
 		
 		//  更新群组名称
 		server.addEventListener("updateGroupName", UpdateGroupInfoBean.class, new DataListener<UpdateGroupInfoBean>(){
@@ -578,6 +574,77 @@ public class WebImServer {
 			}
 		 });
 		 
+		 
+		/* -----------------------------------------  to check ---------------------------------------------*/
+		//  添加好友事件
+		server.addEventListener("addFriendCmd", String.class, new DataListener<String>(){
+		 	@Override
+			public void onData(SocketIOClient client, String data,
+					AckRequest ackSender) throws Exception {
+				log.info("add new friend event");
+			}
+		});
+		
+		//  删除好友
+		server.addEventListener("delFriendCmd", String.class, new DataListener<String>(){
+		 	@Override
+			public void onData(SocketIOClient client, String data,
+					AckRequest ackSender) throws Exception {
+		 		log.info("delete friend event");
+			}
+		});
+		
+		//  修改好友备注
+		server.addEventListener("updateFriendNickNameCmd", String.class, new DataListener<String>(){
+		 	@Override
+			public void onData(SocketIOClient client, String data,
+					AckRequest ackSender) throws Exception {
+		 		log.info("update friend nickname event");
+			}
+		});
+		
+		//  创建群组
+		server.addEventListener("createGroupCmd", CreateGroupBean.class, new DataListener<CreateGroupBean>(){
+		 	@Override
+			public void onData(SocketIOClient client, CreateGroupBean data,
+					AckRequest ackSender) throws Exception {
+		 		log.info("create group event");
+		 		String appKey = data.getAppKey();
+				long uid = data.getUid();
+				int sid = data.getSid();
+				long juid = data.getJuid();
+				String group_name = data.getGroup_name();
+				String group_desc = data.getGroup_desc();
+				int group_level = 0;
+				int flag = 0;
+				CreateGroupRequestBean bean = new CreateGroupRequestBean(group_name, group_desc, group_level, flag);
+				List<Integer> cookie = new ArrayList<Integer>();
+				ImCreateGroupRequestProto req = new ImCreateGroupRequestProto(Command.JPUSH_IM.CREATE_GROUP, 1, uid, appKey, sid, juid, cookie, bean);
+				Channel channel = userNameToPushChannelMap.get(uid);
+				channel.writeAndFlush(req);
+			}
+		});
+		
+		//  退出群组
+		server.addEventListener("exitGroupCmd", ExitGroupBean.class, new DataListener<ExitGroupBean>(){
+		 	@Override
+			public void onData(SocketIOClient client, ExitGroupBean data,
+					AckRequest ackSender) throws Exception {
+		 		log.info("exit group event");
+		 		String appKey = data.getAppKey();
+				long uid = data.getUid();
+				int sid = data.getSid();
+				long juid = data.getJuid();
+				long gid = data.getGid();
+				ExitGroupRequestBean bean = new ExitGroupRequestBean(gid);
+				List<Integer> cookie = new ArrayList<Integer>();
+				ImCreateGroupRequestProto req = new ImCreateGroupRequestProto(Command.JPUSH_IM.EXIT_GROUP, 1, uid, appKey, sid, juid, cookie, bean);
+				Channel channel = userNameToPushChannelMap.get(uid);
+				channel.writeAndFlush(req);
+			}
+		});
+		/* ------------------------------------------  to check -------------------------------------------------*/
+		
 		 server.start();
 		 //Thread.sleep(Integer.MAX_VALUE);
 		 //server.stop();

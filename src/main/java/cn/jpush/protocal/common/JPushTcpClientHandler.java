@@ -83,14 +83,14 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 	public void handlerRemoved(ChannelHandlerContext ctx) {
 		Channel channel = ctx.channel();
 		log.warn(String.format("handler: %s removed from push server", channel.toString()));
-		// 下线相关用户
-		/*if(channel!=null){
+		// 与JPush Server断开后，通知相应用户掉线
+		if(channel!=null){
 			long uid = WebImServer.pushChannelToUsernameMap.get(channel);
 			if(0!=uid){
 				SocketIOClient sessionClient = WebImServer.userNameToSessionCilentMap.get(uid);
 				sessionClient.sendEvent("disconnect", "");
 			}
-		}*/
+		}
 	}
 
 	@Override
@@ -190,10 +190,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					//  消息发送状态下发
 					@SuppressWarnings("unchecked")
 					HashMap<String, Object> _dataMap = gson.fromJson(singleMsgBean.getContent().getContent().toStringUtf8(), HashMap.class);
-					//String _appkey = (String) _dataMap.get("appKey");
 					long ss_uid = protocol.getHead().getUid();
-					//String ss_token = WebImServer.uidToTokenMap.get(ss_uid);
-					
 					sessionClient = WebImServer.userNameToSessionCilentMap.get(ss_uid);
 					
 					ChatMessageObject _content = gson.fromJson(gson.toJson(_dataMap), ChatMessageObject.class);

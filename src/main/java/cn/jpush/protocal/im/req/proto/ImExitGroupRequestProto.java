@@ -6,10 +6,10 @@ import jpushim.s2b.JpushimSdk2B;
 import cn.jpush.protocal.im.bean.ExitGroupRequestBean;
 
 public class ImExitGroupRequestProto extends BaseProtobufRequest {
-
+	
 	public ImExitGroupRequestProto(int cmd, int version, long uid,
-			String appkey, List cookie, Object bean) {
-		super(cmd, version, uid, appkey, cookie, bean);
+			String appkey, int sid, long juid, List cookie, Object bean) {
+		super(cmd, version, uid, appkey, sid, juid, cookie, bean);
 	}
 
 	@Override

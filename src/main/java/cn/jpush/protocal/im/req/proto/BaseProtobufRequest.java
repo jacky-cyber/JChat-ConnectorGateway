@@ -18,8 +18,10 @@ public class BaseProtobufRequest {
 	private String appkey;
 	private List<Integer> cookie;
 	private Object bean;
+	private int sid;
+	private long juid;
 	protected Packet.Builder protocalBuilder = Packet.newBuilder();
-	public BaseProtobufRequest(int cmd, int version, long uid, String appkey, List cookie, Object bean) {
+	public BaseProtobufRequest(int cmd, int version, long uid, String appkey, int sid, long juid, List cookie, Object bean) {
 		super();
 		this.cmd = cmd;
 		this.version = version;
@@ -27,6 +29,8 @@ public class BaseProtobufRequest {
 		this.appkey = appkey;
 		this.cookie = cookie;
 		this.bean = bean;
+		this.sid = sid;
+		this.juid = juid;
 	}
 	
 	public Packet buildProtoBufProtocal(){
@@ -95,5 +99,19 @@ public class BaseProtobufRequest {
 	public void setBean(Object bean) {
 		this.bean = bean;
 	}
-	
+	public int getSid() {
+		return sid;
+	}
+
+	public void setSid(int sid) {
+		this.sid = sid;
+	}
+
+	public long getJuid() {
+		return juid;
+	}
+
+	public void setJuid(long juid) {
+		this.juid = juid;
+	}
 }

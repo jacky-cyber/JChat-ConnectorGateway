@@ -66,19 +66,23 @@ public class JPushTcpClient {
 	private JPushTcpClientHandler jPushClientHandler;
 	
 	public JPushTcpClient(String appkey){
-		UdpRespBean bean = JPushUdpClient.getSISRespBean(appkey);
+		UdpRespBean bean = JPushUdpClient.getSISRespBean(appkey);  // SIS 接入
 		List<String> list = bean.getIps();
 		for(String str: list){
 			log.info("ips: "+str);
 		}
-		String[] str = list.get(0).split(":");
-		this.HOST = str[0];
-		this.PORT = Integer.parseInt(str[1]);
-		b = new Bootstrap();
-		try {
-			this.init();
-		} catch (InterruptedException e) {
-			log.error("init client failture, please try again.");
+		if(list==null||list.size()==0){
+			log.error("JPush Connection SIS Failture.");
+		} else {
+			String[] str = list.get(0).split(":");
+			this.HOST = str[0];
+			this.PORT = Integer.parseInt(str[1]);
+			b = new Bootstrap();
+			try {
+				this.init();
+			} catch (InterruptedException e) {
+				log.error("init client failture, please try again.");
+			}
 		}
 	}
 

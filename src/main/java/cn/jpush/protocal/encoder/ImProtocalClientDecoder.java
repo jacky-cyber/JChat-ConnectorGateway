@@ -48,14 +48,14 @@ public class ImProtocalClientDecoder extends ByteToMessageDecoder {
 			if(pkg_len<0||pkg_len==0){
 				in.readBytes(2);
 				return;
-			}
+			} 
 			if(length<pkg_len){
 				in.resetReaderIndex(); 
 				return;
 			} else {
 				JHead head = new JHead(in);
 				int command = head.getCommandInResponse();
-				long rid = head.getRid();
+				long rid = head.getRid();  // 标示消息
 				switch (command) {
 					case Command.KKPUSH_REG.COMMAND:
 						log.info("client decode recv JPUSH reg from jpush server");

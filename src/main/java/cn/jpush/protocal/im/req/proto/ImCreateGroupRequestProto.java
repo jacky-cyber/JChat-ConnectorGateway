@@ -10,8 +10,8 @@ import com.google.protobuf.ByteString;
 public class ImCreateGroupRequestProto extends BaseProtobufRequest {
 
 	public ImCreateGroupRequestProto(int cmd, int version, long uid,
-			String appkey, List cookie, Object bean) {
-		super(cmd, version, uid, appkey, cookie, bean);
+			String appkey, int sid, long juid, List cookie, Object bean) {
+		super(cmd, version, uid, appkey, sid, juid, cookie, bean);
 	}
 
 	@Override
