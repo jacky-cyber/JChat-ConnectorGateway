@@ -5,6 +5,7 @@ public class UpdateGroupInfoBean {
 	private int sid;
 	private long juid;
 	private long uid;
+	private long rid;
 	private String user_name;
 	private long gid;
 	private String group_name;
@@ -26,6 +27,13 @@ public class UpdateGroupInfoBean {
 	}
 	public void setJuid(long juid) {
 		this.juid = juid;
+	}
+	
+	public long getRid() {
+		return rid;
+	}
+	public void setRid(long rid) {
+		this.rid = rid;
 	}
 	public long getUid() {
 		return uid;

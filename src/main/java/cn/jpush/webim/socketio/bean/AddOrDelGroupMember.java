@@ -7,6 +7,7 @@ public class AddOrDelGroupMember {
 	private long uid;
 	private long toUid;
 	private long gid;
+	private long rid;
 	private int member_count;
 	private String username;
 	
@@ -33,6 +34,13 @@ public class AddOrDelGroupMember {
 	}
 	public void setUid(long uid) {
 		this.uid = uid;
+	}
+	
+	public long getRid() {
+		return rid;
+	}
+	public void setRid(long rid) {
+		this.rid = rid;
 	}
 	public long getGid() {
 		return gid;

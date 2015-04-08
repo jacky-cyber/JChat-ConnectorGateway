@@ -39,6 +39,7 @@ import cn.jpush.protocal.im.req.proto.ImChatMsgSyncRequestProto;
 import cn.jpush.protocal.im.req.proto.ImCreateGroupRequestProto;
 import cn.jpush.protocal.im.req.proto.ImDeleteGroupMemberRequestProto;
 import cn.jpush.protocal.im.req.proto.ImEventSyncRequestProto;
+import cn.jpush.protocal.im.req.proto.ImExitGroupRequestProto;
 import cn.jpush.protocal.im.req.proto.ImLoginRequestProto;
 import cn.jpush.protocal.im.req.proto.ImLogoutRequestProto;
 import cn.jpush.protocal.im.req.proto.ImSendGroupMsgRequestProto;
@@ -142,7 +143,11 @@ public class WebImServer {
 					log.debug(String.format("the connection is disconnect -- the session id is %s", client.getSessionId()));
 					long uid = 0L;
 					if(WebImServer.sessionClientToUserNameMap!=null){
-						uid = WebImServer.sessionClientToUserNameMap.get(client);
+						try{
+							uid = WebImServer.sessionClientToUserNameMap.get(client);
+						} catch (Exception e){
+							log.warn(String.format("user disconnect exception: %s", e.getMessage()));
+						}
 					}
 					if(0!=uid){
 						WebImServer.userNameToSessionCilentMap.remove(uid);
@@ -155,8 +160,6 @@ public class WebImServer {
 						} else {
 							log.warn(String.format("user: %s get channel to jpush server is empty", uid));
 						}
-						// 向其他成员发送下线通知
-						// to do
 					}
 				}	
 			}
@@ -206,9 +209,10 @@ public class WebImServer {
 				client.sendEvent("loginEventGetSJ", data);
 				
 				//   IM Login
+				long rid = data.getRid();
 				LoginRequestBean bean = new LoginRequestBean(user_name, StringUtils.toMD5(password));
 				List<Integer> cookie = new ArrayList<Integer>();
-				ImLoginRequestProto req = new ImLoginRequestProto(Command.JPUSH_IM.LOGIN, 1, 0, pushLoginResponseBean.getSid(), juid, appkey, cookie, bean);
+				ImLoginRequestProto req = new ImLoginRequestProto(Command.JPUSH_IM.LOGIN, 1, 0, pushLoginResponseBean.getSid(), juid, appkey, rid, cookie, bean);
 				pushChannel.writeAndFlush(req);
 				log.info(String.format("user: %s begin IM login", user_name));
 			}
@@ -433,13 +437,14 @@ public class WebImServer {
 				long gid = data.getGid();
 				long uid = data.getUid();
 				int sid = data.getSid();
+				long rid = data.getRid();
 				long juid = data.getJuid();
 				String group_name = data.getGroup_name();
 				String userName = data.getUser_name();
 				log.info(String.format("user: %s update group: %d name, new group name is %s", userName, gid, group_name));
 				UpdateGroupInfoRequestBean bean = new UpdateGroupInfoRequestBean(gid, group_name, "");
 				List<Integer> cookie = new ArrayList<Integer>();
-				ImUpdateGroupInfoRequestProto req = new ImUpdateGroupInfoRequestProto(Command.JPUSH_IM.UPDATE_GROUP_INFO, 1, uid, appKey, sid, juid, cookie, bean);
+				ImUpdateGroupInfoRequestProto req = new ImUpdateGroupInfoRequestProto(Command.JPUSH_IM.UPDATE_GROUP_INFO, 1, uid, appKey, rid, sid, juid, cookie, bean);
 				Channel channel = userNameToPushChannelMap.get(data.getUid());
 				channel.writeAndFlush(req);
 				log.info(String.format("user: %s send update group name request", userName));
@@ -458,6 +463,7 @@ public class WebImServer {
 					long addUid = 0L;
 					long juid = data.getJuid();
 					long gid = data.getGid();
+					long rid = data.getRid();
 					log.info(String.format("user: %d add group member, the member is %s", uid, user_name));
 					String token = WebImServer.uidToTokenMap.get(uid);
 					log.info("call sdk api: getUserInfo");
@@ -471,7 +477,7 @@ public class WebImServer {
 					list.add(addUid);
 					AddGroupMemberRequestBean bean = new AddGroupMemberRequestBean(gid, 1, list);
 					List<Integer> cookie = new ArrayList<Integer>();
-					ImAddGroupMemberRequestProto req = new ImAddGroupMemberRequestProto(Command.JPUSH_IM.ADD_GROUP_MEMBER, 1, uid, appKey, sid, juid,cookie, bean);
+					ImAddGroupMemberRequestProto req = new ImAddGroupMemberRequestProto(Command.JPUSH_IM.ADD_GROUP_MEMBER, 1, uid, appKey, rid, sid, juid,cookie, bean);
 					Channel channel = userNameToPushChannelMap.get(uid);
 					channel.writeAndFlush(req);
 					log.info(String.format("user: %d begin send add group member request", uid));
@@ -489,12 +495,13 @@ public class WebImServer {
 				long delUid = data.getToUid();
 				long juid = data.getJuid();
 				long gid = data.getGid();
+				long rid = data.getRid();
 				log.info(String.format("user: %d delete group: %d member uid: %d", uid, gid, delUid));
 				List<Long> list = new ArrayList<Long>();
 				list.add(delUid);	
 				DeleteGroupMemberRequestBean bean = new DeleteGroupMemberRequestBean(gid, 1, list);
 				List<Integer> cookie = new ArrayList<Integer>();
-				ImDeleteGroupMemberRequestProto req = new ImDeleteGroupMemberRequestProto(Command.JPUSH_IM.DEL_GROUP_MEMBER, 1, uid, appKey, sid, juid, cookie, bean);
+				ImDeleteGroupMemberRequestProto req = new ImDeleteGroupMemberRequestProto(Command.JPUSH_IM.DEL_GROUP_MEMBER, 1, uid, appKey, rid, sid, juid, cookie, bean);
 				Channel channel = userNameToPushChannelMap.get(uid);
 				channel.writeAndFlush(req);
 				log.info(String.format("user: %d send delGroupMember request", uid));
@@ -510,16 +517,21 @@ public class WebImServer {
 				long uid = data.getUid();
 				long juid = data.getJuid();
 				int sid = data.getSid();
+				long rid = data.getRid();
 				long messageId = data.getMessageId();
 				int iMsgType = data.getiMsgType();   
+				long from_uid = data.getFrom_uid();
+				long from_gid = data.getFrom_gid();
 				log.info(String.format("user: %d sync msg feedback, msgId is %d, msgType is %d", uid, messageId, iMsgType));
 				List<Integer> cookie = new ArrayList<Integer>();
 				ChatMsg.Builder chatMsg = ChatMsg.newBuilder();
 				chatMsg.setMsgid(messageId);
 				chatMsg.setMsgType(iMsgType);
+				chatMsg.setFromUid(from_uid);
+				chatMsg.setFromGid(from_gid);
 				ChatMsg chatMsgBean = chatMsg.build();
 				ImChatMsgSyncRequestProto req = new ImChatMsgSyncRequestProto(Command.JPUSH_IM.SYNC_MSG, 1, uid,
-						appkey, sid, juid, cookie, chatMsgBean);
+						appkey, rid, sid, juid, cookie, chatMsgBean);
 				Channel channel = userNameToPushChannelMap.get(uid);
 				channel.writeAndFlush(req);
 				log.info(String.format("user: %d send sync msg feedback request", uid));
@@ -535,16 +547,21 @@ public class WebImServer {
 				long uid = data.getUid();
 				long juid = data.getJuid();
 				int sid = data.getSid();
+				long rid = data.getRid();
 				long eventId = data.getEventId();
 				int eventType = data.getEventType();
+				long from_uid = data.getFrom_uid();
+				long gid = data.getGid();
 				log.info(String.format("user: %d sync event feedback, eventId is %d, eventType is %d", uid, eventId, eventType));
 				List<Integer> cookie = new ArrayList<Integer>();
 				EventNotification.Builder eventNotification = EventNotification.newBuilder();
 				eventNotification.setEventId(eventId);
 				eventNotification.setEventType(eventType);
+				eventNotification.setFromUid(from_uid);
+				eventNotification.setGid(gid);
 				EventNotification eventNotificationBean = eventNotification.build();
 				ImEventSyncRequestProto req = new ImEventSyncRequestProto(Command.JPUSH_IM.SYNC_EVENT, 1, uid,
-						appkey, sid, juid, cookie, eventNotificationBean);
+						appkey, rid, sid, juid, cookie, eventNotificationBean);
 				Channel channel = userNameToPushChannelMap.get(uid);
 				channel.writeAndFlush(req);
 				log.info(String.format("user: %d send sync event feedback request", uid));
@@ -566,6 +583,7 @@ public class WebImServer {
 					 log.info("当前用户与jpush的连接已断开.");
 					 client.sendEvent("logout", "true");
 				} else {
+					log.info(String.format("user: %s auto logout", username));
 					LogoutRequestBean bean = new LogoutRequestBean(username);
 					List<Integer> cookie = new ArrayList<Integer>();
 					ImLogoutRequestProto req = new ImLogoutRequestProto(Command.JPUSH_IM.LOGOUT, 1, uid, appKey, sid, juid, cookie, bean);
@@ -613,13 +631,14 @@ public class WebImServer {
 				long uid = data.getUid();
 				int sid = data.getSid();
 				long juid = data.getJuid();
+				long rid = data.getRid();
 				String group_name = data.getGroup_name();
 				String group_desc = data.getGroup_desc();
-				int group_level = 0;
+				int group_level = 200;
 				int flag = 0;
 				CreateGroupRequestBean bean = new CreateGroupRequestBean(group_name, group_desc, group_level, flag);
 				List<Integer> cookie = new ArrayList<Integer>();
-				ImCreateGroupRequestProto req = new ImCreateGroupRequestProto(Command.JPUSH_IM.CREATE_GROUP, 1, uid, appKey, sid, juid, cookie, bean);
+				ImCreateGroupRequestProto req = new ImCreateGroupRequestProto(Command.JPUSH_IM.CREATE_GROUP, 1, uid, appKey, rid, sid, juid, cookie, bean);
 				Channel channel = userNameToPushChannelMap.get(uid);
 				channel.writeAndFlush(req);
 			}
@@ -636,9 +655,10 @@ public class WebImServer {
 				int sid = data.getSid();
 				long juid = data.getJuid();
 				long gid = data.getGid();
+				long rid = data.getRid();
 				ExitGroupRequestBean bean = new ExitGroupRequestBean(gid);
 				List<Integer> cookie = new ArrayList<Integer>();
-				ImCreateGroupRequestProto req = new ImCreateGroupRequestProto(Command.JPUSH_IM.EXIT_GROUP, 1, uid, appKey, sid, juid, cookie, bean);
+				ImExitGroupRequestProto req = new ImExitGroupRequestProto(Command.JPUSH_IM.EXIT_GROUP, 1, uid, appKey, rid, sid, juid, cookie, bean);
 				Channel channel = userNameToPushChannelMap.get(uid);
 				channel.writeAndFlush(req);
 			}

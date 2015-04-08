@@ -15,6 +15,8 @@ public class ChatObject {
 	private String contentType;
 	private long messageId;
 	private int iMsgType;
+	private long from_uid;
+	private long from_gid;
 	private int create_time;
 	private int code;
 	public ChatObject(){};
@@ -28,6 +30,7 @@ public class ChatObject {
 	public void setUserName(String userName) {
 		this.userName = userName;
 	}
+	
 	public String getMessage() {
 		return message;
 	}
@@ -46,6 +49,19 @@ public class ChatObject {
 	}
 	public void setToUserName(String toUserName) {
 		this.toUserName = toUserName;
+	}
+	
+	public long getFrom_uid() {
+		return from_uid;
+	}
+	public void setFrom_uid(long from_uid) {
+		this.from_uid = from_uid;
+	}
+	public long getFrom_gid() {
+		return from_gid;
+	}
+	public void setFrom_gid(long from_gid) {
+		this.from_gid = from_gid;
 	}
 	public String getMsgType() {
 		return msgType;

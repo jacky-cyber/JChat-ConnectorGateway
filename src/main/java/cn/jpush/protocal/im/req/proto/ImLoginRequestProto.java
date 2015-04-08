@@ -9,10 +9,11 @@ import cn.jpush.protocal.utils.Command;
 import com.google.protobuf.ByteString;
 
 public class ImLoginRequestProto extends BaseProtobufRequest {
-	
+	private long rid;
 	public ImLoginRequestProto(int cmd, int version, long uid, int sid, long juid, String appkey,
-			List<Integer> cookie, Object bean) {
+			 long rid, List<Integer> cookie, Object bean) {
 		super(cmd, version, uid, appkey, sid, juid, cookie, bean);
+		this.rid = rid;
 	}
 
 	@Override
@@ -25,6 +26,14 @@ public class ImLoginRequestProto extends BaseProtobufRequest {
 		loginBuilder.setPlatform(Command.DEVICE_TYPE.ANDROID);  
 		bodyBuilder.setLogin(loginBuilder);
 		protocalBuilder.setBody(bodyBuilder);
+	}
+
+	public long getRid() {
+		return rid;
+	}
+
+	public void setRid(long rid) {
+		this.rid = rid;
 	}
 
 }

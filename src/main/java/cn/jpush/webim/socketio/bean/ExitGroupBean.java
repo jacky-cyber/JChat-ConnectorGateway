@@ -6,11 +6,19 @@ public class ExitGroupBean {
 	private int sid;
 	private long juid;
 	private long gid;
+	private long rid;
 	public String getAppKey() {
 		return appKey;
 	}
 	public void setAppKey(String appKey) {
 		this.appKey = appKey;
+	}
+	
+	public long getRid() {
+		return rid;
+	}
+	public void setRid(long rid) {
+		this.rid = rid;
 	}
 	public long getUid() {
 		return uid;

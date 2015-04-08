@@ -85,7 +85,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			ImLoginRequestProto req = (ImLoginRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
 			log.info(String.format("IM Login request package: %s", reqProtobuf.toString()));
-			ImRequest request = new ImRequest(1, 1, req.getSid(), req.getJuid(), reqProtobuf);
+			ImRequest request = new ImRequest(1, req.getRid(), req.getSid(), req.getJuid(), reqProtobuf);
 			byte[] data = request.getRequestPackage(); 
 			out.writeBytes(data);
 			log.info("client IM Login request success");
@@ -127,7 +127,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			ImCreateGroupRequestProto req = (ImCreateGroupRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
 			log.info(String.format("IM Create Group request package: %s", reqProtobuf.toString()));
-			ImRequest request = new ImRequest(1, 1, req.getSid(), req.getJuid(), reqProtobuf);
+			ImRequest request = new ImRequest(1, req.getRid(), req.getSid(), req.getJuid(), reqProtobuf);
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 			log.info("client IM Create Group request success");
@@ -147,7 +147,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			ImAddGroupMemberRequestProto req = (ImAddGroupMemberRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
 			log.info(String.format("IM Add Group Member request package: %s", reqProtobuf.toString()));
-			ImRequest request = new ImRequest(1, 1, req.getSid(), req.getJuid(), reqProtobuf);
+			ImRequest request = new ImRequest(1, req.getRid(), req.getSid(), req.getJuid(), reqProtobuf);
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 			log.info("client IM Add Group Member request success");
@@ -157,7 +157,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			ImDeleteGroupMemberRequestProto req = (ImDeleteGroupMemberRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
 			log.info(String.format("IM Delete Group Member request package: %s", reqProtobuf.toString()));
-			ImRequest request = new ImRequest(1, 1, req.getSid(), req.getJuid(), reqProtobuf);
+			ImRequest request = new ImRequest(1, req.getRid(), req.getSid(), req.getJuid(), reqProtobuf);
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 			log.info("client IM Delete Group Member request success");
@@ -167,7 +167,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			ImUpdateGroupInfoRequestProto req = (ImUpdateGroupInfoRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
 			log.info(String.format("IM Update Group Info request package: %s", reqProtobuf.toString()));
-			ImRequest request = new ImRequest(1, 1, req.getSid(), req.getJuid(), reqProtobuf);
+			ImRequest request = new ImRequest(1, req.getRid(), req.getSid(), req.getJuid(), reqProtobuf);
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 			log.info("client IM Update Group Info request success");
@@ -177,7 +177,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			ImChatMsgSyncRequestProto req = (ImChatMsgSyncRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
 			log.info(String.format("IM ChatMsg Sync FeedBack request package: %s", reqProtobuf.toString()));
-			ImRequest request = new ImRequest(1, 1, req.getSid(), req.getJuid(), reqProtobuf);
+			ImRequest request = new ImRequest(1, req.getRid(), req.getSid(), req.getJuid(), reqProtobuf);
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 			log.info("client IM ChatMsg Sync FeedBack request success");
@@ -187,7 +187,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			ImEventSyncRequestProto req = (ImEventSyncRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
 			log.info(String.format("IM Event Sync FeedBack request package: %s", reqProtobuf.toString()));
-			ImRequest request = new ImRequest(1, 1, req.getSid(), req.getJuid(), reqProtobuf);
+			ImRequest request = new ImRequest(1, req.getRid(), req.getSid(), req.getJuid(), reqProtobuf);
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 			log.info("client IM Event Sync FeedBack request success");

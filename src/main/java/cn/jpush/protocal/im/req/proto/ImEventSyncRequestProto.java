@@ -10,10 +10,11 @@ import cn.jpush.protocal.utils.Command;
 import com.google.protobuf.ByteString;
 
 public class ImEventSyncRequestProto extends BaseProtobufRequest {
-	
-	public ImEventSyncRequestProto(int cmd, int version, long uid, String appkey, int sid, long juid, 
+	private long rid;
+	public ImEventSyncRequestProto(int cmd, int version, long uid, String appkey, long rid, int sid, long juid, 
 			List<Integer> cookie, Object bean) {
 		super(cmd, version, uid, appkey, sid, juid, cookie, bean);
+		this.rid = rid;
 	}
 
 	@Override
@@ -22,6 +23,14 @@ public class ImEventSyncRequestProto extends BaseProtobufRequest {
 		EventNotification bean = (EventNotification) obj;
 		bodyBuilder.setEventNotification(bean);
 		protocalBuilder.setBody(bodyBuilder);
+	}
+
+	public long getRid() {
+		return rid;
+	}
+
+	public void setRid(long rid) {
+		this.rid = rid;
 	}
 
 }

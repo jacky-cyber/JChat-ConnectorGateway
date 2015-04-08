@@ -5,6 +5,8 @@ public class CreateGroupBean {
 	private long uid;
 	private int sid;
 	private long juid;
+	private long gid;
+	private long rid;
 	private String group_name;
 	private String group_desc;
 	public String getAppKey() {
@@ -12,6 +14,13 @@ public class CreateGroupBean {
 	}
 	public void setAppKey(String appKey) {
 		this.appKey = appKey;
+	}
+	
+	public long getGid() {
+		return gid;
+	}
+	public void setGid(long gid) {
+		this.gid = gid;
 	}
 	public long getUid() {
 		return uid;
@@ -24,6 +33,13 @@ public class CreateGroupBean {
 	}
 	public void setSid(int sid) {
 		this.sid = sid;
+	}
+	
+	public long getRid() {
+		return rid;
+	}
+	public void setRid(long rid) {
+		this.rid = rid;
 	}
 	public long getJuid() {
 		return juid;

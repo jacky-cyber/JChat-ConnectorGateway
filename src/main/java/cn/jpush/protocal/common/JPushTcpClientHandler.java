@@ -46,7 +46,9 @@ import cn.jpush.webim.server.WebImServer;
 import cn.jpush.webim.socketio.bean.ChatMessage;
 import cn.jpush.webim.socketio.bean.ChatMessageObject;
 import cn.jpush.webim.socketio.bean.ChatObject;
+import cn.jpush.webim.socketio.bean.CommonRespBean;
 import cn.jpush.webim.socketio.bean.ContracterObject;
+import cn.jpush.webim.socketio.bean.CreateGroupBean;
 import cn.jpush.webim.socketio.bean.Group;
 import cn.jpush.webim.socketio.bean.GroupMember;
 import cn.jpush.webim.socketio.bean.GroupMemberList;
@@ -85,7 +87,12 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 		log.warn(String.format("handler: %s removed from push server", channel.toString()));
 		// 与JPush Server断开后，通知相应用户掉线
 		if(channel!=null){
-			long uid = WebImServer.pushChannelToUsernameMap.get(channel);
+			long uid = 0L;
+			try{
+				uid = WebImServer.pushChannelToUsernameMap.get(channel);
+			} catch (Exception e){
+				log.warn(String.format("handler removed exception: %s", e.getMessage()));
+			}
 			if(0!=uid){
 				SocketIOClient sessionClient = WebImServer.userNameToSessionCilentMap.get(uid);
 				sessionClient.sendEvent("disconnect", "");
@@ -234,17 +241,47 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					break;
 				case Command.JPUSH_IM.CREATE_GROUP:
 					log.info(String.format("client handler resolve IM create group resp data: %s", protocol.toString()));
-					//CreateGroup createGroupBean = ProtocolUtil.getCreateGroup(protocol);
-					//log.info("create group data, gid: "+createGroupBean.getGid());
+					CreateGroup createGroupBean = ProtocolUtil.getCreateGroup(protocol);
 					Response createGroupResp = ProtocolUtil.getCommonResp(protocol);
-					log.info("create group response data: code: "+createGroupResp.getCode()+", message: "+createGroupResp.getMessage().toStringUtf8());
+					long c_uid = protocol.getHead().getUid();
+					int createGroupRespcode = createGroupResp.getCode();
+					String createGroupRespMsg = createGroupResp.getMessage().toStringUtf8();
+					log.info(String.format("create group response data: code: %d, message: %s", createGroupRespcode, createGroupRespMsg));
+					sessionClient = WebImServer.userNameToSessionCilentMap.get(c_uid);
+					CreateGroupBean c_bean = new CreateGroupBean();
+					c_bean.setGid(createGroupBean.getGid());
+					c_bean.setGroup_name(createGroupBean.getGroupName().toStringUtf8());
+					if(sessionClient!=null){
+						if(0==createGroupRespcode){
+							sessionClient.sendEvent("createGroupCmd", c_bean);
+						} else {
+							sessionClient.sendEvent("IMException", createGroupRespcode);
+						}
+					} else {  
+						log.warn(String.format("Exception -- Can not get connection to: %s client", c_uid));
+					}
 					break;
 				case Command.JPUSH_IM.EXIT_GROUP:
 					log.info(String.format("client handler resolve IM exit group resp data: %s", protocol.toString()));
-					//ExitGroup exitGroupBean = ProtocolUtil.getExitGroup(protocol);
-					//log.info("exit group data, gid: "+exitGroupBean.getGid());
+					ExitGroup exitGroupBean = ProtocolUtil.getExitGroup(protocol);
 					Response exitGroupResp = protocol.getBody().getCommonRep();
+					long e_uid = protocol.getHead().getUid();
+					int exitGroupRespcode = exitGroupResp.getCode();
+					String exitGroupRespMsg = exitGroupResp.getMessage().toStringUtf8();
+					log.info(String.format("add group member response data: code: %d, message: %s", exitGroupRespcode, exitGroupRespMsg));
+					sessionClient = WebImServer.userNameToSessionCilentMap.get(e_uid);
 					log.info("exit group response data: code: "+exitGroupResp.getCode()+", message: "+exitGroupResp.getMessage().toStringUtf8());
+					Group e_group = new Group();
+					e_group.setGid(exitGroupBean.getGid());
+					if(sessionClient!=null){
+						if(0==exitGroupRespcode){
+							sessionClient.sendEvent("exitGroupCmd", e_group);
+						} else {
+							sessionClient.sendEvent("IMException", exitGroupRespcode);
+						}
+					} else {  
+						log.warn(String.format("Exception -- Can not get connection to: %s client", e_uid));
+					}
 					break;
 				case Command.JPUSH_IM.ADD_GROUP_MEMBER:
 					log.info(String.format("client handler resolve IM add group member resp data: %s", protocol.toString()));
@@ -310,6 +347,8 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					HashMap<String, Object> data = new HashMap<String, Object>();
 					data.put("eventId", eventNotification.getEventId());
 					data.put("eventType", eventNotification.getEventType());
+					data.put("from_uid", eventNotification.getFromUid());
+					data.put("gid", eventNotification.getGid());
 					if(sync_eventType == Command.JPUSH_IM.ADD_GROUP_MEMBER){  // 添加群成员的事件通知
 						log.info("client handler im sync event call sdk api getGroupMemberList");
 						HttpResponseWrapper mresultWrapper = APIProxy.getGroupMemberList(String.valueOf(sync_gid), mtoken);
@@ -383,6 +422,8 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 								chatMsgData.setMsgType("single");
 								chatMsgData.setMessageId(chatMsg.getMsgid());  //  消息ID
 								chatMsgData.setiMsgType(chatMsg.getMsgType());  //  消息类型
+								chatMsgData.setFrom_uid(chatMsg.getFromUid());
+								chatMsgData.setFrom_gid(chatMsg.getFromGid());
 								if("text".equals(content.getMsg_type())){
 									chatMsgData.setContentType("text");
 								} else if("image".equals(content.getMsg_type())){
@@ -412,6 +453,8 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 								chatMsgData.setMsgType("group");
 								chatMsgData.setMessageId(chatMsg.getMsgid());  //  消息ID
 								chatMsgData.setiMsgType(chatMsg.getMsgType());  //  消息类型
+								chatMsgData.setFrom_uid(chatMsg.getFromUid());
+								chatMsgData.setFrom_gid(chatMsg.getFromGid());
 								if("text".endsWith(content.getMsg_type())){
 									chatMsgData.setContentType("text");
 								} else if("image".endsWith(content.getMsg_type())){
