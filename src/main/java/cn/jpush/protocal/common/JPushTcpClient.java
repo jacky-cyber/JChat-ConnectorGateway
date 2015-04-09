@@ -146,31 +146,6 @@ public class JPushTcpClient {
 		this.jPushClientHandler = jPushClientHandler;
 	}
 
-	public static String getStringRandom(int length) {  
-		String val = "";  
-	   Random random = new Random();  
-	   for(int i = 0; i < length; i++) {  
-		   String charOrNum = random.nextInt(2) % 2 == 0 ? "char" : "num";  
-	        //输出字母还是数字  
-	      if( "char".equalsIgnoreCase(charOrNum) ) {  
-	                //输出是大写字母还是小写字母  
-	                int temp = random.nextInt(2) % 2 == 0 ? 65 : 97;  
-	                val += (char)(random.nextInt(26) + temp);  
-	            } else if( "num".equalsIgnoreCase(charOrNum) ) {  
-	                val += String.valueOf(random.nextInt(10));  
-	            }  
-	        }  
-	        return val;  
-	    }  
-	
-	public static String getIntRandom(int length) {  
-		String val = "";  
-	   Random random = new Random();  
-	   for(int i = 0; i < length; i++) {  
-		   	val += String.valueOf(random.nextInt(10));  
-	    }  
-	      return val;  
-	    }  
 	
 	public static void main(String[] args) {
 		JPushTcpClient client = new JPushTcpClient("ebbd49c14a649e0fa4f01f3f");
@@ -180,11 +155,11 @@ public class JPushTcpClient {
 			Channel channel = client.getChannel(); 
 			//long juid = UidResourcesPool.getUid();
 			PushLoginRequestBean req = new PushLoginRequestBean(1268846131, "a", ProtocolUtil.md5Encrypt("2600424017"), 10800, "ebbd49c14a649e0fa4f01f3f", 0);
-			String imei = getIntRandom(15);
+         /*String imei = getIntRandom(15);
 			String imsi = getIntRandom(15);
 			String deviceId = getStringRandom(32);
 			String arg2 = imei+"$$"+imsi+"$$com.android.mypushdemo180src$$ebbd49c14a649e0fa4f01f3f";
-			String arg3 = "1$$"+deviceId+"$$00000000$$b095c7a18792bd8b$$CC:3A:61:BD:CB:3D";
+			String arg3 = "1$$"+deviceId+"$$00000000$$b095c7a18792bd8b$$CC:3A:61:BD:CB:3D";*/
 			//"b095c7a18792bd8b$$ $$com.android.mypushdemo180src$$ebbd49c14a649e0fa4f01f3f"
 			//String uu = "1$$a72007a3fb00024bde5191f4f7c27702$$00000000$$b095c7a18792bd8b$$CC:3A:61:BD:CB:3D";
 			//PushRegRequestBean req = new PushRegRequestBean(arg2,

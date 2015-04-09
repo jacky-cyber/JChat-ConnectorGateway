@@ -157,7 +157,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 						String _token = (String) tokenMap.get("token");
 						String token = BASE64Utils.encodeString(uid+":"+_token);
 						WebImServer.uidToTokenMap.put(uid, token);
-						WebImServer.userToSessionCilentMap.get(userName).sendEvent("loginEventGetUID", uid);
+						WebImServer.userToSessionCilentMap.get(userName).sendEvent("loginEvent", uid);
 						log.info(String.format("client handler send event: %s to webclient", "loginEventGetUID"));
 						Channel channel = WebImServer.userToPushChannelMap.get(userName);
 						WebImServer.userNameToPushChannelMap.put(uid, channel);
