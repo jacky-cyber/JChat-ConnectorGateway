@@ -336,6 +336,24 @@ public class StringUtils {
 	   return Long.parseLong(val);  
 	}  
 	
+	public static String getUserName(String keyAndUserName){
+		String[] str = keyAndUserName.split(":");
+		if(str.length==2){
+			return str[1];
+		} else {
+			return "";
+		}
+	}
+	
+	public static String getAppKey(String keyAndUserName){
+		String[] str = keyAndUserName.split(":");
+		if(str.length==2){
+			return str[0];
+		} else {
+			return "";
+		}
+	}
+	
 	public static int getCreateTime(){
 		int time = (int) (new Date().getTime()/1000);
 		return time;

@@ -1,21 +1,22 @@
 package cn.jpush.webim.socketio.bean;
 
 public class SdkSyncEventRespObject {
-		private long eventId;
-		private int eventType;
+		private long event_id;
+		private int event_type;
 		private long from_uid;
 		private long gid;
-		public long getEventId() {
-			return eventId;
+		
+		public long getEvent_id() {
+			return event_id;
 		}
-		public void setEventId(long eventId) {
-			this.eventId = eventId;
+		public void setEvent_id(long event_id) {
+			this.event_id = event_id;
 		}
-		public int getEventType() {
-			return eventType;
+		public int getEvent_type() {
+			return event_type;
 		}
-		public void setEventType(int eventType) {
-			this.eventType = eventType;
+		public void setEvent_type(int event_type) {
+			this.event_type = event_type;
 		}
 		public long getFrom_uid() {
 			return from_uid;

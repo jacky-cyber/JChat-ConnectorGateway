@@ -1,21 +1,22 @@
 package cn.jpush.webim.socketio.bean;
 
 public class SdkSyncMsgRespObject {
-		private long messageId;
-		private int iMsgType;
+		private long message_id;
+		private int msg_type;
 		private long from_uid;
 		private long from_gid;
-		public long getMessageId() {
-			return messageId;
+		
+		public long getMessage_id() {
+			return message_id;
 		}
-		public void setMessageId(long messageId) {
-			this.messageId = messageId;
+		public void setMessage_id(long message_id) {
+			this.message_id = message_id;
 		}
-		public int getiMsgType() {
-			return iMsgType;
+		public int getMsg_type() {
+			return msg_type;
 		}
-		public void setiMsgType(int iMsgType) {
-			this.iMsgType = iMsgType;
+		public void setMsg_type(int msg_type) {
+			this.msg_type = msg_type;
 		}
 		public long getFrom_uid() {
 			return from_uid;

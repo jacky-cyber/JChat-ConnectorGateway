@@ -43,28 +43,16 @@ import cn.jpush.socketio.SocketIOClient;
 import cn.jpush.webim.common.RedisClient;
 import cn.jpush.webim.common.UidResourcesPool;
 import cn.jpush.webim.server.WebImServer;
-import cn.jpush.webim.socketio.bean.ChatMessage;
 import cn.jpush.webim.socketio.bean.ChatMessageObject;
-import cn.jpush.webim.socketio.bean.ChatObject;
-import cn.jpush.webim.socketio.bean.CommonRespBean;
-import cn.jpush.webim.socketio.bean.ContracterObject;
-import cn.jpush.webim.socketio.bean.CreateGroupBean;
 import cn.jpush.webim.socketio.bean.Group;
-import cn.jpush.webim.socketio.bean.GroupMember;
-import cn.jpush.webim.socketio.bean.GroupMemberList;
 import cn.jpush.webim.socketio.bean.IMPacket;
 import cn.jpush.webim.socketio.bean.MsgContentBean;
 import cn.jpush.webim.socketio.bean.SdkCommonErrorRespObject;
 import cn.jpush.webim.socketio.bean.SdkCommonSuccessRespObject;
-import cn.jpush.webim.socketio.bean.User;
-import cn.jpush.webim.socketio.bean.UserList;
+import cn.jpush.webim.socketio.bean.SdkGroupObject;
+import cn.jpush.webim.socketio.bean.SdkSyncMsgObject;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -141,6 +129,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 			long rid = imPacket.getRid();
 			Packet protocol = imPacket.getPacket();
 			int command = protocol.getHead().getCmd();
+			String appKey = protocol.getHead().getAppkey().toStringUtf8();
 			log.info(String.format("client handler resolve IM module, the IM Command is: %d", command));
 			switch (command) {
 				case Command.JPUSH_IM.LOGIN:
@@ -160,7 +149,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 						String _token = (String) tokenMap.get("token");
 						String token = BASE64Utils.encodeString(uid+":"+_token);
 						SdkCommonSuccessRespObject loginComResp = new SdkCommonSuccessRespObject();
-						WebImServer.userNameToSessionCilentMap.get(userName).sendEvent("login", gson.toJson(loginComResp));
+						WebImServer.userNameToSessionCilentMap.get(appKey+":"+userName).sendEvent("login", gson.toJson(loginComResp));
 						log.info(String.format("client handler send event: %s to webclient", "login"));
 						
 						//  存储用户信息
@@ -170,7 +159,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 							Map<String, String> map = new HashMap<String, String>();
 							map.put("uid", String.valueOf(uid));
 							map.put("token", token);
-							jedis.hmset(userName, map);
+							jedis.hmset(appKey+":"+userName, map);
 						} catch (JedisConnectionException e) {
 							log.error(e.getMessage());
 							redisClient.returnBrokenResource(jedis);
@@ -181,8 +170,8 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					} else {
 						SdkCommonErrorRespObject loginComResp = new SdkCommonErrorRespObject();
 						loginComResp.setErrorInfo(imLoginRespCode, imLoginRespMsg);
-						WebImServer.userNameToSessionCilentMap.get(userName).sendEvent("login", gson.toJson(loginComResp));
-						log.warn(String.format("client handler send event: %s, exception code: %d", "loginfail", loginComResp.getError().getErrorCode()));
+						WebImServer.userNameToSessionCilentMap.get(appKey+":"+userName).sendEvent("login", gson.toJson(loginComResp));
+						log.warn(String.format("client handler send event: %s, exception code: %d", "loginfail", loginComResp.getError().getError_code()));
 					}
 					
 					break;
@@ -207,8 +196,8 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					@SuppressWarnings("unchecked")
 					HashMap<String, Object> _dataMap = gson.fromJson(singleMsgBean.getContent().getContent().toStringUtf8(), HashMap.class);
 					//long ss_uid = protocol.getHead().getUid();
-					String username = WebImServer.pushChannelToUsernameMap.get(ctx.channel());
-					sessionClient = WebImServer.userNameToSessionCilentMap.get(username);
+					String kan = WebImServer.pushChannelToUsernameMap.get(ctx.channel());
+					sessionClient = WebImServer.userNameToSessionCilentMap.get(kan);
 					
 					if(sessionClient!=null){
 						if(imSingleMsgRespCode==TcpCode.IM.SUCCESS){
@@ -241,8 +230,8 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					//  找群成员
 					Channel mchannel = ctx.channel();
 					if(mchannel!=null){
-						String sUserName = WebImServer.pushChannelToUsernameMap.get(mchannel);
-						sessionClient = WebImServer.userNameToSessionCilentMap.get(sUserName);
+						String skan = WebImServer.pushChannelToUsernameMap.get(mchannel);
+						sessionClient = WebImServer.userNameToSessionCilentMap.get(skan);
 						if(imGroupMsgRespCode==TcpCode.IM.SUCCESS){
 							SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject();
 							sessionClient.sendEvent("sendTextMessage", gson.toJson(resp));
@@ -259,63 +248,78 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					log.info(String.format("client handler resolve IM create group resp data: %s", protocol.toString()));
 					CreateGroup createGroupBean = ProtocolUtil.getCreateGroup(protocol);
 					Response createGroupResp = ProtocolUtil.getCommonResp(protocol);
-					long c_uid = protocol.getHead().getUid();
 					int createGroupRespcode = createGroupResp.getCode();
 					String createGroupRespMsg = createGroupResp.getMessage().toStringUtf8();
 					log.info(String.format("create group response data: code: %d, message: %s", createGroupRespcode, createGroupRespMsg));
-					sessionClient = WebImServer.userNameToSessionCilentMap.get(c_uid);
-					CreateGroupBean c_bean = new CreateGroupBean();
-					c_bean.setGid(createGroupBean.getGid());
-					c_bean.setGroup_name(createGroupBean.getGroupName().toStringUtf8());
+					String ckan = WebImServer.pushChannelToUsernameMap.get(ctx.channel());
+					sessionClient = WebImServer.userNameToSessionCilentMap.get(ckan);
+					SdkGroupObject groupObject = new SdkGroupObject();
+					groupObject.setGid(createGroupBean.getGid());
+					groupObject.setFlag(createGroupBean.getFlag());
+					groupObject.setGroup_description(createGroupBean.getGroupDesc().toStringUtf8());
+					groupObject.setGroup_level(createGroupBean.getGroupLevel());
+					groupObject.setGroup_name(createGroupBean.getGroupName().toStringUtf8());
 					if(sessionClient!=null){
-						if(0==createGroupRespcode){
-							sessionClient.sendEvent("createGroupCmd", c_bean);
+						if(createGroupRespcode==TcpCode.IM.SUCCESS){
+							log.info("create group success");
+							SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject();
+							resp.setContent(gson.toJson(groupObject));
+							sessionClient.sendEvent("createGroup", gson.toJson(resp));
 						} else {
-							sessionClient.sendEvent("IMException", createGroupRespcode);
+							log.warn("create group failture");
+							SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject();
+							resp.setErrorInfo(createGroupRespcode, createGroupRespMsg);
+							sessionClient.sendEvent("createGroup", gson.toJson(resp));
 						}
 					} else {  
-						log.warn(String.format("Exception -- Can not get connection to: %s client", c_uid));
+						log.warn(String.format("Exception -- Can not get connection to: %s client", ckan));
 					}
 					break;
 				case Command.JPUSH_IM.EXIT_GROUP:
 					log.info(String.format("client handler resolve IM exit group resp data: %s", protocol.toString()));
-					ExitGroup exitGroupBean = ProtocolUtil.getExitGroup(protocol);
+					//ExitGroup exitGroupBean = ProtocolUtil.getExitGroup(protocol);
 					Response exitGroupResp = protocol.getBody().getCommonRep();
-					long e_uid = protocol.getHead().getUid();
 					int exitGroupRespcode = exitGroupResp.getCode();
 					String exitGroupRespMsg = exitGroupResp.getMessage().toStringUtf8();
 					log.info(String.format("add group member response data: code: %d, message: %s", exitGroupRespcode, exitGroupRespMsg));
-					sessionClient = WebImServer.userNameToSessionCilentMap.get(e_uid);
+					String ekan = WebImServer.pushChannelToUsernameMap.get(ctx.channel());
+					sessionClient = WebImServer.userNameToSessionCilentMap.get(ekan);
 					log.info("exit group response data: code: "+exitGroupResp.getCode()+", message: "+exitGroupResp.getMessage().toStringUtf8());
-					Group e_group = new Group();
-					e_group.setGid(exitGroupBean.getGid());
 					if(sessionClient!=null){
-						if(0==exitGroupRespcode){
-							sessionClient.sendEvent("exitGroupCmd", e_group);
+						if(TcpCode.IM.SUCCESS==exitGroupRespcode){
+							log.info("exit group success");
+							SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject();
+							sessionClient.sendEvent("exitGroup", gson.toJson(resp));
 						} else {
-							sessionClient.sendEvent("IMException", exitGroupRespcode);
+							log.warn("exit group failture");
+							SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject();
+							resp.setErrorInfo(exitGroupRespcode, exitGroupRespMsg);
+							sessionClient.sendEvent("exitGroup", gson.toJson(resp));
 						}
 					} else {  
-						log.warn(String.format("Exception -- Can not get connection to: %s client", e_uid));
+						log.warn(String.format("Exception -- Can not get connection to: %s client", ekan));
 					}
 					break;
 				case Command.JPUSH_IM.ADD_GROUP_MEMBER:
 					log.info(String.format("client handler resolve IM add group member resp data: %s", protocol.toString()));
 					//AddGroupMember addGroupMemberBean = ProtocolUtil.getAddGroupMember(protocol);
 					Response addGroupMemberResp = ProtocolUtil.getCommonResp(protocol);
-					long uid = protocol.getHead().getUid();
 					int addGroupMemRespcode = addGroupMemberResp.getCode();
 					String addGroupMemRespMsg = addGroupMemberResp.getMessage().toStringUtf8();
 					log.info(String.format("add group member response data: code: %d, message: %s", addGroupMemRespcode, addGroupMemRespMsg));
-					sessionClient = WebImServer.userNameToSessionCilentMap.get(uid);
-					if(addGroupMemRespcode==TcpCode.IM.ADDGROUP_USER_UNEXIST){
-						if(null!=sessionClient){
-							sessionClient.sendEvent("IMException", TcpCode.IM.ADDGROUP_USER_UNEXIST);
+					String akan = WebImServer.pushChannelToUsernameMap.get(ctx.channel());
+					sessionClient = WebImServer.userNameToSessionCilentMap.get(akan);
+					if(null!=sessionClient){
+						if(addGroupMemRespcode==TcpCode.IM.SUCCESS){
+							SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject();
+							sessionClient.sendEvent("addGroupMembers", gson.toJson(resp));
+						} else {
+							SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject();
+							resp.setErrorInfo(addGroupMemRespcode, addGroupMemRespMsg);
+							sessionClient.sendEvent("addGroupMembers", gson.toJson(resp));
 						}
-					} else if(addGroupMemRespcode==TcpCode.IM.ADDGROUP_USER_REPEATADD){
-						if(null!=sessionClient){
-							sessionClient.sendEvent("IMException", TcpCode.IM.ADDGROUP_USER_REPEATADD);
-						}
+					} else {
+						log.warn(String.format("Exception -- Can not get connection to: %s client", akan));
 					}
 					break;
 				case Command.JPUSH_IM.DEL_GROUP_MEMBER:
@@ -326,6 +330,20 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					int delGroupMemRespcode = delGroupMemberResp.getCode();
 					String delGroupMemRespMsg = delGroupMemberResp.getMessage().toStringUtf8();
 					log.info(String.format("del group member response data: code: %d, message: %s", delGroupMemRespcode, delGroupMemRespMsg));
+					String rkan = WebImServer.pushChannelToUsernameMap.get(ctx.channel());
+					sessionClient = WebImServer.userNameToSessionCilentMap.get(rkan);
+					if(null!=sessionClient){
+						if(delGroupMemRespcode==TcpCode.IM.SUCCESS){
+							SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject();
+							sessionClient.sendEvent("removeGroupMembers", gson.toJson(resp));
+						} else {
+							SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject();
+							resp.setErrorInfo(delGroupMemRespcode, delGroupMemRespMsg);
+							sessionClient.sendEvent("removeGroupMembers", gson.toJson(resp));
+						}
+					} else {
+						log.warn(String.format("Exception -- Can not get connection to: %s client", rkan));
+					}
 					break;
 				case Command.JPUSH_IM.UPDATE_GROUP_INFO:
 					log.info(String.format("client handler resolve IM update group info data: %s", protocol.toString()));
@@ -335,19 +353,25 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					int updateGroupInfoRespcode = updateGroupInfoResp.getCode();
 					String updateGroupInfoRespMsg = updateGroupInfoResp.getMessage().toStringUtf8();
 					log.info(String.format("update group info response data: code: %d, message: %s", updateGroupInfoRespcode, updateGroupInfoRespMsg));
+					String ukan = WebImServer.pushChannelToUsernameMap.get(ctx.channel());
+					sessionClient = WebImServer.userNameToSessionCilentMap.get(ukan);
 					if(updateGroupInfoRespcode==TcpCode.IM.SUCCESS){
 						log.info("send update group info success event to webclient");
-						long _uid = protocol.getHead().getUid();
-						Group group = new Group();
-						group.setGid(bean.getGid());
-						group.setName(bean.getName().toStringUtf8());
-						sessionClient = WebImServer.userNameToSessionCilentMap.get(_uid);
+						SdkGroupObject updateGroupObject = new SdkGroupObject();
+						updateGroupObject.setGid(bean.getGid());
+						updateGroupObject.setGroup_description(bean.getInfo().toStringUtf8());
+						updateGroupObject.setGroup_name(bean.getName().toStringUtf8());
 						if(null!=sessionClient){
-							sessionClient.sendEvent("updateGroupInfoEventNotification", group);
+							SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject();
+							resp.setContent(gson.toJson(updateGroupObject));
+							sessionClient.sendEvent("updateGroupInfo", gson.toJson(resp));
 						} else {
-							log.warn(String.format("user: %d is not online", _uid));
+							log.warn(String.format("user: %s is not online", ukan));
 						}
 					} else {
+						SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject();
+						resp.setErrorInfo(updateGroupInfoRespcode, updateGroupInfoRespMsg);
+						sessionClient.sendEvent("updateGroupInfo", gson.toJson(resp));
 						log.warn(String.format("modify group info failture, code: %s, message: %s", updateGroupInfoRespcode, updateGroupInfoRespMsg));
 					}
 					break;
@@ -359,61 +383,24 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					long sync_uid = eventNotification.getFromUid();
 					long sync_gid = eventNotification.getGid();
 					long sync_toUid = eventNotification.getToUidlist(0);
-					String sUserName = WebImServer.pushChannelToUsernameMap.get(ctx.channel());
-					Jedis jedis = null;
-					String mtoken = "";
-					try{
-						jedis = redisClient.getJeids();
-						List<String> dataList = jedis.hmget(sUserName, "token");
-						mtoken = dataList.get(0);
-					} catch (JedisConnectionException e) {
-						log.error(e.getMessage());
-						redisClient.returnBrokenResource(jedis);
-						throw new JedisConnectionException(e);
-					} finally {
-						redisClient.returnResource(jedis);
+					//String sUserName = "";
+					String skan = WebImServer.pushChannelToUsernameMap.get(ctx.channel());
+					if(StringUtils.isNotEmpty(skan)){
+						sessionClient = WebImServer.userNameToSessionCilentMap.get(skan);
+						//sUserName = StringUtils.getUserName(skan);
+					} else {
+						log.warn("user has logout");
+						return;
 					}
 					HashMap<String, Object> data = new HashMap<String, Object>();
-					data.put("eventId", eventNotification.getEventId());
-					data.put("eventType", eventNotification.getEventType());
+					data.put("event_id", eventNotification.getEventId());
+					data.put("event_type", eventNotification.getEventType());
 					data.put("from_uid", eventNotification.getFromUid());
 					data.put("gid", eventNotification.getGid());
-					if(sync_eventType == Command.JPUSH_IM.ADD_GROUP_MEMBER){  // 添加群成员的事件通知
-						log.info("client handler im sync event call sdk api getGroupMemberList");
-						HttpResponseWrapper mresultWrapper = APIProxy.getGroupMemberList(String.valueOf(sync_gid), mtoken);
-						if(mresultWrapper.isOK()){
-							JsonParser parser = new JsonParser();
-							JsonArray Jarray = parser.parse(mresultWrapper.content).getAsJsonArray();
-							String memberName = "";
-							for(JsonElement obj : Jarray){
-								GroupMember member = gson.fromJson(obj, GroupMember.class);
-								long m_uid = member.getUid();
-								if(sync_toUid == m_uid){
-									HttpResponseWrapper resultWrapper = APIProxy.getUserInfoByUid(protocol.getHead().getAppkey().toStringUtf8(), String.valueOf(m_uid), mtoken);
-									if(resultWrapper.isOK()){
-										User userInfo = gson.fromJson(resultWrapper.content, User.class);
-										memberName = userInfo.getUsername();
-									}
-									String message = memberName+" 加入群聊";
-									data.put("eventType", sync_eventType);
-									data.put("gid", sync_gid);
-									data.put("memberUid", m_uid);
-									data.put("username", memberName);
-									data.put("message", message);
-								}
-							}
-							log.info("client handler im sync event call sdk api getGroupMemberList success");
-						} else {
-							log.warn("client handler im sync event call sdk api getGroupMemberList failture");
-						}
-					} else if (sync_eventType == Command.JPUSH_IM.EXIT_GROUP || sync_eventType == Command.JPUSH_IM.DEL_GROUP_MEMBER){ // 退出群的事件通知
-						data.put("eventType", sync_eventType);
-						data.put("gid", sync_gid);
-						data.put("toUid", sync_toUid);
-					}
-					if(StringUtils.isNotEmpty(sUserName)){
-						sessionClient = WebImServer.userNameToSessionCilentMap.get(sUserName);
-					}
+					data.put("to_uid_list", eventNotification.getToUidlistList());
+					data.put("description", eventNotification.getDescription().toStringUtf8());
+					data.put("ctime", eventNotification.getCtime());
+					
 					if(sessionClient!=null){
 						sessionClient.sendEvent("onEventReceived", gson.toJson(data));
 					} else {
@@ -433,34 +420,33 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 						String target_type = (String)dataMap.get("target_type");
 						if("single".equals(target_type)){  
 							Channel _channel = ctx.channel();
-							String _mUserName = "";
+							String _mkan = "";
 							if(_channel!=null){
-								_mUserName = WebImServer.pushChannelToUsernameMap.get(_channel);
-								sessionClient = WebImServer.userNameToSessionCilentMap.get(_mUserName);
+								_mkan = WebImServer.pushChannelToUsernameMap.get(_channel);
+								sessionClient = WebImServer.userNameToSessionCilentMap.get(_mkan);
 							}
 							MsgContentBean content = gson.fromJson(gson.toJson(dataMap), MsgContentBean.class);
 							
-							if(sessionClient!=null){
-								ChatObject chatMsgData = new ChatObject();	
-								chatMsgData.setUid(chatMsg.getFromUid());
-								chatMsgData.setToUserName(content.getTarget_id()+"");
-								chatMsgData.setUserName(content.getFrom_id()+"");
-								chatMsgData.setMessage(content.getMsg_body().toString());
-								chatMsgData.setCreate_time(content.getCreate_time());
-								chatMsgData.setMsgType("single");
-								chatMsgData.setMessageId(chatMsg.getMsgid());  //  消息ID
-								chatMsgData.setiMsgType(chatMsg.getMsgType());  //  消息类型
-								chatMsgData.setFrom_uid(chatMsg.getFromUid());
-								chatMsgData.setFrom_gid(chatMsg.getFromGid());
+							if(sessionClient!=null){	
+								SdkSyncMsgObject syncMsgObject = new SdkSyncMsgObject();
+								syncMsgObject.setUsername(content.getFrom_id());
+								syncMsgObject.setTo_username(content.getTarget_id());
+								syncMsgObject.setMsg_type("single");
+								syncMsgObject.setMessage(content.getMsg_body().toString());
+								syncMsgObject.setCreate_time(content.getCreate_time());
+								syncMsgObject.setMessage_id(chatMsg.getMsgid());  
+								syncMsgObject.setI_msg_type(chatMsg.getMsgType()); 
+								syncMsgObject.setFrom_uid(chatMsg.getFromUid());
+								syncMsgObject.setFrom_gid(chatMsg.getFromGid());
 								if("text".equals(content.getMsg_type())){
-									chatMsgData.setContentType("text");
+									syncMsgObject.setContent_type("text");
 								} else if("image".equals(content.getMsg_type())){
-									chatMsgData.setContentType("image");
+									syncMsgObject.setContent_type("image");
 								} else if("voice".equals(content.getMsg_type())){
-									chatMsgData.setContentType("voice");
+									syncMsgObject.setContent_type("voice");
 								}
-								sessionClient.sendEvent("onMessageReceived", gson.toJson(chatMsgData));
-								log.info(String.format("send ChatEvent Single Msg to Client: %s", gson.toJson(chatMsgData)));
+								sessionClient.sendEvent("onMessageReceived", gson.toJson(syncMsgObject));
+								log.info(String.format("send ChatEvent Single Msg to Client: %s", gson.toJson(syncMsgObject)));
 							} else {
 								log.warn("the user is not online");
 							}
@@ -470,32 +456,31 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 							//  找群成员
 							Channel _channel = ctx.channel();
 							if(_channel!=null){
-								String _mUserName = WebImServer.pushChannelToUsernameMap.get(_channel);
-								sessionClient = WebImServer.userNameToSessionCilentMap.get(_mUserName);
-								ChatObject chatMsgData = new ChatObject();	
-								chatMsgData.setUid(Long.parseLong(content.getTarget_id()));
-								chatMsgData.setToUserName(content.getTarget_id()+"");
-								chatMsgData.setUserName(content.getFrom_id()+"");
-								chatMsgData.setMessage(content.getMsg_body().toString());
-								chatMsgData.setCreate_time(content.getCreate_time());
-								chatMsgData.setMsgType("group");
-								chatMsgData.setMessageId(chatMsg.getMsgid());  //  消息ID
-								chatMsgData.setiMsgType(chatMsg.getMsgType());  //  消息类型
-								chatMsgData.setFrom_uid(chatMsg.getFromUid());
-								chatMsgData.setFrom_gid(chatMsg.getFromGid());
+								String _mkan = WebImServer.pushChannelToUsernameMap.get(_channel);
+								sessionClient = WebImServer.userNameToSessionCilentMap.get(_mkan);
+								SdkSyncMsgObject syncMsgObject = new SdkSyncMsgObject();
+								syncMsgObject.setUsername(content.getFrom_id());
+								syncMsgObject.setTo_username(content.getTarget_id());
+								syncMsgObject.setMsg_type("group");
+								syncMsgObject.setMessage(content.getMsg_body().toString());
+								syncMsgObject.setCreate_time(content.getCreate_time());
+								syncMsgObject.setMessage_id(chatMsg.getMsgid());  
+								syncMsgObject.setI_msg_type(chatMsg.getMsgType()); 
+								syncMsgObject.setFrom_uid(chatMsg.getFromUid());
+								syncMsgObject.setFrom_gid(chatMsg.getFromGid());
 								if("text".endsWith(content.getMsg_type())){
-									chatMsgData.setContentType("text");
+									syncMsgObject.setContent_type("text");
 								} else if("image".endsWith(content.getMsg_type())){
-									chatMsgData.setContentType("image");
+									syncMsgObject.setContent_type("image");
 								} else if("voice".equals(content.getMsg_type())){
-									chatMsgData.setContentType("voice");
+									syncMsgObject.setContent_type("voice");
 								}
-								log.info("return group msg string: "+gson.toJson(chatMsgData));
+								log.info("return group msg string: "+gson.toJson(syncMsgObject));
 								if(sessionClient!=null){
-									sessionClient.sendEvent("onMessageReceived", gson.toJson(chatMsgData));
-									log.info(String.format("send ChatEvent Group Msg to Client: %s", gson.toJson(chatMsgData)));
+									sessionClient.sendEvent("onMessageReceived", gson.toJson(syncMsgObject));
+									log.info(String.format("send ChatEvent Group Msg to Client: %s", gson.toJson(syncMsgObject)));
 								} else {
-									log.warn(String.format("user: %s get connection to webclient is empty", _mUserName));
+									log.warn(String.format("user: %s get connection to webclient is empty", _mkan));
 								}
 							}
 						}

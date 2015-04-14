@@ -1,20 +1,21 @@
 package cn.jpush.webim.socketio.bean;
 
 public class SdkSendTextMsgObject {
-	private String targetId;
-	private String targetType;
+	private String target_id;
+	private String target_type;
 	private String text;
-	public String getTargetId() {
-		return targetId;
+	
+	public String getTarget_id() {
+		return target_id;
 	}
-	public void setTargetId(String targetId) {
-		this.targetId = targetId;
+	public void setTarget_id(String target_id) {
+		this.target_id = target_id;
 	}
-	public String getTargetType() {
-		return targetType;
+	public String getTarget_type() {
+		return target_type;
 	}
-	public void setTargetType(String targetType) {
-		this.targetType = targetType;
+	public void setTarget_type(String target_type) {
+		this.target_type = target_type;
 	}
 	public String getText() {
 		return text;

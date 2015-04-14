@@ -9,25 +9,10 @@ public class SdkCommonErrorRespObject {
 	public void setError(Error error) {
 		this.error = error;
 	}
-	public void setErrorInfo(int code, String errorMessage){
-		error.setErrorCode(code);
-		error.setErrorMessage(errorMessage);
+	public void setErrorInfo(int code, String error_message){
+		error = new Error();
+		this.error.setError_code(code);
+		this.error.setError_message(error_message);
 	}
 
-	public class Error{
-		private int errorCode;
-		private String errorMessage;
-		public int getErrorCode() {
-			return errorCode;
-		}
-		public void setErrorCode(int errorCode) {
-			this.errorCode = errorCode;
-		}
-		public String getErrorMessage() {
-			return errorMessage;
-		}
-		public void setErrorMessage(String errorMessage) {
-			this.errorMessage = errorMessage;
-		}
-	}
 }

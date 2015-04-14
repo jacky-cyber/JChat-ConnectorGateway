@@ -21,8 +21,12 @@ public class ImUpdateGroupInfoRequestProto extends BaseProtobufRequest {
 		UpdateGroupInfoRequestBean bean = (UpdateGroupInfoRequestBean) obj;
 		JpushimSdk2B.UpdateGroupInfo.Builder updateGroupInfoMemberBuilder = JpushimSdk2B.UpdateGroupInfo.newBuilder();
 		updateGroupInfoMemberBuilder.setGid(bean.getGid());
-		updateGroupInfoMemberBuilder.setName(ByteString.copyFromUtf8(bean.getName()));
-		updateGroupInfoMemberBuilder.setInfo(ByteString.copyFromUtf8(bean.getContent()));
+		if(bean.getName().length()!=0){
+			updateGroupInfoMemberBuilder.setName(ByteString.copyFromUtf8(bean.getName()));
+		}
+		if(bean.getContent().length()!=0){
+			updateGroupInfoMemberBuilder.setInfo(ByteString.copyFromUtf8(bean.getContent()));
+		}
 		bodyBuilder.setUpdateGroupInfo(updateGroupInfoMemberBuilder);
 		protocalBuilder.setBody(bodyBuilder);
 	}
