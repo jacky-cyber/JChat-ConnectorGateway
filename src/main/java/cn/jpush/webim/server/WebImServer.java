@@ -79,6 +79,15 @@ import cn.jpush.webim.socketio.bean.GroupMember;
 import cn.jpush.webim.socketio.bean.LogoutBean;
 import cn.jpush.webim.socketio.bean.MsgBody;
 import cn.jpush.webim.socketio.bean.MsgContentBean;
+import cn.jpush.webim.socketio.bean.SdkCommonErrorRespObject;
+import cn.jpush.webim.socketio.bean.SdkCommonSuccessRespObject;
+import cn.jpush.webim.socketio.bean.SdkConfigObject;
+import cn.jpush.webim.socketio.bean.SdkGetUserInfoObject;
+import cn.jpush.webim.socketio.bean.SdkLoginObject;
+import cn.jpush.webim.socketio.bean.SdkSendTextMsgObject;
+import cn.jpush.webim.socketio.bean.SdkSyncEventRespObject;
+import cn.jpush.webim.socketio.bean.SdkSyncMsgRespObject;
+import cn.jpush.webim.socketio.bean.SdkUserInfo;
 import cn.jpush.webim.socketio.bean.UpdateGroupInfoBean;
 import cn.jpush.webim.socketio.bean.User;
 import cn.jpush.webim.socketio.bean.UserList;
@@ -98,15 +107,13 @@ import com.qiniu.api.rs.PutPolicy;
  */
 public class WebImServer {
 	private static Logger log = (Logger) LoggerFactory.getLogger(WebImServer.class);
-	public static HashMap<Long, SocketIOClient> userNameToSessionCilentMap = new HashMap<Long, SocketIOClient>();
-	public static HashMap<String, SocketIOClient> userToSessionCilentMap = new HashMap<String, SocketIOClient>();
-	public static HashMap<SocketIOClient, Long> sessionClientToUserNameMap = new HashMap<SocketIOClient, Long>();
-	public static HashMap<Long, Channel> userNameToPushChannelMap = new HashMap<Long, Channel>();
-	public static HashMap<String, Channel> userToPushChannelMap = new HashMap<String, Channel>();
-	public static HashMap<Channel, Long> pushChannelToUsernameMap = new HashMap<Channel, Long>();
-	public static HashMap<Long, String> uidToTokenMap = new HashMap<Long, String>();
+	public static HashMap<String, SocketIOClient> userNameToSessionCilentMap = new HashMap<String, SocketIOClient>();  //  用户 --> 客户端
+	public static HashMap<SocketIOClient, String> sessionClientToUserNameMap = new HashMap<SocketIOClient, String>();  //  客户端  --> 用户
+	public static HashMap<String, Channel> userNameToPushChannelMap = new HashMap<String, Channel>();   //  用户 --> IM Server
+	public static HashMap<Channel, String> pushChannelToUsernameMap = new HashMap<Channel, String>();   //  IM Server --> 用户
 	private static final int PORT = SystemConfig.getIntProperty("webim.server.port");
 	public static CountDownLatch pushLoginInCountDown;
+	private RedisClient redisClient;
 	private Gson gson = new Gson();
 	private Configuration config;
 	private SocketIOServer server;
@@ -114,10 +121,10 @@ public class WebImServer {
 	
 	public void init() {
 		 config = new Configuration();
-		 //config.setHostname(HOST_NAME);
 		 config.setPort(PORT);
 		 config.setTransports(Transport.WEBSOCKET);
 		 server = new SocketIOServer(config);
+		 redisClient = new RedisClient();
 	}
 	
 	public void configMessageEventAndStart() throws InterruptedException{
@@ -131,7 +138,7 @@ public class WebImServer {
 			@Override
 			public void onConnect(SocketIOClient client) {
 				log.debug(String.format("connect from web client -- the session id is %s, client transport method is %s", client.getSessionId(), client.getTransport()));
-				client.sendEvent("connectEvent", "");
+				client.sendEvent("onConnected", "");
 			}
 		 }); 
 		 
@@ -140,136 +147,421 @@ public class WebImServer {
 			@Override
 			public void onDisconnect(SocketIOClient client) {
 				if(client!=null){
+					client.sendEvent("onDisConnected", "");
 					log.debug(String.format("the connection is disconnect -- the session id is %s", client.getSessionId()));
-					long uid = 0L;
+					String userName = "";
 					if(WebImServer.sessionClientToUserNameMap!=null){
 						try{
-							uid = WebImServer.sessionClientToUserNameMap.get(client);
+							userName = WebImServer.sessionClientToUserNameMap.get(client);
 						} catch (Exception e){
 							log.warn(String.format("user disconnect exception: %s", e.getMessage()));
 						}
 					}
-					if(0!=uid){
-						WebImServer.userNameToSessionCilentMap.remove(uid);
-						Channel channel = WebImServer.userNameToPushChannelMap.get(uid);
-						WebImServer.userNameToPushChannelMap.remove(uid);
+					if(StringUtils.isNotEmpty(userName)){
+						WebImServer.userNameToSessionCilentMap.remove(userName);
+						Channel channel = WebImServer.userNameToPushChannelMap.get(userName);
+						WebImServer.userNameToPushChannelMap.remove(userName);
 						WebImServer.sessionClientToUserNameMap.remove(client);
 						if(channel!=null){
 							WebImServer.pushChannelToUsernameMap.remove(channel);
 							channel.close();   //  断开与push server的长连接
 						} else {
-							log.warn(String.format("user: %s get channel to jpush server is empty", uid));
+							log.warn(String.format("user: %s get channel to jpush server is empty", userName));
 						}
 					}
 				}	
 			}
 		});
 		 
-		 // 用户登陆
-		 server.addEventListener("loginEvent", ChatObject.class, new DataListener<ChatObject>() {
+		// 用户配置检查
+		server.addEventListener("onConfigValidate", SdkConfigObject.class, new DataListener<SdkConfigObject>() {
 			@Override
-			public void onData(SocketIOClient client, ChatObject data,
+			public void onData(SocketIOClient client, SdkConfigObject data,
 					AckRequest ackSender) throws Exception {
-				log.info(String.format("user: %s login", data.getUserName()));
+				String appKey = data.getAppKey();
+				String timestamp = data.getTimestamp();
+				String randomStr = data.getRandomStr();
+				String signature = data.getSignature();
+				if(StringUtils.isEmpty(signature)||StringUtils.isEmpty(randomStr)
+						||StringUtils.isEmpty(timestamp)||StringUtils.isEmpty(appKey)){
+					log.warn(String.format("Sdk config arguments exception"));
+				} else {
+					// TODO 加入验证过程
+					SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject();
+					log.info("config resp： "+gson.toJson(resp));
+					client.sendEvent("onConfigValidate", gson.toJson(resp));
+				}
+			}
+		});
+		 
+		 // 用户登陆
+		 server.addEventListener("login", SdkLoginObject.class, new DataListener<SdkLoginObject>() {
+			@Override
+			public void onData(SocketIOClient client, SdkLoginObject data,
+					AckRequest ackSender) throws Exception {
+				log.info(String.format("user: %s login", data.getUsername()));
 				String appkey = data.getAppKey();
-				String user_name = data.getUserName();
+				String username = data.getUsername();
 				String password = data.getPassword();
-				if(StringUtils.isEmpty(appkey)||StringUtils.isEmpty(user_name)||StringUtils.isEmpty(password)){
-					log.warn("user loginEvent does not pass enough data");
+				if(StringUtils.isEmpty(appkey)||StringUtils.isEmpty(username)||StringUtils.isEmpty(password)){
+					log.warn("user loginEvent pass empty data exception");
 					return;
 				}
-				log.info(String.format("user info appkey: %s, username: %s, password: ", appkey, user_name, password));
-				userToSessionCilentMap.put(user_name, client);
-				// 获取uid
+				log.info(String.format("user info appkey: %s, username: %s, password: ", appkey, username, password));
+			
 				Map<String, String> juidData = UidResourcesPool.getUidAndPassword();
 				long juid = Long.parseLong(String.valueOf(juidData.get("uid")));
 				String juid_password = String.valueOf(juidData.get("password"));
 				pushLoginInCountDown = new CountDownLatch(1);
-				
+				 
 				jpushIMTcpClient = new JPushTcpClient(appkey);
 				Channel pushChannel = jpushIMTcpClient.getChannel();
 				
-				userToPushChannelMap.put(user_name, pushChannel);
+				// 关系绑定
+				userNameToSessionCilentMap.put(username, client);
+				sessionClientToUserNameMap.put(client, username);
+				userNameToPushChannelMap.put(username, pushChannel);
+				pushChannelToUsernameMap.put(pushChannel, username);
 				
 				PushLoginRequestBean pushLoginBean = new PushLoginRequestBean(juid, "a", ProtocolUtil.md5Encrypt(juid_password), 10800, appkey, 0);
 				pushChannel.writeAndFlush(pushLoginBean);
-				log.info(String.format("user: %s begin jpush login, juid: %d, password: %s", user_name, juid, juid_password));
+				log.info(String.format("user: %s begin jpush login, juid: %d, password: %s", username, juid, juid_password));
 				
 				pushLoginInCountDown.await();  //  等待push login返回数据
 				PushLoginResponseBean pushLoginResponseBean = jpushIMTcpClient.getjPushClientHandler().getPushLoginResponseBean();
-				log.info(String.format("user: %s jpush login response, code: %d, sid: %d", user_name, pushLoginResponseBean.getResponse_code(), pushLoginResponseBean.getSid()));
+				int sid = pushLoginResponseBean.getSid();
+				log.info(String.format("user: %s jpush login response, code: %d, sid: %d", username, pushLoginResponseBean.getResponse_code(), sid));
 				
-				//   设置数据 用于心跳
+				//  存储用户信息
+				Jedis jedis = null;
+				try{
+					jedis = redisClient.getJeids();
+					Map<String, String> map = new HashMap<String, String>();
+					map.put("appKey", appkey);
+					map.put("password", password);
+					map.put("juid", String.valueOf(juid));
+					map.put("sid", String.valueOf(sid));
+					map.put("juidPassword", juid_password);
+					jedis.hmset(username, map);
+				} catch (JedisConnectionException e) {
+					log.error(e.getMessage());
+					redisClient.returnBrokenResource(jedis);
+					throw new JedisConnectionException(e);
+				} finally {
+					redisClient.returnResource(jedis);
+				}
+				
+				// 设置数据 用于心跳
 				jpushIMTcpClient.getjPushClientHandler().setSid(pushLoginResponseBean.getSid());
 				jpushIMTcpClient.getjPushClientHandler().setJuid(juid);
 				
-				//  向客户端返回 SID 和 JUId
-				data.setJuid(juid);
-				data.setSid(pushLoginResponseBean.getSid());
-				client.sendEvent("loginEventGetSJ", data);
-				
-				//   IM Login
-				long rid = data.getRid();
-				LoginRequestBean bean = new LoginRequestBean(user_name, StringUtils.toMD5(password));
+				// IM Login
+				long rid = StringUtils.getRID();
+				LoginRequestBean bean = new LoginRequestBean(username, StringUtils.toMD5(password));
 				List<Integer> cookie = new ArrayList<Integer>();
 				ImLoginRequestProto req = new ImLoginRequestProto(Command.JPUSH_IM.LOGIN, 1, 0, pushLoginResponseBean.getSid(), juid, appkey, rid, cookie, bean);
 				pushChannel.writeAndFlush(req);
-				log.info(String.format("user: %s begin IM login", user_name));
+				log.info(String.format("user: %s begin IM login", username));
 			}
 		 });
 		 
-		 //  客户端绑定
-		 server.addEventListener("bindSocketIoClientEvent", ContracterObject.class, new DataListener<ContracterObject>() {
-				@Override
-				public void onData(SocketIOClient client, ContracterObject data,
-						AckRequest ackSender) throws Exception {
-					String userName = data.getUser_name();
-					long uid = data.getUid();
-					log.info(String.format("user: %s bindSocketIoClientEvent rebind relationship, uid: %d", userName, uid));
-					WebImServer.userNameToSessionCilentMap.put(uid, client);
-					WebImServer.userToSessionCilentMap.remove(userName);
-					WebImServer.sessionClientToUserNameMap.put(client, uid);
-					client.sendEvent("bindSocketIoClientEvent", "");
-					log.info(String.format("user: %s rebind relationship success", userName));
-				}
-		 });
-		 
-		 // 获取联系人列表
-		 server.addEventListener("getContracterList", ContracterObject.class, new DataListener<ContracterObject>() {
+		 //  用户退出
+		 server.addEventListener("logout", LogoutBean.class, new DataListener<LogoutBean>() {
 			@Override
-			public void onData(SocketIOClient client, ContracterObject data,
+			public void onData(SocketIOClient client, LogoutBean data,
 					AckRequest ackSender) throws Exception {
-				String appkey = data.getAppKey();
-				String user_name = data.getUser_name();
-				long uid = data.getUid();
-				String token = WebImServer.uidToTokenMap.get(uid);
-				log.info(String.format("user: %s begin to get contracter list", user_name));
-				if(user_name==null || "".equals(user_name) || data==null){
-					log.warn(String.format("user getcontracter error, because data is empty"));
+				String userName = sessionClientToUserNameMap.get(client);
+				Jedis jedis = null;
+				String appKey = "";
+				int sid = 0;
+				long juid = 0L;
+				long uid = 0L;
+				try{
+					jedis = redisClient.getJeids();
+					List<String> dataList = jedis.hmget(userName, "appKey", "sid", "juid", "uid");
+					appKey = dataList.get(0);
+					sid = Integer.parseInt(dataList.get(1));
+					juid = Long.parseLong(dataList.get(2));
+					uid = Long.parseLong(dataList.get(3));
+				} catch (JedisConnectionException e) {
+					log.error(e.getMessage());
+					redisClient.returnBrokenResource(jedis);
+					throw new JedisConnectionException(e);
+				} finally {
+					redisClient.returnResource(jedis);
+				}
+				Channel channel = userNameToPushChannelMap.get(userName);
+				if(channel==null){
+					 log.info("当前用户与jpush的连接已断开.");
+					 client.sendEvent("logout", "true");
+				} else {
+					log.info(String.format("user: %s auto logout", userName));
+					LogoutRequestBean bean = new LogoutRequestBean(userName);
+					List<Integer> cookie = new ArrayList<Integer>();
+					ImLogoutRequestProto req = new ImLogoutRequestProto(Command.JPUSH_IM.LOGOUT, 1, uid, appKey, sid, juid, cookie, bean);
+					channel.writeAndFlush(req);
+				}
+			}
+		});
+		 
+		// 获取用户信息
+		server.addEventListener("getUserInfo", SdkGetUserInfoObject.class, new DataListener<SdkGetUserInfoObject>() {
+			@Override
+			public void onData(SocketIOClient client, SdkGetUserInfoObject data,
+					AckRequest ackSender) throws Exception {
+				String username = data.getUsername();
+				if(StringUtils.isEmpty(username)){
+					log.warn("user getUserInfo pass empty data exception");
 					return;
 				}
-				List<User> contractersList = new ArrayList<User>();
-				//  模拟用户列表
-				for(int i=1; i<4; i++){
-					String username = "p00"+i;
-					HttpResponseWrapper userResult = APIProxy.getUserInfo(appkey, username, token);
-					if(userResult.isOK()){
-						User userInfo = gson.fromJson(userResult.content, User.class);
-						contractersList.add(userInfo);
-					}
+				String userName = sessionClientToUserNameMap.get(client);
+				Jedis jedis = null;
+				String appKey = "";
+				String token = "";
+				try{
+					jedis = redisClient.getJeids();
+					List<String> dataList = jedis.hmget(userName, "appKey", "token");
+					appKey = dataList.get(0);
+					token = dataList.get(1);
+				} catch (JedisConnectionException e) {
+					log.error(e.getMessage());
+					redisClient.returnBrokenResource(jedis);
+					throw new JedisConnectionException(e);
+				} finally {
+					redisClient.returnResource(jedis);
 				}
-				client.sendEvent("getContracterList", contractersList);
-				log.info(String.format("user: %s get contracter success", user_name));
-			}	 
+				HttpResponseWrapper responseWrapper = APIProxy.getUserInfo(appKey, username, token);
+				if(responseWrapper.isOK()){
+					//SdkUserInfo userInfo = gson.fromJson(responseWrapper.content, SdkUserInfo.class);
+					SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject();
+					resp.setContent(responseWrapper.content);
+					log.info("userinfo: "+responseWrapper.content);
+					client.sendEvent("getUserInfo", gson.toJson(resp));
+				} else {
+					SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject();
+					resp.setErrorInfo(1000, "call sdk-api exception");
+					client.sendEvent("getUserInfo", gson.toJson(resp));
+				}	
+			}
 		});
+		
+		// 用户聊天
+		server.addEventListener("sendTextMessage", SdkSendTextMsgObject.class, new DataListener<SdkSendTextMsgObject>() {
+			 @Override
+			 public void onData(SocketIOClient client, SdkSendTextMsgObject data, AckRequest ackRequest) {
+				String userName = sessionClientToUserNameMap.get(client);
+				long rid = StringUtils.getRID();
+				int version = 1;
+				Jedis jedis = null;
+				String appKey = "";
+				int sid = 0;
+				long juid = 0L;
+				String token = "";
+				long uid = 0L;
+				try{
+					jedis = redisClient.getJeids();
+					List<String> dataList = jedis.hmget(userName, "appKey", "sid", "juid", "token", "uid");
+					appKey = dataList.get(0);
+					sid = Integer.parseInt(dataList.get(1));
+					juid = Long.parseLong(dataList.get(2));
+					token = dataList.get(3);
+					uid = Long.parseLong(dataList.get(4));
+				} catch (JedisConnectionException e) {
+					log.error(e.getMessage());
+					redisClient.returnBrokenResource(jedis);
+					throw new JedisConnectionException(e);
+				} finally {
+					redisClient.returnResource(jedis);
+				}
+				 
+				 MsgContentBean msgContent = new MsgContentBean();
+				 msgContent.setVersion(version);
+				 msgContent.setTarget_type(data.getTargetType());
+				 msgContent.setTarget_id(data.getTargetId());
+				 msgContent.setTarget_name(data.getTargetId());
+				 msgContent.setFrom_type("user");
+				 msgContent.setFrom_platform("web");
+				 msgContent.setFrom_id(userName);
+				 msgContent.setFrom_name(userName);
+				 msgContent.setCreate_time(StringUtils.getCreateTime());
+				 msgContent.setMsg_type("text");
+				 MsgBody msgBody = new MsgBody();
+				 msgBody.setText(data.getText());
+				 msgContent.setMsg_body(msgBody);
+				 
+				 log.info(String.format("user: %s send chat msg, content is: ", userName, gson.toJson(data)));
+				 Channel channel = userNameToPushChannelMap.get(userName);
+				 if(channel==null){
+					 log.warn("current user get channel to push server exception");
+					 return;
+				 } 
+				 if("single".equals(data.getTargetType())){
+					 HttpResponseWrapper responseWrapper = APIProxy.getUserInfo(appKey, data.getTargetId(), token);
+					 long target_uid = 0L;
+					 if(responseWrapper.isOK()){
+						 SdkUserInfo userInfo = gson.fromJson(responseWrapper.content, SdkUserInfo.class);
+						 target_uid = userInfo.getUid();
+						 SendSingleMsgRequestBean bean = new SendSingleMsgRequestBean(target_uid, gson.toJson(msgContent));  //  为了和移动端保持一致，注意这里用target_name来存储id，避免再查一次
+						 List<Integer> cookie = new ArrayList<Integer>();
+						 ImSendSingleMsgRequestProto req = new ImSendSingleMsgRequestProto(Command.JPUSH_IM.SENDMSG_SINGAL, 1, uid, appKey, sid,  juid, rid, cookie, bean);
+						 channel.writeAndFlush(req);
+						 log.info(String.format("user: %s begin send single chat msg", userName));
+					 } else {
+						 log.warn(String.format("user: %s sendTextMessage call sdk-api getUserInfo exception", userName)); 
+					 }
+				 } else if("group".equals(data.getTargetType())){
+					 SendGroupMsgRequestBean bean = new SendGroupMsgRequestBean(Long.parseLong(data.getTargetId()), gson.toJson(msgContent));
+					 List<Integer> cookie = new ArrayList<Integer>();
+					 ImSendGroupMsgRequestProto req = new ImSendGroupMsgRequestProto(Command.JPUSH_IM.SENDMSG_GROUP, 1, uid, appKey, sid, juid, rid, cookie, bean);
+					 channel.writeAndFlush(req);
+					 log.info(String.format("user: %s begin send group chat msg", userName));
+				 }
+			 }
+		 });
+		
+		//  离线消息送达返回
+		server.addEventListener("onMessageReceivedResp", SdkSyncMsgRespObject.class, new DataListener<SdkSyncMsgRespObject>() {
+			@Override
+			public void onData(SocketIOClient client, SdkSyncMsgRespObject data,
+					AckRequest ackSender) throws Exception {
+				String userName = sessionClientToUserNameMap.get(client);
+				long rid = StringUtils.getRID();
+				Jedis jedis = null;
+				String appKey = "";
+				long uid = 0L;
+				int sid = 0;
+				long juid = 0L;
+				try{
+					jedis = redisClient.getJeids();
+					List<String> dataList = jedis.hmget(userName, "appKey", "sid", "juid", "uid");
+					appKey = dataList.get(0);
+					sid = Integer.parseInt(dataList.get(1));
+					juid = Long.parseLong(dataList.get(2));
+					uid = Long.parseLong(dataList.get(3));
+				} catch (JedisConnectionException e) {
+					log.error(e.getMessage());
+					redisClient.returnBrokenResource(jedis);
+					throw new JedisConnectionException(e);
+				} finally {
+					redisClient.returnResource(jedis);
+				}
+				long messageId = data.getMessageId();
+				int iMsgType = data.getiMsgType();   
+				long from_uid = data.getFrom_uid();
+				long from_gid = data.getFrom_gid();
+				log.info(String.format("user: %d sync msg feedback, msgId is %d, msgType is %d", uid, messageId, iMsgType));
+				List<Integer> cookie = new ArrayList<Integer>();
+				ChatMsg.Builder chatMsg = ChatMsg.newBuilder();
+				chatMsg.setMsgid(messageId);
+				chatMsg.setMsgType(iMsgType);
+				chatMsg.setFromUid(from_uid);
+				chatMsg.setFromGid(from_gid);
+				ChatMsg chatMsgBean = chatMsg.build();
+				ImChatMsgSyncRequestProto req = new ImChatMsgSyncRequestProto(Command.JPUSH_IM.SYNC_MSG, 1, uid,
+						appKey, rid, sid, juid, cookie, chatMsgBean);
+				Channel channel = userNameToPushChannelMap.get(userName);
+				channel.writeAndFlush(req);
+				log.info(String.format("user: %d send sync msg feedback request", uid));
+			}
+		});
+			
+		//  事件下发送达返回
+		server.addEventListener("onEventReceivedResp", SdkSyncEventRespObject.class, new DataListener<SdkSyncEventRespObject>() {
+			@Override
+			public void onData(SocketIOClient client, SdkSyncEventRespObject data,
+					AckRequest ackSender) throws Exception {
+				long rid = StringUtils.getRID();
+				long eventId = data.getEventId();
+				int eventType = data.getEventType();
+				long from_uid = data.getFrom_uid();
+				long gid = data.getGid();
+				String userName = sessionClientToUserNameMap.get(client);
+				Jedis jedis = null;
+				String appKey = "";
+				int sid = 0;
+				long juid = 0L;
+				long uid = 0L;
+				try{
+					jedis = redisClient.getJeids();
+					List<String> dataList = jedis.hmget(userName, "appKey", "sid", "juid", "uid");
+					appKey = dataList.get(0);
+					sid = Integer.parseInt(dataList.get(1));
+					juid = Long.parseLong(dataList.get(2));
+					uid = Long.parseLong(dataList.get(3));
+				} catch (JedisConnectionException e) {
+					log.error(e.getMessage());
+					redisClient.returnBrokenResource(jedis);
+					throw new JedisConnectionException(e);
+				} finally {
+					redisClient.returnResource(jedis);
+				}
+				log.info(String.format("user: %d sync event feedback, eventId is %d, eventType is %d", uid, eventId, eventType));
+				List<Integer> cookie = new ArrayList<Integer>();
+				EventNotification.Builder eventNotification = EventNotification.newBuilder();
+				eventNotification.setEventId(eventId);
+				eventNotification.setEventType(eventType);
+				eventNotification.setFromUid(from_uid);
+				eventNotification.setGid(gid);
+				EventNotification eventNotificationBean = eventNotification.build();
+				ImEventSyncRequestProto req = new ImEventSyncRequestProto(Command.JPUSH_IM.SYNC_EVENT, 1, uid,
+						appKey, rid, sid, juid, cookie, eventNotificationBean);
+				Channel channel = userNameToPushChannelMap.get(userName);
+				channel.writeAndFlush(req);
+				log.info(String.format("user: %d send sync event feedback request", uid));
+			}
+		});
+		 
+		 // 获取联系人列表
+//		 server.addEventListener("getContracterList", ContracterObject.class, new DataListener<ContracterObject>() {
+//			@Override
+//			public void onData(SocketIOClient client, ContracterObject data,
+//					AckRequest ackSender) throws Exception {
+//				String appkey = data.getAppKey();
+//				String user_name = data.getUser_name();
+//				long uid = data.getUid();
+//				String token = WebImServer.uidToTokenMap.get(uid);
+//				log.info(String.format("user: %s begin to get contracter list", user_name));
+//				if(user_name==null || "".equals(user_name) || data==null){
+//					log.warn(String.format("user getcontracter error, because data is empty"));
+//					return;
+//				}
+//				List<User> contractersList = new ArrayList<User>();
+//				//  模拟用户列表
+//				for(int i=1; i<4; i++){
+//					String username = "p00"+i;
+//					HttpResponseWrapper userResult = APIProxy.getUserInfo(appkey, username, token);
+//					if(userResult.isOK()){
+//						User userInfo = gson.fromJson(userResult.content, User.class);
+//						contractersList.add(userInfo);
+//					}
+//				}
+//				client.sendEvent("getContracterList", contractersList);
+//				log.info(String.format("user: %s get contracter success", user_name));
+//			}	 
+//		});
 		 
 		// 获取群组列表
 		server.addEventListener("getGroupsList", ContracterObject.class, new DataListener<ContracterObject>() {
 			@Override
 			public void onData(SocketIOClient client, ContracterObject data,
 					AckRequest ackSender) throws Exception {
-				long uid = data.getUid();
-				String token = WebImServer.uidToTokenMap.get(uid);
+				String userName = sessionClientToUserNameMap.get(client);
+				Jedis jedis = null;
+				String token = "";
+				long uid = 0L;
+				try{
+					jedis = redisClient.getJeids();
+					List<String> dataList = jedis.hmget(userName, "token", "uid");
+					token = dataList.get(0);
+					uid = Long.parseLong(dataList.get(1));
+				} catch (JedisConnectionException e) {
+					log.error(e.getMessage());
+					redisClient.returnBrokenResource(jedis);
+					throw new JedisConnectionException(e);
+				} finally {
+					redisClient.returnResource(jedis);
+				}
+				Channel channel = userNameToPushChannelMap.get(userName);
 				log.info(String.format("getGroupList toke: %s", token));
 				log.info(String.format("user: %d begin to get group list", uid));
 				if(uid==0 || data==null){
@@ -289,15 +581,6 @@ public class WebImServer {
 							groupsList.add(group);
 						}
 					}
-//					List<Group> groupList = gson.fromJson(groupListJson, new TypeToken<ArrayList<Group>>(){}.getType());
-//					for(Group group: groupList){
-//						HttpResponseWrapper groupInfoResult = APIProxy.getGroupInfo(String.valueOf(group.getGid()), token);
-//						if(groupInfoResult.isOK()){
-//							String groupInfoJson = groupInfoResult.content;
-//							group = gson.fromJson(groupInfoJson, Group.class);
-//							groupsList.add(group);
-//						}
-//					}
 				} else {
 					log.warn(String.format("get groups failture because call sdk api exception: %s", result.content));
 				}
@@ -316,10 +599,26 @@ public class WebImServer {
 					log.warn(String.format("user getcontracter error, because data is empty"));
 					return;
 				}
-				String appKey = (String) data.get("appKey");
 				String gid = String.valueOf(data.get("gid"));
-				long uid = Long.parseLong(String.valueOf(data.get("uid")));
-				String token = WebImServer.uidToTokenMap.get(uid);
+				String userName = sessionClientToUserNameMap.get(client);
+				Jedis jedis = null;
+				String appKey = "";
+				String token = "";
+				long uid = 0L;
+				try{
+					jedis = redisClient.getJeids();
+					List<String> dataList = jedis.hmget(userName, "appKey", "token", "uid");
+					appKey = dataList.get(0);
+					token = dataList.get(1);
+					uid = Long.parseLong(dataList.get(2));
+				} catch (JedisConnectionException e) {
+					log.error(e.getMessage());
+					redisClient.returnBrokenResource(jedis);
+					throw new JedisConnectionException(e);
+				} finally {
+					redisClient.returnResource(jedis);
+				}
+				Channel channel = userNameToPushChannelMap.get(userName);
 				ArrayList<HashMap> resultList = new ArrayList<HashMap>();
 				log.info(String.format("user: %d begin get group: %s members", uid, gid));
 				HttpResponseWrapper resultWrapper = APIProxy.getGroupMemberList(gid, token);
@@ -340,9 +639,9 @@ public class WebImServer {
 				}
 			}	 
 		});
-		 
+		
 		 // 用户聊天
-		server.addEventListener("chatEvent", ChatMessage.class, new DataListener<ChatMessage>() {
+		/*server.addEventListener("chatEvent", ChatMessage.class, new DataListener<ChatMessage>() {
 			 @Override
 			 public void onData(SocketIOClient client, ChatMessage data, AckRequest ackRequest) {
 				 String appKey = data.getAppKey();
@@ -384,7 +683,7 @@ public class WebImServer {
 					 log.info(String.format("user: %s begin send group chat msg", userName));
 				 }
 			 }
-		 });
+		 });*/
 		 
 		 //  用户获取上传token
 		 server.addEventListener("getUploadToken", String.class, new DataListener<String>() {
@@ -456,16 +755,33 @@ public class WebImServer {
 			@Override
 				public void onData(SocketIOClient client, AddOrDelGroupMember data,
 						AckRequest ackSender) throws Exception {
-					String user_name = data.getUsername();
-					String appKey = data.getAppKey();
-					int sid = data.getSid();
-					long uid = data.getUid();
-					long addUid = 0L;
-					long juid = data.getJuid();
+					String user_name = data.getUsername();  //  列表
 					long gid = data.getGid();
-					long rid = data.getRid();
-					log.info(String.format("user: %d add group member, the member is %s", uid, user_name));
-					String token = WebImServer.uidToTokenMap.get(uid);
+					String userName = sessionClientToUserNameMap.get(client);
+					log.info(String.format("user: %s add group member, the member is %s", userName, user_name));
+					Jedis jedis = null;
+					String appKey = "";
+					int sid = 0;
+					long uid = 0L;
+					String token = "";
+					long addUid = 0L;
+					long juid = 0L;
+					long rid = StringUtils.getRID();
+					try{
+						jedis = redisClient.getJeids();
+						List<String> dataList = jedis.hmget(userName, "appKey", "sid", "uid", "token", "juid");
+						appKey = dataList.get(0);
+						sid = Integer.parseInt(dataList.get(1));
+						uid = Long.parseLong(dataList.get(2));
+						token = dataList.get(3);
+						juid = Long.parseLong(dataList.get(4));
+					} catch (JedisConnectionException e) {
+						log.error(e.getMessage());
+						redisClient.returnBrokenResource(jedis);
+						throw new JedisConnectionException(e);
+					} finally {
+						redisClient.returnResource(jedis);
+					}
 					log.info("call sdk api: getUserInfo");
 					HttpResponseWrapper resultWrapper = APIProxy.getUserInfo(appKey, user_name, token);
 					if(resultWrapper.isOK()){
@@ -478,7 +794,7 @@ public class WebImServer {
 					AddGroupMemberRequestBean bean = new AddGroupMemberRequestBean(gid, 1, list);
 					List<Integer> cookie = new ArrayList<Integer>();
 					ImAddGroupMemberRequestProto req = new ImAddGroupMemberRequestProto(Command.JPUSH_IM.ADD_GROUP_MEMBER, 1, uid, appKey, rid, sid, juid,cookie, bean);
-					Channel channel = userNameToPushChannelMap.get(uid);
+					Channel channel = userNameToPushChannelMap.get(userName);
 					channel.writeAndFlush(req);
 					log.info(String.format("user: %d begin send add group member request", uid));
 				}
@@ -489,13 +805,32 @@ public class WebImServer {
 		@Override
 			public void onData(SocketIOClient client, AddOrDelGroupMember data,
 					AckRequest ackSender) throws Exception {
-				String appKey = data.getAppKey();
-				int sid = data.getSid();
-				long uid = data.getUid();
-				long delUid = data.getToUid();
-				long juid = data.getJuid();
+				long delUid = data.getToUid();  // username list
 				long gid = data.getGid();
-				long rid = data.getRid();
+				long rid = StringUtils.getRID();
+				String userName = sessionClientToUserNameMap.get(client);
+				Jedis jedis = null;
+				String appKey = "";
+				int sid = 0;
+				long uid = 0L;
+				String token = "";
+				long addUid = 0L;
+				long juid = 0L;
+				try{
+					jedis = redisClient.getJeids();
+					List<String> dataList = jedis.hmget(userName, "appKey", "sid", "uid", "token", "juid");
+					appKey = dataList.get(0);
+					sid = Integer.parseInt(dataList.get(1));
+					uid = Long.parseLong(dataList.get(2));
+					token = dataList.get(3);
+					juid = Long.parseLong(dataList.get(4));
+				} catch (JedisConnectionException e) {
+					log.error(e.getMessage());
+					redisClient.returnBrokenResource(jedis);
+					throw new JedisConnectionException(e);
+				} finally {
+					redisClient.returnResource(jedis);
+				}
 				log.info(String.format("user: %d delete group: %d member uid: %d", uid, gid, delUid));
 				List<Long> list = new ArrayList<Long>();
 				list.add(delUid);	
@@ -507,90 +842,6 @@ public class WebImServer {
 				log.info(String.format("user: %d send delGroupMember request", uid));
 			}
 		});
-		
-		//  离线消息送达返回
-		server.addEventListener("chatMsgSyncResp", ChatObject.class, new DataListener<ChatObject>() {
-			@Override
-			public void onData(SocketIOClient client, ChatObject data,
-					AckRequest ackSender) throws Exception {
-				String appkey = data.getAppKey();
-				long uid = data.getUid();
-				long juid = data.getJuid();
-				int sid = data.getSid();
-				long rid = data.getRid();
-				long messageId = data.getMessageId();
-				int iMsgType = data.getiMsgType();   
-				long from_uid = data.getFrom_uid();
-				long from_gid = data.getFrom_gid();
-				log.info(String.format("user: %d sync msg feedback, msgId is %d, msgType is %d", uid, messageId, iMsgType));
-				List<Integer> cookie = new ArrayList<Integer>();
-				ChatMsg.Builder chatMsg = ChatMsg.newBuilder();
-				chatMsg.setMsgid(messageId);
-				chatMsg.setMsgType(iMsgType);
-				chatMsg.setFromUid(from_uid);
-				chatMsg.setFromGid(from_gid);
-				ChatMsg chatMsgBean = chatMsg.build();
-				ImChatMsgSyncRequestProto req = new ImChatMsgSyncRequestProto(Command.JPUSH_IM.SYNC_MSG, 1, uid,
-						appkey, rid, sid, juid, cookie, chatMsgBean);
-				Channel channel = userNameToPushChannelMap.get(uid);
-				channel.writeAndFlush(req);
-				log.info(String.format("user: %d send sync msg feedback request", uid));
-			}
-		});
-		
-		//  事件下发送达返回
-		server.addEventListener("eventSyncResp", EventSyncRespBean.class, new DataListener<EventSyncRespBean>() {
-			@Override
-			public void onData(SocketIOClient client, EventSyncRespBean data,
-					AckRequest ackSender) throws Exception {
-				String appkey = data.getAppKey();
-				long uid = data.getUid();
-				long juid = data.getJuid();
-				int sid = data.getSid();
-				long rid = data.getRid();
-				long eventId = data.getEventId();
-				int eventType = data.getEventType();
-				long from_uid = data.getFrom_uid();
-				long gid = data.getGid();
-				log.info(String.format("user: %d sync event feedback, eventId is %d, eventType is %d", uid, eventId, eventType));
-				List<Integer> cookie = new ArrayList<Integer>();
-				EventNotification.Builder eventNotification = EventNotification.newBuilder();
-				eventNotification.setEventId(eventId);
-				eventNotification.setEventType(eventType);
-				eventNotification.setFromUid(from_uid);
-				eventNotification.setGid(gid);
-				EventNotification eventNotificationBean = eventNotification.build();
-				ImEventSyncRequestProto req = new ImEventSyncRequestProto(Command.JPUSH_IM.SYNC_EVENT, 1, uid,
-						appkey, rid, sid, juid, cookie, eventNotificationBean);
-				Channel channel = userNameToPushChannelMap.get(uid);
-				channel.writeAndFlush(req);
-				log.info(String.format("user: %d send sync event feedback request", uid));
-			}
-		});
-		
-		//  用户退出
-		 server.addEventListener("logout", LogoutBean.class, new DataListener<LogoutBean>() {
-			@Override
-			public void onData(SocketIOClient client, LogoutBean data,
-					AckRequest ackSender) throws Exception {
-				String appKey = data.getAppKey();
-				int sid = data.getSid();
-				long juid = data.getJuid();
-				long uid = data.getUid();
-				String username = data.getUser_name();
-				Channel channel = userNameToPushChannelMap.get(uid);
-				if(channel==null){
-					 log.info("当前用户与jpush的连接已断开.");
-					 client.sendEvent("logout", "true");
-				} else {
-					log.info(String.format("user: %s auto logout", username));
-					LogoutRequestBean bean = new LogoutRequestBean(username);
-					List<Integer> cookie = new ArrayList<Integer>();
-					ImLogoutRequestProto req = new ImLogoutRequestProto(Command.JPUSH_IM.LOGOUT, 1, uid, appKey, sid, juid, cookie, bean);
-					channel.writeAndFlush(req);
-				}
-			}
-		 });
 		 
 		 
 		/* -----------------------------------------  to check ---------------------------------------------*/
@@ -627,11 +878,31 @@ public class WebImServer {
 			public void onData(SocketIOClient client, CreateGroupBean data,
 					AckRequest ackSender) throws Exception {
 		 		log.info("create group event");
-		 		String appKey = data.getAppKey();
-				long uid = data.getUid();
-				int sid = data.getSid();
-				long juid = data.getJuid();
-				long rid = data.getRid();
+		 		String userName = sessionClientToUserNameMap.get(client);
+		 		if(StringUtils.isEmpty(userName)){
+		 			log.warn(String.format("through client get username exception"));
+		 			return;
+		 		}
+		 		long rid = StringUtils.getRID();
+				Jedis jedis = null;
+				String appKey = "";
+				int sid = 0;
+				long juid = 0L;
+				long uid = 0L;
+				try{
+					jedis = redisClient.getJeids();
+					List<String> dataList = jedis.hmget(userName, "appKey", "sid", "juid", "uid");
+					appKey = dataList.get(0);
+					sid = Integer.parseInt(dataList.get(1));
+					juid = Long.parseLong(dataList.get(2));
+					uid = Long.parseLong(dataList.get(3));
+				} catch (JedisConnectionException e) {
+					log.error(e.getMessage());
+					redisClient.returnBrokenResource(jedis);
+					throw new JedisConnectionException(e);
+				} finally {
+					redisClient.returnResource(jedis);
+				}
 				String group_name = data.getGroup_name();
 				String group_desc = data.getGroup_desc();
 				int group_level = 200;
@@ -639,7 +910,7 @@ public class WebImServer {
 				CreateGroupRequestBean bean = new CreateGroupRequestBean(group_name, group_desc, group_level, flag);
 				List<Integer> cookie = new ArrayList<Integer>();
 				ImCreateGroupRequestProto req = new ImCreateGroupRequestProto(Command.JPUSH_IM.CREATE_GROUP, 1, uid, appKey, rid, sid, juid, cookie, bean);
-				Channel channel = userNameToPushChannelMap.get(uid);
+				Channel channel = userNameToPushChannelMap.get(userName);
 				channel.writeAndFlush(req);
 			}
 		});
@@ -650,24 +921,38 @@ public class WebImServer {
 			public void onData(SocketIOClient client, ExitGroupBean data,
 					AckRequest ackSender) throws Exception {
 		 		log.info("exit group event");
-		 		String appKey = data.getAppKey();
-				long uid = data.getUid();
-				int sid = data.getSid();
-				long juid = data.getJuid();
 				long gid = data.getGid();
-				long rid = data.getRid();
+				long rid = StringUtils.getRID();
+				String userName = sessionClientToUserNameMap.get(client);
+				Jedis jedis = null;
+				String appKey = "";
+				int sid = 0;
+				long juid = 0L;
+				long uid = 0L;
+				try{
+					jedis = redisClient.getJeids();
+					List<String> dataList = jedis.hmget(userName, "appKey", "sid", "juid", "uid");
+					appKey = dataList.get(0);
+					sid = Integer.parseInt(dataList.get(1));
+					juid = Long.parseLong(dataList.get(2));
+					uid = Long.parseLong(dataList.get(3));
+				} catch (JedisConnectionException e) {
+					log.error(e.getMessage());
+					redisClient.returnBrokenResource(jedis);
+					throw new JedisConnectionException(e);
+				} finally {
+					redisClient.returnResource(jedis);
+				}
 				ExitGroupRequestBean bean = new ExitGroupRequestBean(gid);
 				List<Integer> cookie = new ArrayList<Integer>();
 				ImExitGroupRequestProto req = new ImExitGroupRequestProto(Command.JPUSH_IM.EXIT_GROUP, 1, uid, appKey, rid, sid, juid, cookie, bean);
-				Channel channel = userNameToPushChannelMap.get(uid);
+				Channel channel = userNameToPushChannelMap.get(userName);
 				channel.writeAndFlush(req);
 			}
 		});
 		/* ------------------------------------------  to check -------------------------------------------------*/
 		
 		 server.start();
-		 //Thread.sleep(Integer.MAX_VALUE);
-		 //server.stop();
 	}
 	
 	public static void main(String[] args) throws InterruptedException {

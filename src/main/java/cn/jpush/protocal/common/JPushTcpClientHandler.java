@@ -54,6 +54,8 @@ import cn.jpush.webim.socketio.bean.GroupMember;
 import cn.jpush.webim.socketio.bean.GroupMemberList;
 import cn.jpush.webim.socketio.bean.IMPacket;
 import cn.jpush.webim.socketio.bean.MsgContentBean;
+import cn.jpush.webim.socketio.bean.SdkCommonErrorRespObject;
+import cn.jpush.webim.socketio.bean.SdkCommonSuccessRespObject;
 import cn.jpush.webim.socketio.bean.User;
 import cn.jpush.webim.socketio.bean.UserList;
 
@@ -71,6 +73,7 @@ import io.netty.handler.timeout.IdleStateEvent;
 
 public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 	private static Logger log = (Logger) LoggerFactory.getLogger(JPushTcpClientHandler.class);
+	private RedisClient redisClient = new RedisClient();
 	private Gson gson = new Gson();
 	private PushLoginResponseBean pushLoginResponseBean;
 	private int sid;
@@ -87,14 +90,14 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 		log.warn(String.format("handler: %s removed from push server", channel.toString()));
 		// 与JPush Server断开后，通知相应用户掉线
 		if(channel!=null){
-			long uid = 0L;
+			String userName = "";
 			try{
-				uid = WebImServer.pushChannelToUsernameMap.get(channel);
+				userName = WebImServer.pushChannelToUsernameMap.get(channel);
 			} catch (Exception e){
 				log.warn(String.format("handler removed exception: %s", e.getMessage()));
 			}
-			if(0!=uid){
-				SocketIOClient sessionClient = WebImServer.userNameToSessionCilentMap.get(uid);
+			if(StringUtils.isNotEmpty(userName)){
+				SocketIOClient sessionClient = WebImServer.userNameToSessionCilentMap.get(userName);
 				sessionClient.sendEvent("disconnect", "");
 			}
 		}
@@ -156,25 +159,30 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 						Map tokenMap = gson.fromJson(stoken, HashMap.class);
 						String _token = (String) tokenMap.get("token");
 						String token = BASE64Utils.encodeString(uid+":"+_token);
-						WebImServer.uidToTokenMap.put(uid, token);
-						WebImServer.userToSessionCilentMap.get(userName).sendEvent("loginEvent", uid);
-						log.info(String.format("client handler send event: %s to webclient", "loginEventGetUID"));
-						Channel channel = WebImServer.userToPushChannelMap.get(userName);
-						WebImServer.userNameToPushChannelMap.put(uid, channel);
-						WebImServer.pushChannelToUsernameMap.put(channel, uid);
-						WebImServer.userToPushChannelMap.remove(userName);
-					} 
-					if(imLoginRespCode==TcpCode.IM.LOGIN_UNLEAGAL_PASSWORD){
-						WebImServer.userToSessionCilentMap.get(userName).sendEvent("IMException", TcpCode.IM.LOGIN_UNLEAGAL_PASSWORD);
-						log.warn(String.format("client handler send event: %s, exception code: %d", "IMException", TcpCode.IM.LOGIN_UNLEAGAL_PASSWORD));
-					}
-					if(imLoginRespCode==TcpCode.IM.USER_UNEXIT){
-						WebImServer.userToSessionCilentMap.get(userName).sendEvent("IMException", TcpCode.IM.USER_UNEXIT);
-						log.warn(String.format("client handler send event: %s, exception code: %d", "IMException", TcpCode.IM.USER_UNEXIT));
-					}
-					if(imLoginRespCode==TcpCode.IM.USERNAME_WRONG){
-						WebImServer.userToSessionCilentMap.get(userName).sendEvent("IMException", TcpCode.IM.USERNAME_WRONG);
-						log.warn(String.format("client handler send event: %s, exception code: %d", "IMException", TcpCode.IM.USERNAME_WRONG));
+						SdkCommonSuccessRespObject loginComResp = new SdkCommonSuccessRespObject();
+						WebImServer.userNameToSessionCilentMap.get(userName).sendEvent("login", gson.toJson(loginComResp));
+						log.info(String.format("client handler send event: %s to webclient", "login"));
+						
+						//  存储用户信息
+						Jedis jedis = null;
+						try{
+							jedis = redisClient.getJeids();
+							Map<String, String> map = new HashMap<String, String>();
+							map.put("uid", String.valueOf(uid));
+							map.put("token", token);
+							jedis.hmset(userName, map);
+						} catch (JedisConnectionException e) {
+							log.error(e.getMessage());
+							redisClient.returnBrokenResource(jedis);
+							throw new JedisConnectionException(e);
+						} finally {
+							redisClient.returnResource(jedis);
+						}
+					} else {
+						SdkCommonErrorRespObject loginComResp = new SdkCommonErrorRespObject();
+						loginComResp.setErrorInfo(imLoginRespCode, imLoginRespMsg);
+						WebImServer.userNameToSessionCilentMap.get(userName).sendEvent("login", gson.toJson(loginComResp));
+						log.warn(String.format("client handler send event: %s, exception code: %d", "loginfail", loginComResp.getError().getErrorCode()));
 					}
 					
 					break;
@@ -183,8 +191,9 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					//Logout logoutBean = ProtocolUtil.getLogout(protocol);
 					Response logoutResp = ProtocolUtil.getCommonResp(protocol);
 					log.info("logout response data: code: "+logoutResp.getCode()+", message: "+logoutResp.getMessage().toStringUtf8());
-					if(logoutResp.getCode()==0){
-						//  to do
+					if(logoutResp.getCode()==TcpCode.IM.SUCCESS){
+						//  TODO
+						log.info("user logout success");
 					}
 					break;
 				case Command.JPUSH_IM.SENDMSG_SINGAL:
@@ -197,17 +206,21 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					//  消息发送状态下发
 					@SuppressWarnings("unchecked")
 					HashMap<String, Object> _dataMap = gson.fromJson(singleMsgBean.getContent().getContent().toStringUtf8(), HashMap.class);
-					long ss_uid = protocol.getHead().getUid();
-					sessionClient = WebImServer.userNameToSessionCilentMap.get(ss_uid);
+					//long ss_uid = protocol.getHead().getUid();
+					String username = WebImServer.pushChannelToUsernameMap.get(ctx.channel());
+					sessionClient = WebImServer.userNameToSessionCilentMap.get(username);
 					
-					ChatMessageObject _content = gson.fromJson(gson.toJson(_dataMap), ChatMessageObject.class);
 					if(sessionClient!=null){
-						log.info("send single msg status to client");
-						ChatObject chatMsgData = new ChatObject();	
-						chatMsgData.setCode(imSingleMsgRespCode);
-						chatMsgData.setCreate_time(_content.getCreate_time());
-						chatMsgData.setRid(rid);
-						sessionClient.sendEvent("msgFeedBackEvent", chatMsgData);
+						if(imSingleMsgRespCode==TcpCode.IM.SUCCESS){
+							log.info("send single msg success");
+							SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject();
+							sessionClient.sendEvent("sendTextMessage", gson.toJson(resp));
+						} else {
+							log.info("send single msg failture");
+							SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject();
+							resp.setErrorInfo(imSingleMsgRespCode, imSingleMsgRespMsg);
+							sessionClient.sendEvent("sendTextMessage", gson.toJson(resp));
+						}
 					} else {
 						log.warn("the user is not online");
 					}
@@ -228,13 +241,16 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					//  找群成员
 					Channel mchannel = ctx.channel();
 					if(mchannel!=null){
-						long _uid = WebImServer.pushChannelToUsernameMap.get(mchannel);
-						sessionClient = WebImServer.userNameToSessionCilentMap.get(_uid);
-						ChatObject chatMsgData = new ChatObject();	
-						chatMsgData.setCode(imGroupMsgRespCode);
-						chatMsgData.setCreate_time(gcontent.getCreate_time());
-						chatMsgData.setRid(rid);
-						sessionClient.sendEvent("msgFeedBackEvent", chatMsgData);
+						String sUserName = WebImServer.pushChannelToUsernameMap.get(mchannel);
+						sessionClient = WebImServer.userNameToSessionCilentMap.get(sUserName);
+						if(imGroupMsgRespCode==TcpCode.IM.SUCCESS){
+							SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject();
+							sessionClient.sendEvent("sendTextMessage", gson.toJson(resp));
+						} else {
+							SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject();
+							resp.setErrorInfo(imGroupMsgRespCode, imGroupMsgRespMsg);
+							sessionClient.sendEvent("sendTextMessage", gson.toJson(resp));
+						}
 					} else {
 						log.warn("the user is not online");
 					}
@@ -343,7 +359,20 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					long sync_uid = eventNotification.getFromUid();
 					long sync_gid = eventNotification.getGid();
 					long sync_toUid = eventNotification.getToUidlist(0);
-					String mtoken = WebImServer.uidToTokenMap.get(sync_uid);
+					String sUserName = WebImServer.pushChannelToUsernameMap.get(ctx.channel());
+					Jedis jedis = null;
+					String mtoken = "";
+					try{
+						jedis = redisClient.getJeids();
+						List<String> dataList = jedis.hmget(sUserName, "token");
+						mtoken = dataList.get(0);
+					} catch (JedisConnectionException e) {
+						log.error(e.getMessage());
+						redisClient.returnBrokenResource(jedis);
+						throw new JedisConnectionException(e);
+					} finally {
+						redisClient.returnResource(jedis);
+					}
 					HashMap<String, Object> data = new HashMap<String, Object>();
 					data.put("eventId", eventNotification.getEventId());
 					data.put("eventType", eventNotification.getEventType());
@@ -382,12 +411,11 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 						data.put("gid", sync_gid);
 						data.put("toUid", sync_toUid);
 					}
-					long userId = WebImServer.pushChannelToUsernameMap.get(ctx.channel());
-					if(userId!=0){
-						sessionClient = WebImServer.userNameToSessionCilentMap.get(userId);
+					if(StringUtils.isNotEmpty(sUserName)){
+						sessionClient = WebImServer.userNameToSessionCilentMap.get(sUserName);
 					}
 					if(sessionClient!=null){
-						sessionClient.sendEvent("eventNotification", gson.toJson(data));
+						sessionClient.sendEvent("onEventReceived", gson.toJson(data));
 					} else {
 						log.warn("the user is not online");
 					}
@@ -405,10 +433,10 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 						String target_type = (String)dataMap.get("target_type");
 						if("single".equals(target_type)){  
 							Channel _channel = ctx.channel();
-							long _muid = 0L;
+							String _mUserName = "";
 							if(_channel!=null){
-								_muid = WebImServer.pushChannelToUsernameMap.get(_channel);
-								sessionClient = WebImServer.userNameToSessionCilentMap.get(_muid);
+								_mUserName = WebImServer.pushChannelToUsernameMap.get(_channel);
+								sessionClient = WebImServer.userNameToSessionCilentMap.get(_mUserName);
 							}
 							MsgContentBean content = gson.fromJson(gson.toJson(dataMap), MsgContentBean.class);
 							
@@ -431,7 +459,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 								} else if("voice".equals(content.getMsg_type())){
 									chatMsgData.setContentType("voice");
 								}
-								sessionClient.sendEvent("chatEvent", chatMsgData);
+								sessionClient.sendEvent("onMessageReceived", gson.toJson(chatMsgData));
 								log.info(String.format("send ChatEvent Single Msg to Client: %s", gson.toJson(chatMsgData)));
 							} else {
 								log.warn("the user is not online");
@@ -442,8 +470,8 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 							//  找群成员
 							Channel _channel = ctx.channel();
 							if(_channel!=null){
-								long _muid = WebImServer.pushChannelToUsernameMap.get(_channel);
-								sessionClient = WebImServer.userNameToSessionCilentMap.get(_muid);
+								String _mUserName = WebImServer.pushChannelToUsernameMap.get(_channel);
+								sessionClient = WebImServer.userNameToSessionCilentMap.get(_mUserName);
 								ChatObject chatMsgData = new ChatObject();	
 								chatMsgData.setUid(Long.parseLong(content.getTarget_id()));
 								chatMsgData.setToUserName(content.getTarget_id()+"");
@@ -464,10 +492,10 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 								}
 								log.info("return group msg string: "+gson.toJson(chatMsgData));
 								if(sessionClient!=null){
-									sessionClient.sendEvent("chatEvent", chatMsgData);
+									sessionClient.sendEvent("onMessageReceived", gson.toJson(chatMsgData));
 									log.info(String.format("send ChatEvent Group Msg to Client: %s", gson.toJson(chatMsgData)));
 								} else {
-									log.warn(String.format("user: %d get connection to webclient is empty", _muid));
+									log.warn(String.format("user: %s get connection to webclient is empty", _mUserName));
 								}
 							}
 						}

@@ -327,6 +327,20 @@ public class StringUtils {
 	   return val;  
 	}  
 	
+	public static long getRID() {  
+		String val = "";  
+	   Random random = new Random();  
+	   for(int i = 0; i < 6; i++) {  
+		   val += String.valueOf(random.nextInt(9)+1);  
+	    }  
+	   return Long.parseLong(val);  
+	}  
+	
+	public static int getCreateTime(){
+		int time = (int) (new Date().getTime()/1000);
+		return time;
+	}
+	
 	// generate emial code
 	public static String getEmailToken(String emial) {
 		String token = getRandomChars(3) + "-" + getRandomChars(3) + "-"
