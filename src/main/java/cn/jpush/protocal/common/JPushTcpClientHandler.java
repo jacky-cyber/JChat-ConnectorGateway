@@ -1,5 +1,6 @@
 package cn.jpush.protocal.common;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,9 +51,13 @@ import cn.jpush.webim.socketio.bean.MsgContentBean;
 import cn.jpush.webim.socketio.bean.SdkCommonErrorRespObject;
 import cn.jpush.webim.socketio.bean.SdkCommonSuccessRespObject;
 import cn.jpush.webim.socketio.bean.SdkGroupObject;
+import cn.jpush.webim.socketio.bean.SdkSuccessContentRespObject;
+import cn.jpush.webim.socketio.bean.SdkSyncEventObject;
 import cn.jpush.webim.socketio.bean.SdkSyncMsgObject;
+import cn.jpush.webim.socketio.bean.SdkUserInfoObject;
 
 import com.google.gson.Gson;
+
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -78,15 +83,18 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 		log.warn(String.format("handler: %s removed from push server", channel.toString()));
 		// 与JPush Server断开后，通知相应用户掉线
 		if(channel!=null){
-			String userName = "";
+			String kan = "";
 			try{
-				userName = WebImServer.pushChannelToUsernameMap.get(channel);
+				kan = WebImServer.pushChannelToUsernameMap.get(channel);
 			} catch (Exception e){
 				log.warn(String.format("handler removed exception: %s", e.getMessage()));
 			}
-			if(StringUtils.isNotEmpty(userName)){
-				SocketIOClient sessionClient = WebImServer.userNameToSessionCilentMap.get(userName);
-				sessionClient.sendEvent("disconnect", "");
+			if(StringUtils.isNotEmpty(kan)){
+				SocketIOClient sessionClient = WebImServer.userNameToSessionCilentMap.get(kan);
+				if(sessionClient!=null){
+					SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject();
+					sessionClient.sendEvent("onDisconnected", gson.toJson(resp));
+				}
 			}
 		}
 	}
@@ -180,10 +188,10 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					//Logout logoutBean = ProtocolUtil.getLogout(protocol);
 					Response logoutResp = ProtocolUtil.getCommonResp(protocol);
 					log.info("logout response data: code: "+logoutResp.getCode()+", message: "+logoutResp.getMessage().toStringUtf8());
-					if(logoutResp.getCode()==TcpCode.IM.SUCCESS){
+					/*if(logoutResp.getCode()==TcpCode.IM.SUCCESS){
 						//  TODO
 						log.info("user logout success");
-					}
+					}*/
 					break;
 				case Command.JPUSH_IM.SENDMSG_SINGAL:
 					log.info(String.format("client handler resolve IM single msg resp data: %s", protocol.toString()));
@@ -262,7 +270,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					if(sessionClient!=null){
 						if(createGroupRespcode==TcpCode.IM.SUCCESS){
 							log.info("create group success");
-							SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject();
+							SdkSuccessContentRespObject resp = new SdkSuccessContentRespObject();
 							resp.setContent(gson.toJson(groupObject));
 							sessionClient.sendEvent("createGroup", gson.toJson(resp));
 						} else {
@@ -362,7 +370,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 						updateGroupObject.setGroup_description(bean.getInfo().toStringUtf8());
 						updateGroupObject.setGroup_name(bean.getName().toStringUtf8());
 						if(null!=sessionClient){
-							SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject();
+							SdkSuccessContentRespObject resp = new SdkSuccessContentRespObject();
 							resp.setContent(gson.toJson(updateGroupObject));
 							sessionClient.sendEvent("updateGroupInfo", gson.toJson(resp));
 						} else {
@@ -382,27 +390,74 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					int sync_eventType = eventNotification.getEventType();
 					long sync_uid = eventNotification.getFromUid();
 					long sync_gid = eventNotification.getGid();
-					long sync_toUid = eventNotification.getToUidlist(0);
-					//String sUserName = "";
 					String skan = WebImServer.pushChannelToUsernameMap.get(ctx.channel());
 					if(StringUtils.isNotEmpty(skan)){
 						sessionClient = WebImServer.userNameToSessionCilentMap.get(skan);
-						//sUserName = StringUtils.getUserName(skan);
 					} else {
 						log.warn("user has logout");
 						return;
 					}
-					HashMap<String, Object> data = new HashMap<String, Object>();
-					data.put("event_id", eventNotification.getEventId());
-					data.put("event_type", eventNotification.getEventType());
-					data.put("from_uid", eventNotification.getFromUid());
-					data.put("gid", eventNotification.getGid());
-					data.put("to_uid_list", eventNotification.getToUidlistList());
-					data.put("description", eventNotification.getDescription().toStringUtf8());
-					data.put("ctime", eventNotification.getCtime());
-					
+					SdkSyncEventObject syncEventObject = new SdkSyncEventObject();
+					syncEventObject.setFrom_uid(eventNotification.getFromUid());
+					syncEventObject.setEvent_id(eventNotification.getEventId());
+					syncEventObject.setI_event_type(sync_eventType);
+					if(sync_eventType==8){
+						syncEventObject.setEvent_type("create_group");
+					} else if(sync_eventType==9){
+						syncEventObject.setEvent_type("exit_group");
+					} else if(sync_eventType==10){
+						syncEventObject.setEvent_type("add_members");
+					} else if(sync_eventType==11){
+						syncEventObject.setEvent_type("remove_members");
+					}
+					String keyAndname = WebImServer.pushChannelToUsernameMap.get(ctx.channel());
+					if(StringUtils.isEmpty(keyAndname)){
+						log.warn("user have logout");
+						return;
+					} else {
+						appKey = StringUtils.getAppKey(keyAndname);
+						userName = StringUtils.getUserName(keyAndname);
+						if(StringUtils.isEmpty(appKey)||StringUtils.isEmpty(userName)){
+							log.warn("resovle username exception");
+							return;
+						}
+					}
+					Jedis jedis = null;
+					String token = "";
+					try{
+						jedis = redisClient.getJeids();
+						List<String> dataList = jedis.hmget(appKey+":"+userName, "appKey", "token");
+						appKey = dataList.get(0);
+						token = dataList.get(1);
+					} catch (JedisConnectionException e) {
+						log.error(e.getMessage());
+						redisClient.returnBrokenResource(jedis);
+						throw new JedisConnectionException(e);
+					} finally {
+						redisClient.returnResource(jedis);
+					}
+					String uid = String.valueOf(sync_uid);
+					HttpResponseWrapper responseWrapper = APIProxy.getUserInfoByUid(appKey, uid, token);
+					if(responseWrapper.isOK()){
+						SdkUserInfoObject userInfo = gson.fromJson(responseWrapper.content, SdkUserInfoObject.class);
+						syncEventObject.setFrom_username(userInfo.getUsername());
+					}
+					syncEventObject.setGid(sync_gid);
+					List<Long> uidList = eventNotification.getToUidlistList();
+					ArrayList<String> usernameList = new ArrayList<String>();
+					for(long userId: uidList){
+						HttpResponseWrapper wrapper = APIProxy.getUserInfoByUid(appKey, String.valueOf(userId), token);
+						if(wrapper.isOK()){
+							SdkUserInfoObject userInfo = gson.fromJson(responseWrapper.content, SdkUserInfoObject.class);
+							usernameList.add(userInfo.getUsername());
+						}
+					}
+					syncEventObject.setTo_username_list(usernameList);
+					syncEventObject.setDescription(eventNotification.getDescription().toStringUtf8());
 					if(sessionClient!=null){
-						sessionClient.sendEvent("onEventReceived", gson.toJson(data));
+						SdkSuccessContentRespObject resp = new SdkSuccessContentRespObject();
+						resp.setContent(gson.toJson(syncEventObject));
+						sessionClient.sendEvent("onEventReceived", gson.toJson(resp));
 					} else {
 						log.warn("the user is not online");
 					}
@@ -429,24 +484,31 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 							
 							if(sessionClient!=null){	
 								SdkSyncMsgObject syncMsgObject = new SdkSyncMsgObject();
-								syncMsgObject.setUsername(content.getFrom_id());
-								syncMsgObject.setTo_username(content.getTarget_id());
-								syncMsgObject.setMsg_type("single");
-								syncMsgObject.setMessage(content.getMsg_body().toString());
-								syncMsgObject.setCreate_time(content.getCreate_time());
-								syncMsgObject.setMessage_id(chatMsg.getMsgid());  
-								syncMsgObject.setI_msg_type(chatMsg.getMsgType()); 
+								syncMsgObject.setI_msg_type(chatMsg.getMsgType());
+								syncMsgObject.setMessage_id(chatMsg.getMsgid());
 								syncMsgObject.setFrom_uid(chatMsg.getFromUid());
 								syncMsgObject.setFrom_gid(chatMsg.getFromGid());
+								syncMsgObject.setVersion(content.getVersion());
+								syncMsgObject.setFrom_type(content.getFrom_type());
+								syncMsgObject.setTarget_type(content.getTarget_type());
+								syncMsgObject.setTarget_id(content.getTarget_id());
+								syncMsgObject.setTarget_name(content.getTarget_name());
+								syncMsgObject.setFrom_id(content.getFrom_id());
+								syncMsgObject.setFrom_name(content.getFrom_name());
+								syncMsgObject.setCreate_time(content.getCreate_time());
+								syncMsgObject.setMsg_body(content.getMsg_body().toString());
 								if("text".equals(content.getMsg_type())){
-									syncMsgObject.setContent_type("text");
+									syncMsgObject.setMsg_type("text");
 								} else if("image".equals(content.getMsg_type())){
-									syncMsgObject.setContent_type("image");
+									syncMsgObject.setMsg_type("image");
 								} else if("voice".equals(content.getMsg_type())){
-									syncMsgObject.setContent_type("voice");
+									syncMsgObject.setMsg_type("voice");
 								}
-								sessionClient.sendEvent("onMessageReceived", gson.toJson(syncMsgObject));
-								log.info(String.format("send ChatEvent Single Msg to Client: %s", gson.toJson(syncMsgObject)));
+								SdkSuccessContentRespObject resp = new SdkSuccessContentRespObject();
+								resp.setContent(gson.toJson(syncMsgObject));
+								sessionClient.sendEvent("onMessageReceived", gson.toJson(resp));
+								log.info(String.format("single msg data: %s", chatMsg.getContent().getContent().toStringUtf8()));
+								log.info(String.format("send ChatEvent Single Msg to Client: %s", gson.toJson(resp)));
 							} else {
 								log.warn("the user is not online");
 							}
@@ -459,26 +521,28 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 								String _mkan = WebImServer.pushChannelToUsernameMap.get(_channel);
 								sessionClient = WebImServer.userNameToSessionCilentMap.get(_mkan);
 								SdkSyncMsgObject syncMsgObject = new SdkSyncMsgObject();
-								syncMsgObject.setUsername(content.getFrom_id());
-								syncMsgObject.setTo_username(content.getTarget_id());
-								syncMsgObject.setMsg_type("group");
-								syncMsgObject.setMessage(content.getMsg_body().toString());
+								syncMsgObject.setVersion(content.getVersion());
+								syncMsgObject.setFrom_type(content.getFrom_type());
+								syncMsgObject.setTarget_type(content.getTarget_type());
+								syncMsgObject.setTarget_id(content.getTarget_id());
+								syncMsgObject.setTarget_name(content.getTarget_name());
+								syncMsgObject.setFrom_id(content.getFrom_id());
+								syncMsgObject.setFrom_name(content.getFrom_name());
 								syncMsgObject.setCreate_time(content.getCreate_time());
-								syncMsgObject.setMessage_id(chatMsg.getMsgid());  
-								syncMsgObject.setI_msg_type(chatMsg.getMsgType()); 
-								syncMsgObject.setFrom_uid(chatMsg.getFromUid());
-								syncMsgObject.setFrom_gid(chatMsg.getFromGid());
+								syncMsgObject.setMsg_body(content.getMsg_body().toString());
 								if("text".endsWith(content.getMsg_type())){
-									syncMsgObject.setContent_type("text");
+									syncMsgObject.setMsg_type("text");
 								} else if("image".endsWith(content.getMsg_type())){
-									syncMsgObject.setContent_type("image");
+									syncMsgObject.setMsg_type("image");
 								} else if("voice".equals(content.getMsg_type())){
-									syncMsgObject.setContent_type("voice");
+									syncMsgObject.setMsg_type("voice");
 								}
 								log.info("return group msg string: "+gson.toJson(syncMsgObject));
 								if(sessionClient!=null){
-									sessionClient.sendEvent("onMessageReceived", gson.toJson(syncMsgObject));
-									log.info(String.format("send ChatEvent Group Msg to Client: %s", gson.toJson(syncMsgObject)));
+									SdkSuccessContentRespObject resp = new SdkSuccessContentRespObject();
+									resp.setContent(gson.toJson(syncMsgObject));
+									sessionClient.sendEvent("onMessageReceived", gson.toJson(resp));
+									log.info(String.format("send ChatEvent Group Msg to Client: %s", gson.toJson(resp)));
 								} else {
 									log.warn(String.format("user: %s get connection to webclient is empty", _mkan));
 								}

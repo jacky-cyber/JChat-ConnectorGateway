@@ -100,8 +100,8 @@ public class ImProtocalClientDecoder extends ByteToMessageDecoder {
 						break;
 					default:
 						log.warn(String.format("未处理的消息类型 command： %d", command));
-						in.readBytes(pkg_len);
-						log.warn("未定义的消息类型.");
+						in.readBytes(pkg_len-20);
+						log.warn("丢弃为定义消息类型数据.");
 						break;
 				}
 			

@@ -4,16 +4,16 @@ import com.google.gson.Gson;
 
 public class MsgBody{
 	private String text;
-	private String media_id; 
+	/*private String media_id; 
 	private long media_crc32;
 	private int duration;
 	private int width;
 	private int height;
 	private String format;
-	private String img_link;
+	private String img_link;*/
 	private Object extras;
 	
-	public int getDuration() {
+	/*public int getDuration() {
 		return duration;
 	}
 	public void setDuration(int duration) {
@@ -24,14 +24,14 @@ public class MsgBody{
 	}
 	public void setImg_link(String img_link) {
 		this.img_link = img_link;
-	}
+	}*/
 	public String getText() {
 		return text;
 	}
 	public void setText(String text) {
 		this.text = text;
 	}
-	public String getMedia_id() {
+	/*public String getMedia_id() {
 		return media_id;
 	}
 	public void setMedia_id(String media_id) {
@@ -60,7 +60,7 @@ public class MsgBody{
 	}
 	public void setFormat(String format) {
 		this.format = format;
-	}
+	}*/
 	
 	
 	public Object getExtras() {

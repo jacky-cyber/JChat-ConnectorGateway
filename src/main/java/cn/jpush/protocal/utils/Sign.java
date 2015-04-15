@@ -8,8 +8,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.io.UnsupportedEncodingException;  
 
-class Sign {
-    public static void main(String[] args) {
+public class Sign {
+    /*public static void main(String[] args) {
         String jsapi_ticket = "jsapi_ticket";
 
         // 注意 URL 一定要动态获取，不能 hardcode
@@ -18,7 +18,7 @@ class Sign {
         for (Map.Entry entry : ret.entrySet()) {
             System.out.println(entry.getKey() + ", " + entry.getValue());
         }
-    };
+    };*/
 
     public static Map<String, String> sign(String jsapi_ticket, String url) {
         Map<String, String> ret = new HashMap<String, String>();

@@ -67,6 +67,8 @@ import cn.jpush.webim.common.RedisClient;
 import cn.jpush.webim.common.UidResourcesPool;
 import cn.jpush.webim.socketio.bean.AddFriendCmd;
 import cn.jpush.webim.socketio.bean.Group;
+import cn.jpush.webim.socketio.bean.GroupMember;
+import cn.jpush.webim.socketio.bean.InnerGroupObject;
 import cn.jpush.webim.socketio.bean.LogoutBean;
 import cn.jpush.webim.socketio.bean.MsgBody;
 import cn.jpush.webim.socketio.bean.MsgContentBean;
@@ -78,14 +80,18 @@ import cn.jpush.webim.socketio.bean.SdkCreateGroupObject;
 import cn.jpush.webim.socketio.bean.SdkExitGroupObject;
 import cn.jpush.webim.socketio.bean.SdkGetGroupInfoObject;
 import cn.jpush.webim.socketio.bean.SdkGetUserInfoObject;
+import cn.jpush.webim.socketio.bean.SdkGroupDetailObject;
+import cn.jpush.webim.socketio.bean.SdkGroupInfoObject;
 import cn.jpush.webim.socketio.bean.SdkLoginObject;
 import cn.jpush.webim.socketio.bean.SdkSendTextMsgObject;
+import cn.jpush.webim.socketio.bean.SdkSuccessContentRespObject;
 import cn.jpush.webim.socketio.bean.SdkSyncEventRespObject;
 import cn.jpush.webim.socketio.bean.SdkSyncMsgRespObject;
 import cn.jpush.webim.socketio.bean.SdkUpdateGroupInfoObject;
-import cn.jpush.webim.socketio.bean.SdkUserInfo;
+import cn.jpush.webim.socketio.bean.SdkUserInfoObject;
 import cn.jpush.webim.socketio.bean.UpdateGroupInfoBean;
 import cn.jpush.webim.socketio.bean.User;
+import cn.jpush.webim.socketio.bean.UserInfo;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -129,7 +135,8 @@ public class WebImServer {
 			@Override
 			public void onConnect(SocketIOClient client) {
 				log.debug(String.format("connect from web client -- the session id is %s, client transport method is %s", client.getSessionId(), client.getTransport()));
-				client.sendEvent("onConnected", "");
+				SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject();
+				client.sendEvent("onConnected", gson.toJson(resp));
 			}
 		 }); 
 		 
@@ -138,7 +145,8 @@ public class WebImServer {
 			@Override
 			public void onDisconnect(SocketIOClient client) {
 				if(client!=null){
-					client.sendEvent("onDisconnected", "");
+					SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject();
+					client.sendEvent("onDisconnected", gson.toJson(resp));
 					log.debug(String.format("the connection is disconnect -- the session id is %s", client.getSessionId()));
 					String kan = "";
 					if(WebImServer.sessionClientToUserNameMap!=null){
@@ -179,6 +187,9 @@ public class WebImServer {
 					return;
 				} else {
 					// TODO 加入验证过程
+					StringBuffer buffer = new StringBuffer();
+					// String token --> appKey
+					String sign = buffer.append(timestamp).append(randomStr).toString();
 					SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject();
 					log.info("config resp： "+gson.toJson(resp));
 					client.sendEvent("config", gson.toJson(resp));
@@ -353,10 +364,10 @@ public class WebImServer {
 				}
 				HttpResponseWrapper responseWrapper = APIProxy.getUserInfo(appKey, username, token);
 				if(responseWrapper.isOK()){
-					//SdkUserInfo userInfo = gson.fromJson(responseWrapper.content, SdkUserInfo.class);
-					SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject();
-					resp.setContent(responseWrapper.content);
-					log.info("userinfo: "+responseWrapper.content);
+					SdkUserInfoObject userInfo = gson.fromJson(responseWrapper.content, SdkUserInfoObject.class);
+					SdkSuccessContentRespObject resp = new SdkSuccessContentRespObject();
+					resp.setContent(gson.toJson(userInfo));
+					log.info("userinfo: "+gson.toJson(userInfo));
 					client.sendEvent("getUserInfo", gson.toJson(resp));
 				} else {
 					SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject();
@@ -434,7 +445,7 @@ public class WebImServer {
 					 HttpResponseWrapper responseWrapper = APIProxy.getUserInfo(appKey, data.getTarget_id(), token);
 					 long target_uid = 0L;
 					 if(responseWrapper.isOK()){
-						 SdkUserInfo userInfo = gson.fromJson(responseWrapper.content, SdkUserInfo.class);
+						 UserInfo userInfo = gson.fromJson(responseWrapper.content, UserInfo.class);
 						 target_uid = userInfo.getUid();
 						 SendSingleMsgRequestBean bean = new SendSingleMsgRequestBean(target_uid, gson.toJson(msgContent));  //  为了和移动端保持一致，注意这里用target_name来存储id，避免再查一次
 						 List<Integer> cookie = new ArrayList<Integer>();
@@ -666,11 +677,39 @@ public class WebImServer {
 				} finally {
 					redisClient.returnResource(jedis);
 				}
+				ArrayList<SdkGroupDetailObject> groupInfoList = new ArrayList<SdkGroupDetailObject>();
 				HttpResponseWrapper responseWrapper = APIProxy.getGroupInfo(String.valueOf(group_id), token);
 				if(responseWrapper.isOK()){
-					SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject();
-					resp.setContent(responseWrapper.content);
-					log.info("userinfo: "+responseWrapper.content);
+					String groupInfoJson = responseWrapper.content;
+					InnerGroupObject tmp_group = gson.fromJson(groupInfoJson, InnerGroupObject.class);	
+					SdkGroupDetailObject groupInfoObject = new SdkGroupDetailObject();
+					groupInfoObject.setGid(tmp_group.getGid());
+					groupInfoObject.setGroup_name(tmp_group.getName());
+					groupInfoObject.setGroup_desc(tmp_group.getDesc());
+					HttpResponseWrapper resultWrapper = APIProxy.getGroupMemberList(String.valueOf(group_id), token);
+					if(resultWrapper.isOK()){
+						ArrayList<SdkUserInfoObject> userInfoList = new ArrayList<SdkUserInfoObject>();
+						List<GroupMember> groupList = gson.fromJson(resultWrapper.content, new TypeToken<ArrayList<GroupMember>>(){}.getType());
+						for(GroupMember member:groupList){
+							HttpResponseWrapper wrapper = APIProxy.getUserInfoByUid(appKey, String.valueOf(member.getUid()), token);
+							SdkUserInfoObject userInfo = new SdkUserInfoObject();
+							if(wrapper.isOK()){
+								HashMap map = gson.fromJson(wrapper.content, HashMap.class);
+								String name = String.valueOf(map.get("username"));
+								if(1==member.getFlag()){
+									groupInfoObject.setOwner_username(name);
+								}
+								userInfo.setUsername(name);
+							} 
+							userInfoList.add(userInfo);
+						}
+						groupInfoObject.setMembers(userInfoList);
+					}
+					groupInfoList.add(groupInfoObject);
+
+					SdkSuccessContentRespObject resp = new SdkSuccessContentRespObject();
+					resp.setContent(gson.toJson(groupInfoList));
+					log.info("groupinfo: "+gson.toJson(groupInfoList));
 					client.sendEvent("getGroupInfo", gson.toJson(resp));
 				} else {
 					SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject();
@@ -900,20 +939,41 @@ public class WebImServer {
 					redisClient.returnResource(jedis);
 				}
 				log.info(String.format("user: %s begin to get group list", userName));
-				List<Group> groupsList = new ArrayList<Group>();
+				List<SdkGroupInfoObject> groupsList = new ArrayList<SdkGroupInfoObject>();
 				HttpResponseWrapper result = APIProxy.getGroupList(String.valueOf(uid), token);
 				if(result.isOK()){
 					String groupListJson = result.content;
 					List<Long> gidList = gson.fromJson(groupListJson, new TypeToken<ArrayList<Long>>(){}.getType());
 					for(Long gid: gidList){
 						HttpResponseWrapper groupInfoResult = APIProxy.getGroupInfo(String.valueOf(gid), token);
+						ArrayList<String> members_name = new ArrayList<String>();
 						if(groupInfoResult.isOK()){
 							String groupInfoJson = groupInfoResult.content;
-							Group group = gson.fromJson(groupInfoJson, Group.class);
-							groupsList.add(group);
+							InnerGroupObject tmp_group = gson.fromJson(groupInfoJson, InnerGroupObject.class);	
+							SdkGroupInfoObject groupInfoObject = new SdkGroupInfoObject();
+							groupInfoObject.setGid(tmp_group.getGid());
+							groupInfoObject.setGroup_name(tmp_group.getName());
+							groupInfoObject.setGroup_desc(tmp_group.getDesc());
+							HttpResponseWrapper resultWrapper = APIProxy.getGroupMemberList(String.valueOf(gid), token);
+							if(resultWrapper.isOK()){
+								List<GroupMember> groupList = gson.fromJson(resultWrapper.content, new TypeToken<ArrayList<GroupMember>>(){}.getType());
+								for(GroupMember member:groupList){
+									HttpResponseWrapper wrapper = APIProxy.getUserInfoByUid(appKey, String.valueOf(member.getUid()), token);
+									if(wrapper.isOK()){
+										HashMap map = gson.fromJson(wrapper.content, HashMap.class);
+										String name = String.valueOf(map.get("username"));
+										members_name.add(name);
+										if(1==member.getFlag()){
+											groupInfoObject.setOwner_username(name);
+										}
+									} 
+								}
+								groupInfoObject.setMembers_username(members_name);
+							}
+							groupsList.add(groupInfoObject);
 						}
 					}
-					SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject();
+					SdkSuccessContentRespObject resp = new SdkSuccessContentRespObject();
 					resp.setContent(gson.toJson(groupsList));
 					client.sendEvent("getGroupList", gson.toJson(resp));
 					log.info(String.format("user: %d get group list success", uid));
@@ -1104,7 +1164,7 @@ public class WebImServer {
 		 });
 
 		 
-		/* -----------------------------------------  to check ---------------------------------------------*/
+		/* -----------------------------------------  TODO ---------------------------------------------*/
 		//  添加好友事件
 		server.addEventListener("addFriendCmd", String.class, new DataListener<String>(){
 		 	@Override
@@ -1130,10 +1190,8 @@ public class WebImServer {
 					AckRequest ackSender) throws Exception {
 		 		log.info("update friend nickname event");
 			}
-		});
-		
-		
-		/* ------------------------------------------  to check -------------------------------------------------*/
+		});	
+		/* ------------------------------------------  TODO -------------------------------------------------*/
 		
 		 server.start();
 	}
