@@ -3,7 +3,7 @@ package cn.jpush.webim.socketio.bean;
 public class SdkConfigObject {
 	private String appKey;
 	private String timestamp;
-	private String random_str;
+	private String randomStr;
 	private String signature;
 	public String getAppKey() {
 		return appKey;
@@ -17,12 +17,12 @@ public class SdkConfigObject {
 	public void setTimestamp(String timestamp) {
 		this.timestamp = timestamp;
 	}
-	
-	public String getRandom_str() {
-		return random_str;
+
+	public String getRandomStr() {
+		return randomStr;
 	}
-	public void setRandom_str(String random_str) {
-		this.random_str = random_str;
+	public void setRandomStr(String randomStr) {
+		this.randomStr = randomStr;
 	}
 	public String getSignature() {
 		return signature;

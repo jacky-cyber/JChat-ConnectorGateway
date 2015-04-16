@@ -12,7 +12,7 @@ public class RedisClient {
   private final  int PORT = SystemConfig.getIntProperty("redis.server.port");;
   public  int MAXTOTAL = 1000;
   public  int MAXIDL = 200;
-  public  int MAXWAITMILLIS = 10000;
+  public  int MAXWAITMILLIS = 1000;
 
   public  JedisPool pool;
   public  ShardedJedisPool shardedJedisPool;
@@ -24,9 +24,9 @@ public class RedisClient {
   private void initPool() {
     if (pool == null) {
       JedisPoolConfig config = new JedisPoolConfig();
-      config.setMaxTotal(100);
-      config.setMaxIdle(20);
-      config.setMaxWaitMillis(1000l);
+      config.setMaxTotal(MAXTOTAL);
+      config.setMaxIdle(MAXIDL);
+      config.setMaxWaitMillis(MAXWAITMILLIS);
       config.setTestOnBorrow(false);
       pool = new JedisPool(config, BASE_URL, PORT);
     }

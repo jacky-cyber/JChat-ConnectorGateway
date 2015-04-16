@@ -1,14 +1,14 @@
 package cn.jpush.webim.socketio.bean;
 
 public class SdkGetGroupInfoObject {
-	private long group_id;
+	private long groupId;
 
-	public long getGroup_id() {
-		return group_id;
+	public long getGroupId() {
+		return groupId;
 	}
 
-	public void setGroup_id(long group_id) {
-		this.group_id = group_id;
+	public void setGroupId(long groupId) {
+		this.groupId = groupId;
 	}
-	
+
 }

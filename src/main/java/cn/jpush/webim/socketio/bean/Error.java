@@ -1,18 +1,19 @@
 package cn.jpush.webim.socketio.bean;
 
 public class Error {
-	private int error_code;
-	private String error_message;
-	public int getError_code() {
-		return error_code;
+	private int code;
+	private String message;
+	public int getCode() {
+		return code;
 	}
-	public void setError_code(int error_code) {
-		this.error_code = error_code;
+	public void setCode(int code) {
+		this.code = code;
 	}
-	public String getError_message() {
-		return error_message;
+	public String getMessage() {
+		return message;
 	}
-	public void setError_message(String error_message) {
-		this.error_message = error_message;
+	public void setMessage(String message) {
+		this.message = message;
 	}
+	
 }

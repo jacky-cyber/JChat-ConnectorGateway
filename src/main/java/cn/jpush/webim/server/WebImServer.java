@@ -179,7 +179,7 @@ public class WebImServer {
 					AckRequest ackSender) throws Exception {
 				String appKey = data.getAppKey();
 				String timestamp = data.getTimestamp();
-				String randomStr = data.getRandom_str();
+				String randomStr = data.getRandomStr();
 				String signature = data.getSignature();
 				if(StringUtils.isEmpty(signature)||StringUtils.isEmpty(randomStr)
 						||StringUtils.isEmpty(timestamp)||StringUtils.isEmpty(appKey)){
@@ -422,9 +422,9 @@ public class WebImServer {
 				 
 				 MsgContentBean msgContent = new MsgContentBean();
 				 msgContent.setVersion(version);
-				 msgContent.setTarget_type(data.getTarget_type());
-				 msgContent.setTarget_id(data.getTarget_id());
-				 msgContent.setTarget_name(data.getTarget_id());
+				 msgContent.setTarget_type(data.getTargetType());
+				 msgContent.setTarget_id(data.getTargetId());
+				 msgContent.setTarget_name(data.getTargetId());
 				 msgContent.setFrom_type("user");
 				 msgContent.setFrom_platform("web");
 				 msgContent.setFrom_id(userName);
@@ -441,8 +441,8 @@ public class WebImServer {
 					 log.warn("current user get channel to push server exception");
 					 return;
 				 } 
-				 if("single".equals(data.getTarget_type())){
-					 HttpResponseWrapper responseWrapper = APIProxy.getUserInfo(appKey, data.getTarget_id(), token);
+				 if("single".equals(data.getTargetType())){
+					 HttpResponseWrapper responseWrapper = APIProxy.getUserInfo(appKey, data.getTargetId(), token);
 					 long target_uid = 0L;
 					 if(responseWrapper.isOK()){
 						 UserInfo userInfo = gson.fromJson(responseWrapper.content, UserInfo.class);
@@ -455,8 +455,8 @@ public class WebImServer {
 					 } else {
 						 log.warn(String.format("user: %s sendTextMessage call sdk-api getUserInfo exception", userName)); 
 					 }
-				 } else if("group".equals(data.getTarget_type())){
-					 SendGroupMsgRequestBean bean = new SendGroupMsgRequestBean(Long.parseLong(data.getTarget_id()), gson.toJson(msgContent));
+				 } else if("group".equals(data.getTargetType())){
+					 SendGroupMsgRequestBean bean = new SendGroupMsgRequestBean(Long.parseLong(data.getTargetId()), gson.toJson(msgContent));
 					 List<Integer> cookie = new ArrayList<Integer>();
 					 ImSendGroupMsgRequestProto req = new ImSendGroupMsgRequestProto(Command.JPUSH_IM.SENDMSG_GROUP, 1, uid, appKey, sid, juid, rid, cookie, bean);
 					 channel.writeAndFlush(req);
@@ -503,10 +503,10 @@ public class WebImServer {
 				} finally {
 					redisClient.returnResource(jedis);
 				}
-				long messageId = data.getMessage_id();
-				int iMsgType = data.getMsg_type();   
-				long from_uid = data.getFrom_uid();
-				long from_gid = data.getFrom_gid();
+				long messageId = data.getMessageId();
+				int iMsgType = data.getMsgType();   
+				long from_uid = data.getFromUid();
+				long from_gid = data.getFromGid();
 				log.info(String.format("user: %d sync msg feedback, msgId is %d, msgType is %d", uid, messageId, iMsgType));
 				List<Integer> cookie = new ArrayList<Integer>();
 				ChatMsg.Builder chatMsg = ChatMsg.newBuilder();
@@ -529,9 +529,9 @@ public class WebImServer {
 			public void onData(SocketIOClient client, SdkSyncEventRespObject data,
 					AckRequest ackSender) throws Exception {
 				long rid = StringUtils.getRID();
-				long eventId = data.getEvent_id();
-				int eventType = data.getEvent_type();
-				long from_uid = data.getFrom_uid();
+				long eventId = data.getEventId();
+				int eventType = data.getEventType();
+				long from_uid = data.getFromUid();
 				long gid = data.getGid();
 				String appKey = "";
 				String userName = "";
@@ -587,8 +587,8 @@ public class WebImServer {
 			public void onData(SocketIOClient client, SdkCreateGroupObject data,
 					AckRequest ackSender) throws Exception {
 		 		log.info("create group event");
-		 		String groupname = data.getGroup_name();
-		 		String group_description = data.getGroup_description();
+		 		String groupname = data.getGroupName();
+		 		String group_description = data.getGroupDescription();
 		 		if(StringUtils.isEmpty(groupname)||StringUtils.isEmpty(group_description)){
 		 			log.warn(String.format("createGroup pass empty arguments exception"));
 		 			return;
@@ -643,7 +643,7 @@ public class WebImServer {
 			@Override
 			public void onData(SocketIOClient client, SdkGetGroupInfoObject data,
 					AckRequest ackSender) throws Exception {
-				long group_id = data.getGroup_id();
+				long group_id = data.getGroupId();
 				if(0==group_id){
 					log.warn("user getGroupInfo pass empty data exception");
 					return;
@@ -677,15 +677,15 @@ public class WebImServer {
 				} finally {
 					redisClient.returnResource(jedis);
 				}
-				ArrayList<SdkGroupDetailObject> groupInfoList = new ArrayList<SdkGroupDetailObject>();
+				//ArrayList<SdkGroupDetailObject> groupInfoList = new ArrayList<SdkGroupDetailObject>();
 				HttpResponseWrapper responseWrapper = APIProxy.getGroupInfo(String.valueOf(group_id), token);
 				if(responseWrapper.isOK()){
 					String groupInfoJson = responseWrapper.content;
 					InnerGroupObject tmp_group = gson.fromJson(groupInfoJson, InnerGroupObject.class);	
 					SdkGroupDetailObject groupInfoObject = new SdkGroupDetailObject();
 					groupInfoObject.setGid(tmp_group.getGid());
-					groupInfoObject.setGroup_name(tmp_group.getName());
-					groupInfoObject.setGroup_desc(tmp_group.getDesc());
+					groupInfoObject.setGroupName(tmp_group.getName());
+					groupInfoObject.setGroupDesc(tmp_group.getDesc());
 					HttpResponseWrapper resultWrapper = APIProxy.getGroupMemberList(String.valueOf(group_id), token);
 					if(resultWrapper.isOK()){
 						ArrayList<SdkUserInfoObject> userInfoList = new ArrayList<SdkUserInfoObject>();
@@ -697,7 +697,7 @@ public class WebImServer {
 								HashMap map = gson.fromJson(wrapper.content, HashMap.class);
 								String name = String.valueOf(map.get("username"));
 								if(1==member.getFlag()){
-									groupInfoObject.setOwner_username(name);
+									groupInfoObject.setOwnerUsername(name);
 								}
 								userInfo.setUsername(name);
 							} 
@@ -705,11 +705,11 @@ public class WebImServer {
 						}
 						groupInfoObject.setMembers(userInfoList);
 					}
-					groupInfoList.add(groupInfoObject);
+					//groupInfoList.add(groupInfoObject);
 
 					SdkSuccessContentRespObject resp = new SdkSuccessContentRespObject();
-					resp.setContent(gson.toJson(groupInfoList));
-					log.info("groupinfo: "+gson.toJson(groupInfoList));
+					resp.setContent(gson.toJson(groupInfoObject));
+					log.info("groupinfo: "+gson.toJson(groupInfoObject));
 					client.sendEvent("getGroupInfo", gson.toJson(resp));
 				} else {
 					SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject();
@@ -724,8 +724,8 @@ public class WebImServer {
 			@Override
 				public void onData(SocketIOClient client, SdkAddOrRemoveGroupMembersObject data,
 						AckRequest ackSender) throws Exception {
-					long group_id = data.getGroup_id();
-					List<String> member_usernames = data.getMember_usernames();
+					long group_id = data.getGroupId();
+					List<String> member_usernames = data.getMemberUsernames();
 					int memberCount = member_usernames.size();
 					String appKey = "";
 					String userName = "";
@@ -791,8 +791,8 @@ public class WebImServer {
 		@Override
 			public void onData(SocketIOClient client, SdkAddOrRemoveGroupMembersObject data,
 					AckRequest ackSender) throws Exception {
-				long group_id = data.getGroup_id();
-				List<String> member_usernames = data.getMember_usernames();
+				long group_id = data.getGroupId();
+				List<String> member_usernames = data.getMemberUsernames();
 				int memberCount = member_usernames.size();
 				long rid = StringUtils.getRID();
 				String appKey = "";
@@ -858,7 +858,7 @@ public class WebImServer {
 			public void onData(SocketIOClient client, SdkExitGroupObject data,
 					AckRequest ackSender) throws Exception {
 		 		log.info("exit group event");
-				long group_id = data.getGroup_id();
+				long group_id = data.getGroupId();
 				long rid = StringUtils.getRID();
 				String appKey = "";
 				String userName = "";
@@ -952,8 +952,8 @@ public class WebImServer {
 							InnerGroupObject tmp_group = gson.fromJson(groupInfoJson, InnerGroupObject.class);	
 							SdkGroupInfoObject groupInfoObject = new SdkGroupInfoObject();
 							groupInfoObject.setGid(tmp_group.getGid());
-							groupInfoObject.setGroup_name(tmp_group.getName());
-							groupInfoObject.setGroup_desc(tmp_group.getDesc());
+							groupInfoObject.setGroupName(tmp_group.getName());
+							groupInfoObject.setGroupDesc(tmp_group.getDesc());
 							HttpResponseWrapper resultWrapper = APIProxy.getGroupMemberList(String.valueOf(gid), token);
 							if(resultWrapper.isOK()){
 								List<GroupMember> groupList = gson.fromJson(resultWrapper.content, new TypeToken<ArrayList<GroupMember>>(){}.getType());
@@ -964,11 +964,11 @@ public class WebImServer {
 										String name = String.valueOf(map.get("username"));
 										members_name.add(name);
 										if(1==member.getFlag()){
-											groupInfoObject.setOwner_username(name);
+											groupInfoObject.setOwnerUsername(name);
 										}
 									} 
 								}
-								groupInfoObject.setMembers_username(members_name);
+								groupInfoObject.setMembersUsername(members_name);
 							}
 							groupsList.add(groupInfoObject);
 						}
@@ -991,9 +991,9 @@ public class WebImServer {
 			@Override
 			public void onData(SocketIOClient client, SdkUpdateGroupInfoObject data,
 					AckRequest ackSender) throws Exception {
-				long gid = data.getGroup_id();
-				String group_name = data.getGroup_name();
-				String group_desc = data.getGroup_description();
+				long gid = data.getGroupId();
+				String group_name = data.getGroupName();
+				String group_desc = data.getGroupDescription();
 				String appKey = "";
 				String userName = "";
 				String keyAndname = sessionClientToUserNameMap.get(client);

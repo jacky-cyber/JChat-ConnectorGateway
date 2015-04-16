@@ -4,9 +4,9 @@ import java.util.ArrayList;
 
 public class SdkGroupDetailObject {
 	private long gid;
-	private String owner_username;
-	private String group_name;
-	private String group_desc;
+	private String ownerUsername;
+	private String groupName;
+	private String groupDesc;
 	private ArrayList<SdkUserInfoObject> members;
 	public long getGid() {
 		return gid;
@@ -14,23 +14,24 @@ public class SdkGroupDetailObject {
 	public void setGid(long gid) {
 		this.gid = gid;
 	}
-	public String getOwner_username() {
-		return owner_username;
+
+	public String getOwnerUsername() {
+		return ownerUsername;
 	}
-	public void setOwner_username(String owner_username) {
-		this.owner_username = owner_username;
+	public void setOwnerUsername(String ownerUsername) {
+		this.ownerUsername = ownerUsername;
 	}
-	public String getGroup_name() {
-		return group_name;
+	public String getGroupName() {
+		return groupName;
 	}
-	public void setGroup_name(String group_name) {
-		this.group_name = group_name;
+	public void setGroupName(String groupName) {
+		this.groupName = groupName;
 	}
-	public String getGroup_desc() {
-		return group_desc;
+	public String getGroupDesc() {
+		return groupDesc;
 	}
-	public void setGroup_desc(String group_desc) {
-		this.group_desc = group_desc;
+	public void setGroupDesc(String groupDesc) {
+		this.groupDesc = groupDesc;
 	}
 	public ArrayList<SdkUserInfoObject> getMembers() {
 		return members;

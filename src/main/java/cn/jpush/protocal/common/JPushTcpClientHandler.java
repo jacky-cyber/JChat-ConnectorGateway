@@ -179,7 +179,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 						SdkCommonErrorRespObject loginComResp = new SdkCommonErrorRespObject();
 						loginComResp.setErrorInfo(imLoginRespCode, imLoginRespMsg);
 						WebImServer.userNameToSessionCilentMap.get(appKey+":"+userName).sendEvent("login", gson.toJson(loginComResp));
-						log.warn(String.format("client handler send event: %s, exception code: %d", "loginfail", loginComResp.getError().getError_code()));
+						log.warn(String.format("client handler send event: %s, exception code: %d", "loginfail", loginComResp.getError().getCode()));
 					}
 					
 					break;
@@ -264,9 +264,9 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					SdkGroupObject groupObject = new SdkGroupObject();
 					groupObject.setGid(createGroupBean.getGid());
 					groupObject.setFlag(createGroupBean.getFlag());
-					groupObject.setGroup_description(createGroupBean.getGroupDesc().toStringUtf8());
-					groupObject.setGroup_level(createGroupBean.getGroupLevel());
-					groupObject.setGroup_name(createGroupBean.getGroupName().toStringUtf8());
+					groupObject.setGroupDescription(createGroupBean.getGroupDesc().toStringUtf8());
+					groupObject.setGroupLevel(createGroupBean.getGroupLevel());
+					groupObject.setGroupName(createGroupBean.getGroupName().toStringUtf8());
 					if(sessionClient!=null){
 						if(createGroupRespcode==TcpCode.IM.SUCCESS){
 							log.info("create group success");
@@ -367,8 +367,8 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 						log.info("send update group info success event to webclient");
 						SdkGroupObject updateGroupObject = new SdkGroupObject();
 						updateGroupObject.setGid(bean.getGid());
-						updateGroupObject.setGroup_description(bean.getInfo().toStringUtf8());
-						updateGroupObject.setGroup_name(bean.getName().toStringUtf8());
+						updateGroupObject.setGroupDescription(bean.getInfo().toStringUtf8());
+						updateGroupObject.setGroupName(bean.getName().toStringUtf8());
 						if(null!=sessionClient){
 							SdkSuccessContentRespObject resp = new SdkSuccessContentRespObject();
 							resp.setContent(gson.toJson(updateGroupObject));
@@ -484,25 +484,25 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 							
 							if(sessionClient!=null){	
 								SdkSyncMsgObject syncMsgObject = new SdkSyncMsgObject();
-								syncMsgObject.setI_msg_type(chatMsg.getMsgType());
-								syncMsgObject.setMessage_id(chatMsg.getMsgid());
-								syncMsgObject.setFrom_uid(chatMsg.getFromUid());
-								syncMsgObject.setFrom_gid(chatMsg.getFromGid());
+								syncMsgObject.setiMsgType(chatMsg.getMsgType());
+								syncMsgObject.setMessageId(chatMsg.getMsgid());
+								syncMsgObject.setFromUid(chatMsg.getFromUid());
+								syncMsgObject.setFromGid(chatMsg.getFromGid());
 								syncMsgObject.setVersion(content.getVersion());
-								syncMsgObject.setFrom_type(content.getFrom_type());
-								syncMsgObject.setTarget_type(content.getTarget_type());
-								syncMsgObject.setTarget_id(content.getTarget_id());
-								syncMsgObject.setTarget_name(content.getTarget_name());
-								syncMsgObject.setFrom_id(content.getFrom_id());
-								syncMsgObject.setFrom_name(content.getFrom_name());
-								syncMsgObject.setCreate_time(content.getCreate_time());
-								syncMsgObject.setMsg_body(content.getMsg_body().toString());
+								syncMsgObject.setFromType(content.getFrom_type());
+								syncMsgObject.setTargetType(content.getTarget_type());
+								syncMsgObject.setTargetId(content.getTarget_id());
+								syncMsgObject.setTargetName(content.getTarget_name());
+								syncMsgObject.setFromId(content.getFrom_id());
+								syncMsgObject.setFromName(content.getFrom_name());
+								syncMsgObject.setCreateTime(content.getCreate_time());
+								syncMsgObject.setMsgBody(content.getMsg_body().toString());
 								if("text".equals(content.getMsg_type())){
-									syncMsgObject.setMsg_type("text");
+									syncMsgObject.setMsgType("text");
 								} else if("image".equals(content.getMsg_type())){
-									syncMsgObject.setMsg_type("image");
+									syncMsgObject.setMsgType("image");
 								} else if("voice".equals(content.getMsg_type())){
-									syncMsgObject.setMsg_type("voice");
+									syncMsgObject.setMsgType("voice");
 								}
 								SdkSuccessContentRespObject resp = new SdkSuccessContentRespObject();
 								resp.setContent(gson.toJson(syncMsgObject));
@@ -522,20 +522,20 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 								sessionClient = WebImServer.userNameToSessionCilentMap.get(_mkan);
 								SdkSyncMsgObject syncMsgObject = new SdkSyncMsgObject();
 								syncMsgObject.setVersion(content.getVersion());
-								syncMsgObject.setFrom_type(content.getFrom_type());
-								syncMsgObject.setTarget_type(content.getTarget_type());
-								syncMsgObject.setTarget_id(content.getTarget_id());
-								syncMsgObject.setTarget_name(content.getTarget_name());
-								syncMsgObject.setFrom_id(content.getFrom_id());
-								syncMsgObject.setFrom_name(content.getFrom_name());
-								syncMsgObject.setCreate_time(content.getCreate_time());
-								syncMsgObject.setMsg_body(content.getMsg_body().toString());
+								syncMsgObject.setFromType(content.getFrom_type());
+								syncMsgObject.setTargetType(content.getTarget_type());
+								syncMsgObject.setTargetId(content.getTarget_id());
+								syncMsgObject.setTargetName(content.getTarget_name());
+								syncMsgObject.setFromId(content.getFrom_id());
+								syncMsgObject.setFromName(content.getFrom_name());
+								syncMsgObject.setCreateTime(content.getCreate_time());
+								syncMsgObject.setMsgBody(content.getMsg_body().toString());
 								if("text".endsWith(content.getMsg_type())){
-									syncMsgObject.setMsg_type("text");
+									syncMsgObject.setMsgType("text");
 								} else if("image".endsWith(content.getMsg_type())){
-									syncMsgObject.setMsg_type("image");
+									syncMsgObject.setMsgType("image");
 								} else if("voice".equals(content.getMsg_type())){
-									syncMsgObject.setMsg_type("voice");
+									syncMsgObject.setMsgType("voice");
 								}
 								log.info("return group msg string: "+gson.toJson(syncMsgObject));
 								if(sessionClient!=null){
