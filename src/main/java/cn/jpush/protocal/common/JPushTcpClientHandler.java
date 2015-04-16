@@ -513,7 +513,6 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 								log.warn("the user is not online");
 							}
 						} else if("group".equals(target_type)){ 
-							//long gid = Long.parseLong((String) dataMap.get("target_id"));
 							MsgContentBean content = gson.fromJson(gson.toJson(dataMap), MsgContentBean.class);
 							//  找群成员
 							Channel _channel = ctx.channel();

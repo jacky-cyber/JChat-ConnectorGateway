@@ -209,7 +209,7 @@ public class WebImServer {
 				if(StringUtils.isEmpty(appkey)||StringUtils.isEmpty(username)||StringUtils.isEmpty(password)){
 					log.warn("user loginEvent pass empty data exception");
 					SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject();
-					resp.setErrorInfo(1000, "您还未配置");
+					resp.setErrorInfo(1000, "传入参数异常");
 					client.sendEvent("login", gson.toJson(resp));
 					return;
 				}
@@ -1065,58 +1065,6 @@ public class WebImServer {
 //				}
 //				client.sendEvent("getContracterList", contractersList);
 //				log.info(String.format("user: %s get contracter success", user_name));
-//			}	 
-//		});
-		
-		
-		// 获取群组成员列表
-//		server.addEventListener("getGroupMemberList", HashMap.class, new DataListener<HashMap>() {
-//			@SuppressWarnings("rawtypes")
-//			@Override
-//			public void onData(SocketIOClient client, HashMap data,
-//					AckRequest ackSender) throws Exception {
-//				if(data==null || data.equals("")){
-//					log.warn(String.format("user getcontracter error, because data is empty"));
-//					return;
-//				}
-//				String gid = String.valueOf(data.get("gid"));
-//				String userName = sessionClientToUserNameMap.get(client);
-//				Jedis jedis = null;
-//				String appKey = "";
-//				String token = "";
-//				long uid = 0L;
-//				try{
-//					jedis = redisClient.getJeids();
-//					List<String> dataList = jedis.hmget(userName, "appKey", "token", "uid");
-//					appKey = dataList.get(0);
-//					token = dataList.get(1);
-//					uid = Long.parseLong(dataList.get(2));
-//				} catch (JedisConnectionException e) {
-//					log.error(e.getMessage());
-//					redisClient.returnBrokenResource(jedis);
-//					throw new JedisConnectionException(e);
-//				} finally {
-//					redisClient.returnResource(jedis);
-//				}
-//				Channel channel = userNameToPushChannelMap.get(userName);
-//				ArrayList<HashMap> resultList = new ArrayList<HashMap>();
-//				log.info(String.format("user: %d begin get group: %s members", uid, gid));
-//				HttpResponseWrapper resultWrapper = APIProxy.getGroupMemberList(gid, token);
-//				if(resultWrapper.isOK()){
-//					List<GroupMember> groupList = gson.fromJson(resultWrapper.content, new TypeToken<ArrayList<GroupMember>>(){}.getType());
-//					for(GroupMember member:groupList){
-//						HttpResponseWrapper wrapper = APIProxy.getUserInfoByUid(appKey, String.valueOf(member.getUid()), token);
-//						if(wrapper.isOK()){
-//							HashMap map = gson.fromJson(wrapper.content, HashMap.class);
-//							resultList.add(map);
-//						} 
-//					}
-//					client.sendEvent("getGroupMemberList", gson.toJson(resultList));
-//					log.warn(String.format("user: %d get group: %s member success", uid, gid));
-//				} else {
-//					log.warn(String.format("user: %d get group: %s member exception because call sdk api", uid, gid));
-//					client.sendEvent("getGroupMemberList", "false");
-//				}
 //			}	 
 //		});
 		
