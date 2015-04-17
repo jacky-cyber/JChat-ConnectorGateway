@@ -520,6 +520,10 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 								String _mkan = WebImServer.pushChannelToUsernameMap.get(_channel);
 								sessionClient = WebImServer.userNameToSessionCilentMap.get(_mkan);
 								SdkSyncMsgObject syncMsgObject = new SdkSyncMsgObject();
+								syncMsgObject.setiMsgType(chatMsg.getMsgType());
+								syncMsgObject.setMessageId(chatMsg.getMsgid());
+								syncMsgObject.setFromUid(chatMsg.getFromUid());
+								syncMsgObject.setFromGid(chatMsg.getFromGid());
 								syncMsgObject.setVersion(content.getVersion());
 								syncMsgObject.setFromType(content.getFrom_type());
 								syncMsgObject.setTargetType(content.getTarget_type());

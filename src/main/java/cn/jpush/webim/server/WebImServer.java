@@ -3,10 +3,15 @@ package cn.jpush.webim.server;
 import io.netty.channel.Channel;
 
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +24,7 @@ import javax.imageio.ImageIO;
 import jpushim.s2b.JpushimSdk2B.ChatMsg;
 import jpushim.s2b.JpushimSdk2B.EventNotification;
 
+import org.json.JSONException;
 import org.slf4j.LoggerFactory;
 
 import redis.clients.jedis.Jedis;
@@ -68,9 +74,10 @@ import cn.jpush.webim.common.UidResourcesPool;
 import cn.jpush.webim.socketio.bean.AddFriendCmd;
 import cn.jpush.webim.socketio.bean.Group;
 import cn.jpush.webim.socketio.bean.GroupMember;
+import cn.jpush.webim.socketio.bean.ImageMsgBody;
 import cn.jpush.webim.socketio.bean.InnerGroupObject;
 import cn.jpush.webim.socketio.bean.LogoutBean;
-import cn.jpush.webim.socketio.bean.MsgBody;
+import cn.jpush.webim.socketio.bean.TextMsgBody;
 import cn.jpush.webim.socketio.bean.MsgContentBean;
 import cn.jpush.webim.socketio.bean.SdkAddOrRemoveGroupMembersObject;
 import cn.jpush.webim.socketio.bean.SdkCommonErrorRespObject;
@@ -83,6 +90,7 @@ import cn.jpush.webim.socketio.bean.SdkGetUserInfoObject;
 import cn.jpush.webim.socketio.bean.SdkGroupDetailObject;
 import cn.jpush.webim.socketio.bean.SdkGroupInfoObject;
 import cn.jpush.webim.socketio.bean.SdkLoginObject;
+import cn.jpush.webim.socketio.bean.SdkSendImageMsgObject;
 import cn.jpush.webim.socketio.bean.SdkSendTextMsgObject;
 import cn.jpush.webim.socketio.bean.SdkSuccessContentRespObject;
 import cn.jpush.webim.socketio.bean.SdkSyncEventRespObject;
@@ -95,7 +103,11 @@ import cn.jpush.webim.socketio.bean.UserInfo;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.qiniu.api.auth.AuthException;
 import com.qiniu.api.auth.digest.Mac;
+import com.qiniu.api.io.IoApi;
+import com.qiniu.api.io.PutExtra;
+import com.qiniu.api.io.PutRet;
 import com.qiniu.api.rs.PutPolicy;
 
 /**
@@ -109,6 +121,7 @@ public class WebImServer {
 	public static HashMap<String, Channel> userNameToPushChannelMap = new HashMap<String, Channel>();   //  appKey:用户名 --> IM Server
 	public static HashMap<Channel, String> pushChannelToUsernameMap = new HashMap<Channel, String>();   //  IM Server --> appKey:用户名
 	private static final int PORT = SystemConfig.getIntProperty("webim.server.port");
+	private static final String FILE_STORE_PATH = SystemConfig.getProperty("im.file.store.path");
 	public static CountDownLatch pushLoginInCountDown;
 	private RedisClient redisClient;
 	private Gson gson = new Gson();
@@ -377,7 +390,7 @@ public class WebImServer {
 			}
 		});
 		
-		// 用户聊天
+		// 用户聊天(文字)
 		server.addEventListener("sendTextMessage", SdkSendTextMsgObject.class, new DataListener<SdkSendTextMsgObject>() {
 			 @Override
 			 public void onData(SocketIOClient client, SdkSendTextMsgObject data, AckRequest ackRequest) {
@@ -431,7 +444,7 @@ public class WebImServer {
 				 msgContent.setFrom_name(userName);
 				 msgContent.setCreate_time(StringUtils.getCreateTime());
 				 msgContent.setMsg_type("text");
-				 MsgBody msgBody = new MsgBody();
+				 TextMsgBody msgBody = new TextMsgBody();
 				 msgBody.setText(data.getText());
 				 msgContent.setMsg_body(msgBody);
 				 
@@ -464,6 +477,137 @@ public class WebImServer {
 				 }
 			 }
 		 });
+		
+		// 用户聊天(图片)
+		server.addEventListener("sendImageMessage", SdkSendImageMsgObject.class, new DataListener<SdkSendImageMsgObject>() {
+					@Override
+					public void onData(SocketIOClient client,
+							SdkSendImageMsgObject data, AckRequest ackRequest) {
+						String appKey = "";
+						String userName = "";
+						String keyAndname = sessionClientToUserNameMap
+								.get(client);
+						if (StringUtils.isEmpty(keyAndname)) {
+							SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject();
+							resp.setErrorInfo(1000, "您还未登陆");
+							client.sendEvent("sendTextMessage",
+									gson.toJson(resp));
+							return;
+						} else {
+							appKey = StringUtils.getAppKey(keyAndname);
+							userName = StringUtils.getUserName(keyAndname);
+							if (StringUtils.isEmpty(appKey)
+									|| StringUtils.isEmpty(userName)) {
+								log.warn("resovle username exception");
+								return;
+							}
+						}
+						long rid = StringUtils.getRID();
+						int version = 1;
+						Jedis jedis = null;
+						int sid = 0;
+						long juid = 0L;
+						String token = "";
+						long uid = 0L;
+						try {
+							jedis = redisClient.getJeids();
+							List<String> dataList = jedis.hmget(appKey + ":"
+									+ userName, "appKey", "sid", "juid",
+									"token", "uid");
+							appKey = dataList.get(0);
+							sid = Integer.parseInt(dataList.get(1));
+							juid = Long.parseLong(dataList.get(2));
+							token = dataList.get(3);
+							uid = Long.parseLong(dataList.get(4));
+						} catch (JedisConnectionException e) {
+							log.error(e.getMessage());
+							redisClient.returnBrokenResource(jedis);
+							throw new JedisConnectionException(e);
+						} finally {
+							redisClient.returnResource(jedis);
+						}
+
+						MsgContentBean msgContent = new MsgContentBean();
+						msgContent.setVersion(version);
+						msgContent.setTarget_type(data.getTargetType());
+						msgContent.setTarget_id(data.getTargetId());
+						msgContent.setTarget_name(data.getTargetId());
+						msgContent.setFrom_type("user");
+						msgContent.setFrom_platform("web");
+						msgContent.setFrom_id(userName);
+						msgContent.setFrom_name(userName);
+						msgContent.setCreate_time(StringUtils.getCreateTime());
+						msgContent.setMsg_type("image");
+						ImageMsgBody msgBody = new ImageMsgBody();
+						String fileId = data.getFileId();
+						String filePath = FILE_STORE_PATH + fileId; 
+						String mediaId = WebImServer.getMediaId(uid);
+						Map fileInfoMap = null;
+						try {
+							String response = WebImServer.uploadFile(mediaId, filePath);
+							log.info("upload response: "+response);
+							fileInfoMap = WebImServer.getFileMetaInfo(mediaId, filePath);
+						} catch (AuthException | JSONException e) {
+							e.printStackTrace();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+						msgBody.setMedia_id(mediaId);
+						msgBody.setMedia_crc32(Long.parseLong(String.valueOf(fileInfoMap.get("crc32"))));
+						msgBody.setWidth(Integer.parseInt(String.valueOf(fileInfoMap.get("width"))));
+						msgBody.setHeight(Integer.parseInt(String.valueOf(fileInfoMap.get("height"))));
+						msgContent.setMsg_body(msgBody);
+
+						log.info(String.format(
+								"user: %s send chat msg, content is: ",
+								userName, gson.toJson(data)));
+						Channel channel = userNameToPushChannelMap.get(appKey
+								+ ":" + userName);
+						if (channel == null) {
+							log.warn("current user get channel to push server exception");
+							return;
+						}
+						if ("single".equals(data.getTargetType())) {
+							HttpResponseWrapper responseWrapper = APIProxy
+									.getUserInfo(appKey, data.getTargetId(),
+											token);
+							long target_uid = 0L;
+							if (responseWrapper.isOK()) {
+								UserInfo userInfo = gson
+										.fromJson(responseWrapper.content,
+												UserInfo.class);
+								target_uid = userInfo.getUid();
+								SendSingleMsgRequestBean bean = new SendSingleMsgRequestBean(
+										target_uid, gson.toJson(msgContent)); // 为了和移动端保持一致，注意这里用target_name来存储id，避免再查一次
+								List<Integer> cookie = new ArrayList<Integer>();
+								ImSendSingleMsgRequestProto req = new ImSendSingleMsgRequestProto(
+										Command.JPUSH_IM.SENDMSG_SINGAL, 1,
+										uid, appKey, sid, juid, rid, cookie,
+										bean);
+								channel.writeAndFlush(req);
+								log.info(String.format(
+										"user: %s begin send single chat msg",
+										userName));
+							} else {
+								log.warn(String
+										.format("user: %s sendTextMessage call sdk-api getUserInfo exception",
+												userName));
+							}
+						} else if ("group".equals(data.getTargetType())) {
+							SendGroupMsgRequestBean bean = new SendGroupMsgRequestBean(
+									Long.parseLong(data.getTargetId()), gson
+											.toJson(msgContent));
+							List<Integer> cookie = new ArrayList<Integer>();
+							ImSendGroupMsgRequestProto req = new ImSendGroupMsgRequestProto(
+									Command.JPUSH_IM.SENDMSG_GROUP, 1, uid,
+									appKey, sid, juid, rid, cookie, bean);
+							channel.writeAndFlush(req);
+							log.info(String.format(
+									"user: %s begin send group chat msg",
+									userName));
+						}
+					}
+				});
 		
 		//  离线消息送达返回
 		server.addEventListener("respMessageReceived", SdkSyncMsgRespObject.class, new DataListener<SdkSyncMsgRespObject>() {
@@ -1067,50 +1211,6 @@ public class WebImServer {
 //				log.info(String.format("user: %s get contracter success", user_name));
 //			}	 
 //		});
-		
-		 
-		 //  用户获取上传token
-		 server.addEventListener("getUploadToken", String.class, new DataListener<String>() {
-			@Override
-			public void onData(SocketIOClient client, String data,
-					AckRequest ackSender) throws Exception {
-				log.info("user get upload token");
-				Mac mac = new Mac(Configure.QNCloudInterface.QN_ACCESS_KEY, Configure.QNCloudInterface.QN_SECRET_KEY);
-				PutPolicy putPolicy = new PutPolicy(Configure.QNCloudInterface.QN_BUCKETNAME);
-				putPolicy.expires = 14400;
-				String token = putPolicy.token(mac);
-				client.sendEvent("getUploadToken", token);
-				log.info("user get upload token success");
-			}
-		 });
-		 
-		 //  向客户端返回上传的文件的属性信息
-		 server.addEventListener("getUploadPicMetaInfo", String.class, new DataListener<String>(){
-			@Override
-			public void onData(SocketIOClient client, String data,
-					AckRequest ackSender) throws Exception {
-				log.info("user get upload file metainfo");
-				URL url = new URL(data);
-				URLConnection conn = url.openConnection();
-	         conn.setConnectTimeout(5 * 1000);
-				InputStream inStream = conn.getInputStream();
-			   BufferedImage src = ImageIO.read(inStream); // 读入文件
-		      int width = src.getWidth(); // 得到源图宽
-		      int height = src.getHeight(); // 得到源图长
-				CheckedInputStream cis = new CheckedInputStream(inStream, new CRC32());
-	         byte[] buf = new byte[128];
-	         while(cis.read(buf) >= 0) {}
-	         long checksum = cis.getChecksum().getValue();
-	         inStream.close();
-	         Map<String, Object> map = new HashMap<String, Object>();
-	         map.put("width", width);
-	         map.put("height", height);
-	         map.put("crc32", checksum);
-	         client.sendEvent("getUploadPicMetaInfo", gson.toJson(map));
-	         log.info("user get upload file metainfo success");
-			}
-		 });
-
 		 
 		/* -----------------------------------------  TODO ---------------------------------------------*/
 		//  添加好友事件
@@ -1142,6 +1242,45 @@ public class WebImServer {
 		/* ------------------------------------------  TODO -------------------------------------------------*/
 		
 		 server.start();
+	}
+	
+	public static String getMediaId(long uid){
+		Date d = new Date();
+	   long time = d.getTime();
+	   long random = (Math.max(Math.min(Math.round(Math.random()*(100-0)), 100), 0));
+	   String mediaId = "qiniu/image/"+StringUtils.toMD5(String.valueOf(uid)+time+random);
+	   return mediaId;
+	}
+	
+	public static String uploadFile(String mediaId, String filePath) throws AuthException, JSONException{
+		Mac mac = new Mac(Configure.QNCloudInterface.QN_ACCESS_KEY, Configure.QNCloudInterface.QN_SECRET_KEY);
+		PutPolicy putPolicy = new PutPolicy(Configure.QNCloudInterface.QN_BUCKETNAME);
+		putPolicy.expires = 14400;
+		String token = putPolicy.token(mac);
+		PutExtra extra = new PutExtra();
+      String key = mediaId;
+      PutRet ret = IoApi.putFile(token, key, filePath, extra);
+      return ret.response;
+	}
+	
+	public static Map getFileMetaInfo(String mediaId, String filePath) throws IOException{
+		File file = new File(filePath);
+		FileInputStream inStream = new FileInputStream(file);
+		BufferedImage src = ImageIO.read(inStream); 
+	   int width = src.getWidth(); 
+	   int height = src.getHeight();
+		CheckedInputStream cis = new CheckedInputStream(inStream, new CRC32());
+      byte[] buf = new byte[128];
+      while(cis.read(buf) >= 0) {}
+      long checksum = cis.getChecksum().getValue();
+      inStream.close();
+      file.delete();
+      Map<String, Object> map = new HashMap<String, Object>();
+      map.put("width", width);
+      map.put("height", height);
+      map.put("mediaId", mediaId);
+      map.put("crc32", checksum);
+      return map;
 	}
 	
 	public static void main(String[] args) throws InterruptedException {

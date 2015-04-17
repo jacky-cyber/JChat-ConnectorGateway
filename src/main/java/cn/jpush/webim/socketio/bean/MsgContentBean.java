@@ -13,7 +13,7 @@ public class MsgContentBean {
 	private String from_platform;
 	private int create_time;
 	private String msg_type;
-	private MsgBody msg_body;
+	private Object msg_body;
 	public int getVersion() {
 		return version;
 	}
@@ -75,10 +75,10 @@ public class MsgContentBean {
 		this.msg_type = msg_type;
 	}
 	
-	public MsgBody getMsg_body() {
+	public Object getMsg_body() {
 		return msg_body;
 	}
-	public void setMsg_body(MsgBody msg_body) {
+	public void setMsg_body(Object msg_body) {
 		this.msg_body = msg_body;
 	}
 	

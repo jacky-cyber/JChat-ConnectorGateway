@@ -50,7 +50,7 @@ public class WebIMFileServer {
 	
 	public static void main(String[] args) throws InterruptedException {
 			WebIMFileServer server = new WebIMFileServer();
-			log.info("Http Server listening on 9093...");
+			log.info("file Server listening on 9093...");
 			try {
 				server.start(9093);
 			} catch (Exception e) {
