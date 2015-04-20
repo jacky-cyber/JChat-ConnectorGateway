@@ -1044,7 +1044,7 @@ public class WebImServer {
 				Channel channel = userNameToPushChannelMap.get(appKey+":"+userName);
 				channel.writeAndFlush(req);
 			}
-		});
+		});			
 		
 		// 获取群组列表
 		server.addEventListener("getGroupList", String.class, new DataListener<String>() {

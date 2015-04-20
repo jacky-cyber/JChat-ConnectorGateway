@@ -156,9 +156,6 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 						Map tokenMap = gson.fromJson(stoken, HashMap.class);
 						String _token = (String) tokenMap.get("token");
 						String token = BASE64Utils.encodeString(uid+":"+_token);
-						SdkCommonSuccessRespObject loginComResp = new SdkCommonSuccessRespObject();
-						WebImServer.userNameToSessionCilentMap.get(appKey+":"+userName).sendEvent("login", gson.toJson(loginComResp));
-						log.info(String.format("client handler send event: %s to webclient", "login"));
 						
 						//  存储用户信息
 						Jedis jedis = null;
@@ -175,6 +172,9 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 						} finally {
 							redisClient.returnResource(jedis);
 						}
+						SdkCommonSuccessRespObject loginComResp = new SdkCommonSuccessRespObject();
+						WebImServer.userNameToSessionCilentMap.get(appKey+":"+userName).sendEvent("login", gson.toJson(loginComResp));
+						log.info(String.format("client handler send event: %s to webclient", "login"));
 					} else {
 						SdkCommonErrorRespObject loginComResp = new SdkCommonErrorRespObject();
 						loginComResp.setErrorInfo(imLoginRespCode, imLoginRespMsg);
