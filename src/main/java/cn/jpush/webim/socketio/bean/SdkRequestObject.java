@@ -1,19 +1,10 @@
 package cn.jpush.webim.socketio.bean;
 
-public class SdkCommonSuccessRespObject {
+public class SdkRequestObject {
 	private String apiVersion;
 	private String id;
 	private String method;
-	private String data;
-	
-	public SdkCommonSuccessRespObject(String apiVersion, String id,
-			String method, String data) {
-		super();
-		this.apiVersion = apiVersion;
-		this.id = id;
-		this.method = method;
-		this.data = data;
-	}
+	private SdkRequesrParamsObject params;
 	public String getApiVersion() {
 		return apiVersion;
 	}
@@ -33,11 +24,11 @@ public class SdkCommonSuccessRespObject {
 	public void setMethod(String method) {
 		this.method = method;
 	}
-	public String getData() {
-		return data;
+	public SdkRequesrParamsObject getParams() {
+		return params;
 	}
-	public void setData(String data) {
-		this.data = data;
+	public void setParams(SdkRequesrParamsObject params) {
+		this.params = params;
 	}
-	 
+	
 }
