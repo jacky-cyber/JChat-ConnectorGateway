@@ -124,6 +124,7 @@ public class WebImServer {
 	public static Hashtable<Channel, String> pushChannelToUsernameMap = new Hashtable<Channel, String>();   //  IM Server --> appKey:用户名
 	private static final int PORT = SystemConfig.getIntProperty("webim.server.port");
 	private static final String SDK_VERSION_V1 = "1.0";
+	private static final String DATA_AISLE = "data";
 	private Gson gson = new Gson();
 	private Configuration config;
 	private SocketIOServer server;
@@ -137,7 +138,7 @@ public class WebImServer {
 	
 	public void configMessageEventAndStart() throws InterruptedException{
 		if(config==null||server==null){
-			log.warn("you have not init the config and server. please do this first.");
+			log.error("you have not init the config and server. please do this first.");
 			return;
 		} 
 		
@@ -145,8 +146,8 @@ public class WebImServer {
 		 server.addConnectListener(new ConnectListener() {
 			@Override
 			public void onConnect(SocketIOClient client) {
-				log.debug(String.format("connect from web client -- the session id is %s, client transport method is %s", client.getSessionId(), client.getTransport()));
-				SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject("1.0", "context1", JMessage.Method.CONNECT, null);
+				log.info(String.format("connect from web client -- the session id is %s, client transport method is %s", client.getSessionId(), client.getTransport()));
+				SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject("1.0", "1000010", JMessage.Method.CONNECT, null);
 				client.sendEvent("onConnected", gson.toJson(resp));
 			}
 		 }); 
@@ -156,15 +157,15 @@ public class WebImServer {
 			@Override
 			public void onDisconnect(SocketIOClient client) {
 				if(client!=null){
-					SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject("1.0", "context1", JMessage.Method.DISCONNECT, "");
+					SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject("1.0", "1000010", JMessage.Method.DISCONNECT, "");
 					client.sendEvent("onDisconnected", gson.toJson(resp));
-					log.debug(String.format("the connection is disconnect -- the session id is %s", client.getSessionId()));
+					log.info(String.format("the connection is disconnect -- the session id is %s", client.getSessionId()));
 					String kan = "";
 					if(WebImServer.sessionClientToUserNameMap!=null){
 						try{
 							kan = WebImServer.sessionClientToUserNameMap.get(client);
 						} catch (Exception e){
-							log.warn(String.format("user disconnect exception: %s", e.getMessage()));
+							log.error(String.format("user disconnect exception: %s", e.getMessage()));
 						}
 					}
 					if(StringUtils.isNotEmpty(kan)){
@@ -176,7 +177,7 @@ public class WebImServer {
 							WebImServer.pushChannelToUsernameMap.remove(channel);
 							channel.close();   //  断开与push server的长连接
 						} else {
-							log.warn(String.format("user: %s get channel to jpush server is empty", kan));
+							log.error(String.format("user: %s gateway to push's channel is disconnected", kan));
 						}
 					}
 				}	
@@ -184,15 +185,18 @@ public class WebImServer {
 		});
 		 
 		 // gateway 数据接收处理
-		 server.addEventListener("data", SdkRequestObject.class, new DataListener<SdkRequestObject>() {
+		 server.addEventListener(WebImServer.DATA_AISLE, SdkRequestObject.class, new DataListener<SdkRequestObject>() {
 				@Override
 				public void onData(SocketIOClient client, SdkRequestObject data,
 						AckRequest ackSender) throws Exception {
 					String version = data.getApiVersion();
-					String id = data.getId();
 					String method = data.getMethod();
 					if(StringUtils.isEmpty(method)||StringUtils.isEmpty(version)){
-						log.warn(String.format("user pass empty method or version arguments, deny to execute"));
+						log.error(String.format("user pass empty method or version arguments, deny to execute"));
+						return;
+					}
+					if(client==null){
+						log.error(String.format("data eventlistener SocketIOClient object is null, deny to execute"));
 						return;
 					}
 					if(version.equals(SDK_VERSION_V1)){
@@ -202,6 +206,8 @@ public class WebImServer {
 							V1.login(client, data);
 						} else if(JMessage.Method.LOGOUT.equals(method)){
 							V1.logout(client, data);
+						}  else if(JMessage.Method.HEARTBEAT.equals(method)){
+							V1.heartbeat(client, data);
 						} else if(JMessage.Method.USERINFO_GET.equals(method)){
 							V1.getUserInfo(client, data);
 						} else if(JMessage.Method.TEXTMESSAGE_SEND.equals(method)){
@@ -227,10 +233,10 @@ public class WebImServer {
 						} else if(JMessage.Method.GROUPLIST_GET.equals(method)){
 							V1.getGroupList(client, data);
 						} else {
-							log.warn("no mapping for JMessage method");
+							log.error("no correct mapping for JMessage method");
 						}
 					} else {
-						log.warn("SDK Version Error");
+						log.error("SDK Version Error");
 					}
 				}
 				

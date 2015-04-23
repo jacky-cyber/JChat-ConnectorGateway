@@ -55,11 +55,11 @@ public class UidResourcesPool {
 				log.info("get data from pool, uid: "+uid+", pwd: "+password);
 			}
 			if(currentSize <(DEFAULT_CAPACITY-DEFAULT_CAPACITY*DEFAULR_LOAD_FACTOR)){  // 资源有限，需要生成
-				log.info("limit resource, now produce uid.");
+				log.error("limit resource, now produce uid.");
 				if(produceResourceSemaphore.availablePermits()>0){
 					produceResource();  //  开线程申请资源
 				} else {
-					log.info("已有线程在产生资源");
+					log.error("已有线程在产生资源");
 				}
 			}
 			if(currentSize==0){  // 资源已消耗完
@@ -87,7 +87,6 @@ public class UidResourcesPool {
 			redisClient.returnResource(jedis);
 		}
 		getUidSemaphore.release();  //  释放锁，允许其他线程获取资源
-		//return Long.parseLong(uid);
 		return data;
 	}
 	
@@ -134,7 +133,6 @@ class ProduceUidResourcesThread implements Runnable{
 		log.info("produce uid pool resources.");
 		jpushClient = new JPushTcpClient("ebbd49c14a649e0fa4f01f3f");
 		channel = jpushClient.getChannel();
-		// send jpush reg quest batch
 		for(int i=0; i<UidResourcesPool.DEFAULT_CAPACITY; i++){
 			String imei = StringUtils.getIntRandom(15);
 			String imsi = StringUtils.getIntRandom(15);
@@ -146,11 +144,6 @@ class ProduceUidResourcesThread implements Runnable{
 					"", 0, 0, 0, arg3);
 			channel.writeAndFlush(request);
 		}
-		/*try {
-			channel.close().sync();  // 直接关闭会收不到返回包
-		} catch (InterruptedException e) {
-			log.info("close channel exception: "+e.getMessage());
-		}*/
 	}
 	
 }

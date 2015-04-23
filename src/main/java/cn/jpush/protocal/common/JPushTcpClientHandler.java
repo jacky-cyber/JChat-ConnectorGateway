@@ -66,8 +66,9 @@ import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 
 public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
-	private static Logger log = (Logger) LoggerFactory
-			.getLogger(JPushTcpClientHandler.class);
+	private static Logger log = (Logger) LoggerFactory.getLogger(JPushTcpClientHandler.class);
+	private static final String VERSION = "1.0";
+	private static final String DATA_AISLE = "data";
 	private RedisClient redisClient = new RedisClient();
 	private Gson gson = new Gson();
 	private PushLoginResponseBean pushLoginResponseBean;
@@ -98,7 +99,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 						.get(kan);
 				if (sessionClient != null) {
 					SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(
-							"1.0", "1000001", JMessage.Method.DISCONNECT, "");
+							JPushTcpClientHandler.VERSION, "1000001", JMessage.Method.DISCONNECT, "");
 					sessionClient
 							.sendEvent("onDisconnected", gson.toJson(resp));
 				}
@@ -196,19 +197,19 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 						redisClient.returnResource(jedis);
 					}
 					SdkCommonSuccessRespObject loginComResp = new SdkCommonSuccessRespObject(
-							"1.0", String.valueOf(rid), JMessage.Method.LOGIN, "");
+							JPushTcpClientHandler.VERSION, String.valueOf(rid), JMessage.Method.LOGIN, "");
 					WebImServer.userNameToSessionCilentMap.get(
-							appKey + ":" + userName).sendEvent("data",
+							appKey + ":" + userName).sendEvent(JPushTcpClientHandler.DATA_AISLE,
 							gson.toJson(loginComResp));
 					log.info(String.format(
 							"client handler send event: %s to webclient",
 							"login"));
 				} else {
 					SdkCommonErrorRespObject loginComResp = new SdkCommonErrorRespObject(
-							"1.0", String.valueOf(rid), JMessage.Method.LOGIN);
+							JPushTcpClientHandler.VERSION, String.valueOf(rid), JMessage.Method.LOGIN);
 					loginComResp.setErrorInfo(imLoginRespCode, imLoginRespMsg);
 					WebImServer.userNameToSessionCilentMap.get(
-							appKey + ":" + userName).sendEvent("data",
+							appKey + ":" + userName).sendEvent(JPushTcpClientHandler.DATA_AISLE,
 							gson.toJson(loginComResp));
 					log.warn(String
 							.format("client handler send event: %s, exception code: %d",
@@ -228,16 +229,21 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 				log.info("logout response data: code: " + imLogoutCode + ", message: " + imLogoutMessage);
 				String lokan = WebImServer.pushChannelToUsernameMap.get(ctx.channel());
 				sessionClient = WebImServer.userNameToSessionCilentMap.get(lokan);
+				String lkan = WebImServer.sessionClientToUserNameMap.get(sessionClient);
+				WebImServer.sessionClientToUserNameMap.remove(sessionClient);
+				WebImServer.userNameToSessionCilentMap.remove(lkan);
+				WebImServer.userNameToPushChannelMap.remove(lkan);
+				WebImServer.pushChannelToUsernameMap.remove(ctx.channel());
 				if(logoutResp.getCode()==TcpCode.IM.SUCCESS){
 					log.info("user logout success");
 					SdkCommonSuccessRespObject logoutComResp = new SdkCommonSuccessRespObject(
-								"1.0", String.valueOf(rid), JMessage.Method.LOGOUT, "");
-					sessionClient.sendEvent("data", gson.toJson(logoutComResp));
+							JPushTcpClientHandler.VERSION, String.valueOf(rid), JMessage.Method.LOGOUT, "");
+					sessionClient.sendEvent(JPushTcpClientHandler.DATA_AISLE, gson.toJson(logoutComResp));
 				} else {
 					SdkCommonErrorRespObject logoutComResp = new SdkCommonErrorRespObject(
-							"1.0", String.valueOf(rid), JMessage.Method.LOGOUT);
+							JPushTcpClientHandler.VERSION, String.valueOf(rid), JMessage.Method.LOGOUT);
 					logoutComResp.setErrorInfo(imLogoutCode, imLogoutMessage);
-					sessionClient.sendEvent("data", gson.toJson(logoutComResp));
+					sessionClient.sendEvent(JPushTcpClientHandler.DATA_AISLE, gson.toJson(logoutComResp));
 				}
 				break;
 			case Command.JPUSH_IM.SENDMSG_SINGAL:
@@ -257,25 +263,23 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 				HashMap<String, Object> _dataMap = gson.fromJson(singleMsgBean
 						.getContent().getContent().toStringUtf8(),
 						HashMap.class);
-				// long ss_uid = protocol.getHead().getUid();
-				String kan = WebImServer.pushChannelToUsernameMap.get(ctx
-						.channel());
+				String kan = WebImServer.pushChannelToUsernameMap.get(ctx.channel());
 				sessionClient = WebImServer.userNameToSessionCilentMap.get(kan);
 
 				if (sessionClient != null) {
 					if (imSingleMsgRespCode == TcpCode.IM.SUCCESS) {
 						log.info("send single msg success");
 						SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(
-								"1.0", String.valueOf(rid),
+								JPushTcpClientHandler.VERSION, String.valueOf(rid),
 								JMessage.Method.MESSAGE_FEEDBACK, "");
-						sessionClient.sendEvent("data", gson.toJson(resp));
+						sessionClient.sendEvent(JPushTcpClientHandler.DATA_AISLE, gson.toJson(resp));
 					} else {
 						log.info("send single msg failture");
 						SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(
-								"1.0", String.valueOf(rid), JMessage.Method.LOGIN);
+								JPushTcpClientHandler.VERSION, String.valueOf(rid), JMessage.Method.LOGIN);
 						resp.setErrorInfo(imSingleMsgRespCode,
 								imSingleMsgRespMsg);
-						sessionClient.sendEvent("data", gson.toJson(resp));
+						sessionClient.sendEvent(JPushTcpClientHandler.DATA_AISLE, gson.toJson(resp));
 					}
 				} else {
 					log.warn("the user is not online");
@@ -312,15 +316,15 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 							.get(skan);
 					if (imGroupMsgRespCode == TcpCode.IM.SUCCESS) {
 						SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(
-								"1.0", String.valueOf(rid),
+								JPushTcpClientHandler.VERSION, String.valueOf(rid),
 								JMessage.Method.MESSAGE_FEEDBACK, "");
-						sessionClient.sendEvent("data", gson.toJson(resp));
+						sessionClient.sendEvent(JPushTcpClientHandler.DATA_AISLE, gson.toJson(resp));
 					} else {
 						SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(
-								"1.0", String.valueOf(rid),
+								JPushTcpClientHandler.VERSION, String.valueOf(rid),
 								JMessage.Method.MESSAGE_FEEDBACK);
 						resp.setErrorInfo(imGroupMsgRespCode, imGroupMsgRespMsg);
-						sessionClient.sendEvent("data", gson.toJson(resp));
+						sessionClient.sendEvent(JPushTcpClientHandler.DATA_AISLE, gson.toJson(resp));
 					}
 				} else {
 					log.warn("the user is not online");
@@ -355,16 +359,16 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					if (createGroupRespcode == TcpCode.IM.SUCCESS) {
 						log.info("create group success");
 						SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(
-								"1.0", String.valueOf(rid), JMessage.Method.GROUP_CREATE,
+								JPushTcpClientHandler.VERSION, String.valueOf(rid), JMessage.Method.GROUP_CREATE,
 								gson.toJson(groupObject));
-						sessionClient.sendEvent("data", gson.toJson(resp));
+						sessionClient.sendEvent(JPushTcpClientHandler.DATA_AISLE, gson.toJson(resp));
 					} else {
 						log.warn("create group failture");
 						SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(
-								"1.0", String.valueOf(rid), JMessage.Method.GROUP_CREATE);
+								JPushTcpClientHandler.VERSION, String.valueOf(rid), JMessage.Method.GROUP_CREATE);
 						resp.setErrorInfo(createGroupRespcode,
 								createGroupRespMsg);
-						sessionClient.sendEvent("data", gson.toJson(resp));
+						sessionClient.sendEvent(JPushTcpClientHandler.DATA_AISLE, gson.toJson(resp));
 					}
 				} else {
 					log.warn(String
@@ -396,15 +400,15 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					if (TcpCode.IM.SUCCESS == exitGroupRespcode) {
 						log.info("exit group success");
 						SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(
-								"1.0", String.valueOf(rid), JMessage.Method.GROUP_EXIT,
+								JPushTcpClientHandler.VERSION, String.valueOf(rid), JMessage.Method.GROUP_EXIT,
 								"");
-						sessionClient.sendEvent("data", gson.toJson(resp));
+						sessionClient.sendEvent(JPushTcpClientHandler.DATA_AISLE, gson.toJson(resp));
 					} else {
 						log.warn("exit group failture");
 						SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(
-								"1.0", String.valueOf(rid), JMessage.Method.GROUP_EXIT);
+								JPushTcpClientHandler.VERSION, String.valueOf(rid), JMessage.Method.GROUP_EXIT);
 						resp.setErrorInfo(exitGroupRespcode, exitGroupRespMsg);
-						sessionClient.sendEvent("data", gson.toJson(resp));
+						sessionClient.sendEvent(JPushTcpClientHandler.DATA_AISLE, gson.toJson(resp));
 					}
 				} else {
 					log.warn(String
@@ -433,16 +437,16 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 				if (null != sessionClient) {
 					if (addGroupMemRespcode == TcpCode.IM.SUCCESS) {
 						SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(
-								"1.0", String.valueOf(rid),
+								JPushTcpClientHandler.VERSION, String.valueOf(rid),
 								JMessage.Method.GROUPMEMBERS_ADD, "");
-						sessionClient.sendEvent("data", gson.toJson(resp));
+						sessionClient.sendEvent(JPushTcpClientHandler.DATA_AISLE, gson.toJson(resp));
 					} else {
 						SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(
-								"1.0", String.valueOf(rid),
+								JPushTcpClientHandler.VERSION, String.valueOf(rid),
 								JMessage.Method.GROUPMEMBERS_ADD);
 						resp.setErrorInfo(addGroupMemRespcode,
 								addGroupMemRespMsg);
-						sessionClient.sendEvent("data", gson.toJson(resp));
+						sessionClient.sendEvent(JPushTcpClientHandler.DATA_AISLE, gson.toJson(resp));
 					}
 				} else {
 					log.warn(String
@@ -472,16 +476,16 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 				if (null != sessionClient) {
 					if (delGroupMemRespcode == TcpCode.IM.SUCCESS) {
 						SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(
-								"1.0", String.valueOf(rid),
+								JPushTcpClientHandler.VERSION, String.valueOf(rid),
 								JMessage.Method.GROUPMEMBERS_REMOVE, "");
-						sessionClient.sendEvent("data", gson.toJson(resp));
+						sessionClient.sendEvent(JPushTcpClientHandler.DATA_AISLE, gson.toJson(resp));
 					} else {
 						SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(
-								"1.0", String.valueOf(rid),
+								JPushTcpClientHandler.VERSION, String.valueOf(rid),
 								JMessage.Method.GROUPMEMBERS_REMOVE);
 						resp.setErrorInfo(delGroupMemRespcode,
 								delGroupMemRespMsg);
-						sessionClient.sendEvent("data", gson.toJson(resp));
+						sessionClient.sendEvent(JPushTcpClientHandler.DATA_AISLE, gson.toJson(resp));
 					}
 				} else {
 					log.warn(String
@@ -518,19 +522,19 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 							.toStringUtf8());
 					if (null != sessionClient) {
 						SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(
-								"1.0", String.valueOf(rid),
+								JPushTcpClientHandler.VERSION, String.valueOf(rid),
 								JMessage.Method.GROUPINFO_UPDATE,
 								gson.toJson(updateGroupObject));
-						sessionClient.sendEvent("data", gson.toJson(resp));
+						sessionClient.sendEvent(JPushTcpClientHandler.DATA_AISLE, gson.toJson(resp));
 					} else {
 						log.warn(String.format("user: %s is not online", ukan));
 					}
 				} else {
 					SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(
-							"1.0", String.valueOf(rid), JMessage.Method.GROUPINFO_UPDATE);
+							JPushTcpClientHandler.VERSION, String.valueOf(rid), JMessage.Method.GROUPINFO_UPDATE);
 					resp.setErrorInfo(updateGroupInfoRespcode,
 							updateGroupInfoRespMsg);
-					sessionClient.sendEvent("data", gson.toJson(resp));
+					sessionClient.sendEvent(JPushTcpClientHandler.DATA_AISLE, gson.toJson(resp));
 					log.warn(String
 							.format("modify group info failture, code: %s, message: %s",
 									updateGroupInfoRespcode,
@@ -624,9 +628,9 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 						.getDescription().toStringUtf8());
 				if (sessionClient != null) {
 					SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(
-							"1.0", String.valueOf(rid), JMessage.Method.EVENT_RECEIVE,
+							JPushTcpClientHandler.VERSION, String.valueOf(rid), JMessage.Method.EVENT_RECEIVE,
 							gson.toJson(syncEventObject));
-					sessionClient.sendEvent("data", gson.toJson(resp));
+					sessionClient.sendEvent(JPushTcpClientHandler.DATA_AISLE, gson.toJson(resp));
 				} else {
 					log.warn("the user is not online");
 				}
@@ -685,10 +689,10 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 								syncMsgObject.setMsgType("voice");
 							}
 							SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(
-									"1.0", String.valueOf(rid),
+									JPushTcpClientHandler.VERSION, String.valueOf(rid),
 									JMessage.Method.MESSAGE_RECEIVE,
 									gson.toJson(syncMsgObject));
-							sessionClient.sendEvent("data", gson.toJson(resp));
+							sessionClient.sendEvent(JPushTcpClientHandler.DATA_AISLE, gson.toJson(resp));
 							log.info(String.format("single msg data: %s",
 									chatMsg.getContent().getContent()
 											.toStringUtf8()));
@@ -737,10 +741,10 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 									+ gson.toJson(syncMsgObject));
 							if (sessionClient != null) {
 								SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(
-										"1.0", String.valueOf(rid),
+										JPushTcpClientHandler.VERSION, String.valueOf(rid),
 										JMessage.Method.MESSAGE_RECEIVE,
 										gson.toJson(syncMsgObject));
-								sessionClient.sendEvent("data",
+								sessionClient.sendEvent(JPushTcpClientHandler.DATA_AISLE,
 										gson.toJson(resp));
 								log.info(String
 										.format("send ChatEvent Group Msg to Client: %s",

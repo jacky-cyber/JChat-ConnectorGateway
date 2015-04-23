@@ -85,15 +85,6 @@ public class JPushTcpClient {
 			}
 		}
 	}
-
-//	public JPushTcpClient(){
-//		b = new Bootstrap();
-//		try {
-//			this.init();
-//		} catch (InterruptedException e) {
-//			log.error("init client failture, please try again.");
-//		}
-//	}
 	
 	public void init() throws InterruptedException{
 		log.info("jpush tcp client is init......");
