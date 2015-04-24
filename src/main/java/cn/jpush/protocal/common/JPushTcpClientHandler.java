@@ -102,7 +102,11 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 							JPushTcpClientHandler.VERSION, "1000001", JMessage.Method.DISCONNECT, "");
 					sessionClient
 							.sendEvent("onDisconnected", gson.toJson(resp));
+				} else {
+					log.warn("Cannot get SocketIOClient, so cannot send channel removed message to client");
 				}
+			} else {
+				log.warn("through channel get keyAndname is empty");
 			}
 		}
 	}

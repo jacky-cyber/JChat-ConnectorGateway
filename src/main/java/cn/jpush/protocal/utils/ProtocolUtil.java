@@ -401,6 +401,7 @@ public class ProtocolUtil {
 	
 	public static PushLoginResponseBean getPushLoginResponseBean(ByteBuf in) throws UnsupportedEncodingException{
 		int code = ProtocolUtil.byteArrayToInt(in.readBytes(2).array());
+		log.info(String.format("push login response code: %s", code));
 		PushLoginResponseBean bean = null;
 		if(code==0){
 			int sid = ProtocolUtil.byteArrayToInt(in.readBytes(4).array());

@@ -53,7 +53,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 		if (msg instanceof PushRegRequestBean) {  // push reg protocal
 			log.info("encode PushReg request");
 			PushRegRequestBean bean = (PushRegRequestBean) msg;
-			PushRegRequest request = new PushRegRequest(7, 1, 0, 0, bean);
+			PushRegRequest request = new PushRegRequest(11, 1, 0, 0, bean);
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 			log.info("client send PushReg success");
@@ -61,7 +61,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 		if (msg instanceof PushLoginRequestBean) {  // push login protocal
 			log.info("encode PushLogin request");
 			PushLoginRequestBean reqBean = (PushLoginRequestBean)msg;
-			PushLoginRequest request = new PushLoginRequest(7, 1, 0, reqBean.getUid(), reqBean);
+			PushLoginRequest request = new PushLoginRequest(11, 1, 0, reqBean.getUid(), reqBean);
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 			log.info("client send PushLogin success");

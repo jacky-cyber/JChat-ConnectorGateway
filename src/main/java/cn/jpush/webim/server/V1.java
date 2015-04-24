@@ -120,6 +120,10 @@ public class V1 {
 				|| StringUtils.isEmpty(timestamp)
 				|| StringUtils.isEmpty(appKey)) {
 			log.error(String.format("config -- user pass arguments exception"));
+			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
+					id, JMessage.Method.CONFIG);
+			resp.setErrorInfo(JMessage.Error.ARGUMENTS_EXCEPTION, JMessage.Error.getErrorMessage(JMessage.Error.ARGUMENTS_EXCEPTION));
+			client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
 			return;
 		} else {
 			// TODO 加入验证过程
@@ -288,20 +292,6 @@ public class V1 {
 					bean);
 			channel.writeAndFlush(req);
 		}
-	}
-	
-	/**
-	 * 客户端心跳
-	 * @param client
-	 * @param data
-	 */
-	public static void heartbeat(SocketIOClient client, SdkRequestObject data) {
-		String id = data.getId();
-		log.info("client heartbeat request -- rid: "+id);
-		SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(
-				V1.VERSION, id, JMessage.Method.HEARTBEAT, "");
-		client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
-		log.info("client heartbeat response -- rid: "+id);
 	}
 	
 	/**
@@ -1341,6 +1331,13 @@ public class V1 {
 		String userName = "";
 		String keyAndname = WebImServer.sessionClientToUserNameMap.get(client);
 		log.info(String.format("updateGroupInfo request data -- data: %s", gson.toJson(data)));
+		if(0==gid){
+			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
+					id, JMessage.Method.GROUPINFO_UPDATE);
+			resp.setErrorInfo(JMessage.Error.ARGUMENTS_EXCEPTION, JMessage.Error.getErrorMessage(JMessage.Error.ARGUMENTS_EXCEPTION));
+			client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
+			return;
+		}
 		if (StringUtils.isEmpty(keyAndname)) {
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
 					id, JMessage.Method.GROUPINFO_UPDATE);

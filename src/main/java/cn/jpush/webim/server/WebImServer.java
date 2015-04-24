@@ -206,8 +206,6 @@ public class WebImServer {
 							V1.login(client, data);
 						} else if(JMessage.Method.LOGOUT.equals(method)){
 							V1.logout(client, data);
-						}  else if(JMessage.Method.HEARTBEAT.equals(method)){
-							V1.heartbeat(client, data);
 						} else if(JMessage.Method.USERINFO_GET.equals(method)){
 							V1.getUserInfo(client, data);
 						} else if(JMessage.Method.TEXTMESSAGE_SEND.equals(method)){

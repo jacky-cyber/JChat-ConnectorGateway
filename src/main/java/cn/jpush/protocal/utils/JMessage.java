@@ -4,7 +4,6 @@ public class JMessage {
 	public interface Method {
 		public static final String CONNECT = "connect";
 		public static final String DISCONNECT = "disconnect";
-		public static final String HEARTBEAT = "heartbeat";
 		public static final String CONFIG = "config";
 		public static final String LOGIN = "login";
 		public static final String LOGOUT = "logout";
