@@ -19,6 +19,12 @@ import org.slf4j.LoggerFactory;
 import cn.jpush.protocal.common.HttpInboundHandler;
 import ch.qos.logback.classic.Logger;
 
+/**
+ * 1、用于发图片消息时图片上传
+ * 2、由于 Web IM Demo 获取签名
+ * @author chujieyang
+ *
+ */
 public class WebIMFileServer {
 	private static Logger log = (Logger) LoggerFactory.getLogger(WebIMFileServer.class);
 	

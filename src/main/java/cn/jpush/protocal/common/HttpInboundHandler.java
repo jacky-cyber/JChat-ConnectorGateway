@@ -9,13 +9,17 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.UUID;
 
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 
 import ch.qos.logback.classic.Logger;
+import cn.jpush.protocal.utils.StringUtils;
 import cn.jpush.protocal.utils.SystemConfig;
 import cn.jpush.webim.server.WebIMFileServer;
 import io.netty.buffer.Unpooled;
@@ -49,6 +53,8 @@ import io.netty.handler.codec.http.multipart.MixedAttribute;
 public class HttpInboundHandler extends SimpleChannelInboundHandler<HttpObject> {
 	private static Logger log = (Logger) LoggerFactory.getLogger(HttpInboundHandler.class);
 	private static final String FILE_STORE_PATH = SystemConfig.getProperty("im.file.store.path");
+	private static final String APP_KEY = SystemConfig.getProperty("appKey");
+	private static final String MASTER_SECRECT = SystemConfig.getProperty("masterSecrect");
 	private HttpRequest request;
 	private boolean readingChunks;
 	private static final HttpDataFactory factory = new DefaultHttpDataFactory(true);
@@ -83,6 +89,14 @@ public class HttpInboundHandler extends SimpleChannelInboundHandler<HttpObject> 
 			throws Exception {
 		if (msg instanceof HttpRequest) {
 			HttpRequest request = this.request = (HttpRequest) msg;
+			String uri = request.getUri();
+		
+			log.info("signature request uri: "+uri);
+			uri = uri.split("[?]")[0];
+			if("/signature".equals(uri)||"/signature/".equals(uri)){
+				this.responseSignatureInfo(ctx);
+				return;
+			}
 			try {
 				decoder = new HttpPostRequestDecoder(factory, request);
 			} catch (ErrorDataDecoderException e1) {
@@ -209,5 +223,39 @@ public class HttpInboundHandler extends SimpleChannelInboundHandler<HttpObject> 
 	   ctx.write(response);
 	   ctx.flush();
 	}
+	
+	private void responseSignatureInfo(ChannelHandlerContext ctx) throws UnsupportedEncodingException{
+		String timeStamp = this.getTimestamp();
+		String randomStr = this.getRandomStr();
+		String signature = this.getSignature(APP_KEY, timeStamp, randomStr, MASTER_SECRECT);
+		Map<String, Object> data = new HashMap<String, Object>();
+		data.put("timeStamp", timeStamp);
+		data.put("randomStr", randomStr);
+		data.put("signature", signature);
+		Gson gson = new Gson();
+		String result = gson.toJson(data);
+		result = "jsonpCallback("+result+")";
+		log.info("response signature data: "+result);
+		FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.wrappedBuffer(result.getBytes("UTF-8")));
+		response.headers().set("content-type", "application/json;charset=utf-8");
+		response.headers().set("content-length", response.content().readableBytes());
+		ctx.write(response);
+		ctx.flush();
+	}
+	
+	private String getSignature(String appKey, String timestamp, String randomStr, String masterSecrect){
+    	 String str = "appKey=" + appKey +
+                 "&timestamp=" + timestamp +
+                 "&randomStr=" + randomStr +
+                 "&masterSecrect=" + masterSecrect;
+    	 return StringUtils.toMD5(str);
+    }
 
+	private String getRandomStr() {
+        return UUID.randomUUID().toString();
+    }
+
+    private String getTimestamp() {
+        return Long.toString(System.currentTimeMillis() / 1000);
+    }
 }

@@ -19,12 +19,6 @@ import cn.jpush.webim.socketio.bean.UdpRespBean;
 
 public class JPushUdpClient {
 	private static Logger log = (Logger) LoggerFactory.getLogger(JPushUdpClient.class);
-	private static final String HOST_1 = SystemConfig.getProperty("sis.http.url1");
-	private static final String HOST_2 = SystemConfig.getProperty("sis.http.url2");
-	private static final String HOST_3 = SystemConfig.getProperty("sis.http.url3");
-	private static final String HOST_4 = SystemConfig.getProperty("sis.http.url4");
-	private static final int PORT_1 = SystemConfig.getIntProperty("sis.http.port1"); 
-	private static final int PORT_2 = SystemConfig.getIntProperty("sis.http.port2");
 	
 	public static UdpRespBean sendSISRequest(String appkey, String host, int port) throws Exception{
 		DatagramSocket client = new DatagramSocket();   

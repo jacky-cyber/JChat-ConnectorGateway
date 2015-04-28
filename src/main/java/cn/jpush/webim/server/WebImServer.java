@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.zip.CRC32;
 import java.util.zip.CheckedInputStream;
@@ -71,6 +72,7 @@ import cn.jpush.socketio.Transport;
 import cn.jpush.socketio.listener.ConnectListener;
 import cn.jpush.socketio.listener.DataListener;
 import cn.jpush.socketio.listener.DisconnectListener;
+import cn.jpush.socketio.transport.NamespaceClient;
 import cn.jpush.webim.common.RedisClient;
 import cn.jpush.webim.common.UidResourcesPool;
 import cn.jpush.webim.socketio.bean.AddFriendCmd;
@@ -183,7 +185,7 @@ public class WebImServer {
 				}	
 			}
 		});
-		 
+		  
 		 // gateway 数据接收处理
 		 server.addEventListener(WebImServer.DATA_AISLE, SdkRequestObject.class, new DataListener<SdkRequestObject>() {
 				@Override

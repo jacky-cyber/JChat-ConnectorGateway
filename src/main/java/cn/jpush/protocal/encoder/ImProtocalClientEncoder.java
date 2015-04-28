@@ -36,6 +36,7 @@ import cn.jpush.protocal.push.PushRegRequest;
 import cn.jpush.protocal.push.PushRegRequestBean;
 import cn.jpush.protocal.utils.ProtocolUtil;
 import cn.jpush.protocal.utils.StringUtils;
+import cn.jpush.protocal.utils.SystemConfig;
 import cn.jpush.webim.common.UidResourcesPool;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -46,6 +47,9 @@ import io.netty.handler.codec.MessageToByteEncoder;
  */
 public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 	private static Logger log = (Logger) LoggerFactory.getLogger(ImProtocalClientEncoder.class);
+	private static final int JPUSH_VERSION = SystemConfig.getIntProperty("jpush.version");
+	private static final int JMESSAGE_VERSION = SystemConfig.getIntProperty("jmessage.version");
+	
 	@Override
 	protected void encode(ChannelHandlerContext ctx, Object msg, ByteBuf out)
 			throws Exception {
@@ -53,7 +57,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 		if (msg instanceof PushRegRequestBean) {  // push reg protocal
 			log.info("encode PushReg request");
 			PushRegRequestBean bean = (PushRegRequestBean) msg;
-			PushRegRequest request = new PushRegRequest(11, 1, 0, 0, bean);
+			PushRegRequest request = new PushRegRequest(JPUSH_VERSION, 1, 0, 0, bean);
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 			log.info("client send PushReg success");
@@ -61,7 +65,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 		if (msg instanceof PushLoginRequestBean) {  // push login protocal
 			log.info("encode PushLogin request");
 			PushLoginRequestBean reqBean = (PushLoginRequestBean)msg;
-			PushLoginRequest request = new PushLoginRequest(11, 1, 0, reqBean.getUid(), reqBean);
+			PushLoginRequest request = new PushLoginRequest(JPUSH_VERSION, 1, 0, reqBean.getUid(), reqBean);
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 			log.info("client send PushLogin success");
@@ -85,7 +89,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			ImLoginRequestProto req = (ImLoginRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
 			log.info(String.format("IM Login request package: %s", reqProtobuf.toString()));
-			ImRequest request = new ImRequest(1, req.getRid(), req.getSid(), req.getJuid(), reqProtobuf);
+			ImRequest request = new ImRequest(JMESSAGE_VERSION, req.getRid(), req.getSid(), req.getJuid(), reqProtobuf);
 			byte[] data = request.getRequestPackage(); 
 			out.writeBytes(data);
 			log.info("client send IMLogin success");
@@ -95,7 +99,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			ImLogoutRequestProto req = (ImLogoutRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
 			log.info(String.format("IM Logout request package: %s", reqProtobuf.toString()));
-			ImRequest request = new ImRequest(1,  1, req.getSid(), req.getJuid(), reqProtobuf);
+			ImRequest request = new ImRequest(JMESSAGE_VERSION, req.getRid(), req.getSid(), req.getJuid(), reqProtobuf);
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 			log.info("client send IMLogout success");
@@ -105,8 +109,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			ImSendSingleMsgRequestProto req = (ImSendSingleMsgRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
 			log.info(String.format("IM Single Msg request package: %s", reqProtobuf.toString()));
-			long rid = req.getRid();
-			ImRequest request = new ImRequest(1, rid, req.getSid(), req.getJuid(), reqProtobuf);  // rid处理重发
+			ImRequest request = new ImRequest(JMESSAGE_VERSION, req.getRid(), req.getSid(), req.getJuid(), reqProtobuf);  // rid处理重发
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 			log.info("client send IMSendSingleMsg success");
@@ -116,8 +119,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			ImSendGroupMsgRequestProto req = (ImSendGroupMsgRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
 			log.info(String.format("IM Group Msg request package: %s", reqProtobuf.toString()));
-			long rid = req.getRid();
-			ImRequest request = new ImRequest(1, rid, req.getSid(), req.getJuid(), reqProtobuf);  // rid处理重发
+			ImRequest request = new ImRequest(JMESSAGE_VERSION, req.getRid(), req.getSid(), req.getJuid(), reqProtobuf);  // rid处理重发
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 			log.info("client send IMSendGroupMsg success");
@@ -127,7 +129,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			ImCreateGroupRequestProto req = (ImCreateGroupRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
 			log.info(String.format("IM Create Group request package: %s", reqProtobuf.toString()));
-			ImRequest request = new ImRequest(1, req.getRid(), req.getSid(), req.getJuid(), reqProtobuf);
+			ImRequest request = new ImRequest(JMESSAGE_VERSION, req.getRid(), req.getSid(), req.getJuid(), reqProtobuf);
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 			log.info("client send IMCreateGroup success");
@@ -137,7 +139,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			ImExitGroupRequestProto req = (ImExitGroupRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
 			log.info(String.format("IM Exit Group request package: %s", reqProtobuf.toString()));
-			ImRequest request = new ImRequest(1, 1, req.getSid(), req.getJuid(), reqProtobuf);
+			ImRequest request = new ImRequest(JMESSAGE_VERSION, req.getRid(), req.getSid(), req.getJuid(), reqProtobuf);
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 			log.info("client send IMExitGroup success");
@@ -147,7 +149,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			ImAddGroupMemberRequestProto req = (ImAddGroupMemberRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
 			log.info(String.format("IM Add Group Member request package: %s", reqProtobuf.toString()));
-			ImRequest request = new ImRequest(1, req.getRid(), req.getSid(), req.getJuid(), reqProtobuf);
+			ImRequest request = new ImRequest(JMESSAGE_VERSION, req.getRid(), req.getSid(), req.getJuid(), reqProtobuf);
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 			log.info("client send IMAddGroupMember success");
@@ -157,7 +159,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			ImDeleteGroupMemberRequestProto req = (ImDeleteGroupMemberRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
 			log.info(String.format("IM Delete Group Member request package: %s", reqProtobuf.toString()));
-			ImRequest request = new ImRequest(1, req.getRid(), req.getSid(), req.getJuid(), reqProtobuf);
+			ImRequest request = new ImRequest(JMESSAGE_VERSION, req.getRid(), req.getSid(), req.getJuid(), reqProtobuf);
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 			log.info("client send IMDeleteGroupMember success");
@@ -167,7 +169,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			ImUpdateGroupInfoRequestProto req = (ImUpdateGroupInfoRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
 			log.info(String.format("IM Update Group Info request package: %s", reqProtobuf.toString()));
-			ImRequest request = new ImRequest(1, req.getRid(), req.getSid(), req.getJuid(), reqProtobuf);
+			ImRequest request = new ImRequest(JMESSAGE_VERSION, req.getRid(), req.getSid(), req.getJuid(), reqProtobuf);
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 			log.info("client send IMUpdateGroupMember success");
@@ -177,7 +179,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			ImChatMsgSyncRequestProto req = (ImChatMsgSyncRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
 			log.info(String.format("IM ChatMsg Sync FeedBack request package: %s", reqProtobuf.toString()));
-			ImRequest request = new ImRequest(1, req.getRid(), req.getSid(), req.getJuid(), reqProtobuf);
+			ImRequest request = new ImRequest(JMESSAGE_VERSION, req.getRid(), req.getSid(), req.getJuid(), reqProtobuf);
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 			log.info("client send IMRespMsgReceived success");
@@ -187,7 +189,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			ImEventSyncRequestProto req = (ImEventSyncRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
 			log.info(String.format("IM Event Sync FeedBack request package: %s", reqProtobuf.toString()));
-			ImRequest request = new ImRequest(1, req.getRid(), req.getSid(), req.getJuid(), reqProtobuf);
+			ImRequest request = new ImRequest(JMESSAGE_VERSION, req.getRid(), req.getSid(), req.getJuid(), reqProtobuf);
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 			log.info("client send IMRespEventReceived success");

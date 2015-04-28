@@ -107,6 +107,11 @@
 		<artifactId>protobuf-java</artifactId>
 		<version>2.5.0</version>
 	 </dependency>
+	 <dependency>
+      <groupId>com.couchbase.client</groupId>
+      <artifactId>couchbase-client</artifactId>
+      <version>1.2.1</version>
+    </dependency>
      <!-- <dependency>
     	<groupId>com.jpush</groupId>
   		<artifactId>socketio</artifactId>

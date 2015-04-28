@@ -8,10 +8,11 @@ import cn.jpush.protocal.im.bean.LogoutRequestBean;
 import com.google.protobuf.ByteString;
 
 public class ImLogoutRequestProto extends BaseProtobufRequest {
-	
+	private long rid;
 	public ImLogoutRequestProto(int cmd, int version, long uid, String appkey,
-			int sid, long juid, List cookie, Object bean) {
+			int sid, long juid, long rid, List cookie, Object bean) {
 		super(cmd, version, uid, appkey, sid, juid, cookie, bean);
+		this.rid = rid;
 	}
 
 	@Override
@@ -22,6 +23,14 @@ public class ImLogoutRequestProto extends BaseProtobufRequest {
 		logoutBuilder.setUsername(ByteString.copyFromUtf8(bean.getUsername()));
 		bodyBuilder.setLogout(logoutBuilder);
 		protocalBuilder.setBody(bodyBuilder);
+	}
+
+	public long getRid() {
+		return rid;
+	}
+
+	public void setRid(long rid) {
+		this.rid = rid;
 	}
 
 }

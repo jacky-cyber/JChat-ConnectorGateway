@@ -1,6 +1,9 @@
 package cn.jpush.webim.server;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -27,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 
+import com.couchbase.client.CouchbaseClient;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.qiniu.api.auth.AuthException;
@@ -66,11 +70,13 @@ import cn.jpush.protocal.utils.Configure;
 import cn.jpush.protocal.utils.HttpResponseWrapper;
 import cn.jpush.protocal.utils.JMessage;
 import cn.jpush.protocal.utils.ProtocolUtil;
+import cn.jpush.protocal.utils.Sign;
 import cn.jpush.protocal.utils.StringUtils;
 import cn.jpush.protocal.utils.SystemConfig;
 import cn.jpush.socketio.Configuration;
 import cn.jpush.socketio.SocketIOClient;
 import cn.jpush.socketio.SocketIOServer;
+import cn.jpush.webim.common.CouchBaseManager;
 import cn.jpush.webim.common.RedisClient;
 import cn.jpush.webim.common.UidResourcesPool;
 import cn.jpush.webim.socketio.bean.GroupMember;
@@ -115,11 +121,11 @@ public class V1 {
 		String timestamp = data.getParams().getTimestamp();
 		String randomStr = data.getParams().getRandomStr();
 		String signature = data.getParams().getSignature();
-		log.info(String.format("config request data -- data: %s", gson.toJson(data)));
+		log.info(String.format("config -- request data -- data -- %s", gson.toJson(data)));
 		if (StringUtils.isEmpty(signature) || StringUtils.isEmpty(randomStr)
 				|| StringUtils.isEmpty(timestamp)
 				|| StringUtils.isEmpty(appKey)) {
-			log.error(String.format("config -- user pass arguments exception"));
+			log.error(String.format("config -- user pass null arguments exception"));
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
 					id, JMessage.Method.CONFIG);
 			resp.setErrorInfo(JMessage.Error.ARGUMENTS_EXCEPTION, JMessage.Error.getErrorMessage(JMessage.Error.ARGUMENTS_EXCEPTION));
@@ -127,13 +133,40 @@ public class V1 {
 			return;
 		} else {
 			// TODO 加入验证过程
-			StringBuffer buffer = new StringBuffer();
-			// String token --> appKey
-			String sign = buffer.append(timestamp).append(randomStr).toString();
-			SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(
-					V1.VERSION, id, JMessage.Method.CONFIG, "");
-			log.info(String.format("config resp data -- ", gson.toJson(resp)));
-			client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
+			/*CouchbaseClient cbClient = CouchBaseManager.getCouchbaseClientInstance("appbucket");
+			String masterSecrect_json = (String) cbClient.get("appKey");
+			Map dataMap = gson.fromJson(masterSecrect_json, HashMap.class);
+			String masterSecrect = (String) dataMap.get("apiMasterSecret");
+			log.info("couchbase get value: "+masterSecrect_json);
+			log.info("from cb get masterSecect: "+masterSecrect);
+			String _signature = Sign.getSignature(appKey, timestamp, randomStr, masterSecrect);*/
+			String _signature = Sign.getSignature(appKey, timestamp, randomStr, "054d6103823a726fc12d0466");
+			if(signature.equals(_signature)){
+				SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(
+						V1.VERSION, id, JMessage.Method.CONFIG, "");
+				log.info(String.format("config -- resp data -- %s", gson.toJson(resp)));
+				client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
+				
+				Jedis jedis = null;
+				try {
+					jedis = redisClient.getJeids();
+					jedis.set(client.getSessionId().toString(), signature);
+					jedis.expire(appKey, 7200);  // 签名2小时过期
+				} catch (JedisConnectionException e) {
+					log.error(e.getMessage());
+					redisClient.returnBrokenResource(jedis);
+					throw new JedisConnectionException(e);
+				} finally {
+					redisClient.returnResource(jedis);
+				}
+				
+			} else {
+				SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
+						id, JMessage.Method.CONFIG);
+				resp.setErrorInfo(JMessage.Error.CONFIG_EXCEPTION, JMessage.Error.getErrorMessage(JMessage.Error.CONFIG_EXCEPTION));
+				client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
+				log.error(String.format("config signature exception"));
+			}
 		}
 	}
 
@@ -150,16 +183,33 @@ public class V1 {
 		String appkey = data.getParams().getAppKey();
 		String username = data.getParams().getUsername();
 		String password = data.getParams().getPassword();
-		log.info(String.format("login request data -- data: %s", gson.toJson(data)));
+		String signature = data.getParams().getSignature();
+		log.info(String.format("login -- request data -- data: %s", gson.toJson(data)));
 		if (StringUtils.isEmpty(appkey) || StringUtils.isEmpty(username)
-				|| StringUtils.isEmpty(password)) {
-			log.error("login -- use pass arguments exception");
+				|| StringUtils.isEmpty(password) || StringUtils.isEmpty(signature)) {
+			log.error("login -- use pass null arguments exception");
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
 					id, JMessage.Method.LOGIN);
 			resp.setErrorInfo(JMessage.Error.ARGUMENTS_EXCEPTION, JMessage.Error.getErrorMessage(JMessage.Error.ARGUMENTS_EXCEPTION));
 			client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
 			return;
 		}
+		
+		// 关系绑定
+		WebImServer.userNameToSessionCilentMap.put(appkey + ":" + username,
+				client);
+		WebImServer.sessionClientToUserNameMap.put(client, appkey + ":"
+				+ username);
+		
+		// 签名有效性验证
+		if(!V1.isSignatureValid(client.getSessionId().toString(), signature)){
+			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
+					id, JMessage.Method.LOGIN);
+			resp.setErrorInfo(JMessage.Error.SIGNATURE_INVALID, JMessage.Error.getErrorMessage(JMessage.Error.SIGNATURE_INVALID));
+			client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
+			return;
+		}
+		
 		Map<String, String> juidData = UidResourcesPool.getUidAndPassword();
 		if(juidData==null){
 			log.error(String.format("login -- UidResourcePool getUidAndPassword exception"));
@@ -173,10 +223,6 @@ public class V1 {
 		Channel pushChannel = jpushIMTcpClient.getChannel();
 
 		// 关系绑定
-		WebImServer.userNameToSessionCilentMap.put(appkey + ":" + username,
-				client);
-		WebImServer.sessionClientToUserNameMap.put(client, appkey + ":"
-				+ username);
 		WebImServer.userNameToPushChannelMap.put(appkey + ":" + username,
 				pushChannel);
 		WebImServer.pushChannelToUsernameMap.put(pushChannel, appkey + ":"
@@ -184,11 +230,11 @@ public class V1 {
 
 		PushLoginRequestBean pushLoginBean = new PushLoginRequestBean(juid,
 				"a", ProtocolUtil.md5Encrypt(juid_password), 10800, appkey, 0);
-		pushChannel.writeAndFlush(pushLoginBean);
+		ChannelFuture future = pushChannel.writeAndFlush(pushLoginBean);
 		log.info(String.format(
 				"user: %s begin jpush login, juid: %d, password: %s", username,
 				juid, juid_password));
-
+		
 		pushLoginInCountDown.await(); // 等待push login返回数据
 		PushLoginResponseBean pushLoginResponseBean = jpushIMTcpClient
 				.getjPushClientHandler().getPushLoginResponseBean();
@@ -196,6 +242,14 @@ public class V1 {
 		log.info(String.format(
 				"user: %s jpush login response, code: %d, sid: %d", username,
 				pushLoginResponseBean.getResponse_code(), sid));
+		if(0!=pushLoginResponseBean.getResponse_code()){
+			log.error(String.format("jpush login exception, responseCode is 0"));
+			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
+					id, JMessage.Method.LOGIN);
+			resp.setErrorInfo(JMessage.Error.USER_LOGIN_EXCEPTION, JMessage.Error.getErrorMessage(JMessage.Error.USER_LOGIN_EXCEPTION));
+			client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
+			return;
+		}
 
 		// 存储用户信息
 		Jedis jedis = null;
@@ -239,10 +293,11 @@ public class V1 {
 	 */
 	public static void logout(SocketIOClient client, SdkRequestObject data) {
 		String id = data.getId();
+		long rid = Long.parseLong(id);
 		String appKey = "";
 		String userName = "";
 		String keyAndname = WebImServer.sessionClientToUserNameMap.get(client);
-		log.info(String.format("logout request data -- data: %s", gson.toJson(data)));
+		log.info(String.format("logout -- request data -- data: %s", gson.toJson(data)));
 		if (StringUtils.isEmpty(keyAndname)) {
 			log.error("get keyAndname exception, maybe you have not login");
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
@@ -288,7 +343,7 @@ public class V1 {
 			LogoutRequestBean bean = new LogoutRequestBean(userName);
 			List<Integer> cookie = new ArrayList<Integer>();
 			ImLogoutRequestProto req = new ImLogoutRequestProto(
-					Command.JPUSH_IM.LOGOUT, 1, uid, appKey, sid, juid, cookie,
+					Command.JPUSH_IM.LOGOUT, 1, uid, appKey, sid, juid, rid, cookie,
 					bean);
 			channel.writeAndFlush(req);
 		}
@@ -303,8 +358,9 @@ public class V1 {
 	public static void getUserInfo(SocketIOClient client, SdkRequestObject data) {
 		String id = data.getId();
 		String username = data.getParams().getUsername();
-		log.info(String.format("getUserInfo request data -- data: %s", gson.toJson(data)));
-		if (StringUtils.isEmpty(username)) {
+		String signature = data.getParams().getSignature();
+		log.info(String.format("getUserInfo -- request data -- data: %s", gson.toJson(data)));
+		if (StringUtils.isEmpty(username) || StringUtils.isEmpty(signature)) {
 			log.error("getUserInfo -- pass empty arguments exception");
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
 					id, JMessage.Method.USERINFO_GET);
@@ -328,6 +384,15 @@ public class V1 {
 			if (StringUtils.isEmpty(appKey) || StringUtils.isEmpty(userName)) {
 				log.warn("through keyAndname resovle username exception");
 				return;
+			} else {
+				// 签名有效性验证
+				if(!V1.isSignatureValid(client.getSessionId().toString(), signature)){
+					SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
+							id, JMessage.Method.USERINFO_GET);
+					resp.setErrorInfo(JMessage.Error.SIGNATURE_INVALID, JMessage.Error.getErrorMessage(JMessage.Error.SIGNATURE_INVALID));
+					client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
+					return;
+				}
 			}
 		}
 		Jedis jedis = null;
@@ -345,6 +410,7 @@ public class V1 {
 		} finally {
 			redisClient.returnResource(jedis);
 		}
+		
 		HttpResponseWrapper responseWrapper = APIProxy.getUserInfo(appKey,
 				username, token);
 		if (responseWrapper.isOK()) {
@@ -373,10 +439,10 @@ public class V1 {
 			SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(
 					V1.VERSION, id, JMessage.Method.USERINFO_GET,
 					gson.toJson(userInfo));
-			log.info("getUserInfo resp data -- " + gson.toJson(userInfo));
+			log.info("getUserInfo -- resp data -- " + gson.toJson(userInfo));
 			client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
 		} else {
-			log.warn(String.format("getUserInfo call sdk-api exception"));
+			log.warn(String.format("getUserInfo -- call sdk-api exception"));
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
 					id, JMessage.Method.USERINFO_GET);
 			resp.setErrorInfo(1000, "call sdk-api exception");
@@ -393,15 +459,16 @@ public class V1 {
 	public static void sendTextMessage(SocketIOClient client,
 			SdkRequestObject data) {
 		String id = data.getId();
+		String signature = data.getParams().getSignature();
 		String appKey = "";
 		String userName = "";
 		String keyAndname = WebImServer.sessionClientToUserNameMap.get(client);
-		log.info(String.format("sendTextMessage request data -- data: %s", gson.toJson(data)));
+		log.info(String.format("sendTextMessage -- request data -- data: %s", gson.toJson(data)));
 		String targetId = data.getParams().getTargetId();
 		String targetType = data.getParams().getTargetType();
 		String text = data.getParams().getText();
 		if(StringUtils.isEmpty(targetId)||StringUtils.isEmpty(targetType)
-				||StringUtils.isEmpty(text)){
+				||StringUtils.isEmpty(text)||StringUtils.isEmpty(signature)){
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
 					id, JMessage.Method.MESSAGE_FEEDBACK);
 			resp.setErrorInfo(JMessage.Error.ARGUMENTS_EXCEPTION, JMessage.Error.getErrorMessage(JMessage.Error.ARGUMENTS_EXCEPTION));
@@ -420,6 +487,15 @@ public class V1 {
 			if (StringUtils.isEmpty(appKey) || StringUtils.isEmpty(userName)) {
 				log.warn("through keyAndname resovle username exception");
 				return;
+			} else {
+				// 签名有效性验证
+				if(!V1.isSignatureValid(client.getSessionId().toString(), signature)){
+					SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
+							id, JMessage.Method.MESSAGE_FEEDBACK);
+					resp.setErrorInfo(JMessage.Error.SIGNATURE_INVALID, JMessage.Error.getErrorMessage(JMessage.Error.SIGNATURE_INVALID));
+					client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
+					return;
+				}
 			}
 		}
 		long rid = Long.parseLong(id);
@@ -445,7 +521,7 @@ public class V1 {
 		} finally {
 			redisClient.returnResource(jedis);
 		}
-
+		
 		MsgContentBean msgContent = new MsgContentBean();
 		msgContent.setVersion(version);
 		msgContent.setTarget_type(targetType);
@@ -510,15 +586,16 @@ public class V1 {
 	public static void sendImageMessage(SocketIOClient client,
 			SdkRequestObject data) {
 		String id = data.getId();
+		String signature = data.getParams().getSignature();
 		String appKey = "";
 		String userName = "";
 		String keyAndname = WebImServer.sessionClientToUserNameMap.get(client);
-		log.info(String.format("sendImageMessage request data -- data: %s", gson.toJson(data)));
+		log.info(String.format("sendImageMessage -- request data -- data: %s", gson.toJson(data)));
 		String targetId = data.getParams().getTargetId();
 		String targetType = data.getParams().getTargetType();
 		String fileId = data.getParams().getFileId();
 		if(StringUtils.isEmpty(targetId)||StringUtils.isEmpty(targetType)
-				||StringUtils.isEmpty(fileId)){
+				||StringUtils.isEmpty(fileId)||StringUtils.isEmpty(signature)){
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
 					id, JMessage.Method.MESSAGE_FEEDBACK);
 			resp.setErrorInfo(JMessage.Error.ARGUMENTS_EXCEPTION, JMessage.Error.getErrorMessage(JMessage.Error.ARGUMENTS_EXCEPTION));
@@ -537,6 +614,15 @@ public class V1 {
 			if (StringUtils.isEmpty(appKey) || StringUtils.isEmpty(userName)) {
 				log.warn("through keyAndname resovle username exception");
 				return;
+			} else {
+				// 签名有效性验证
+				if(!V1.isSignatureValid(client.getSessionId().toString(), signature)){
+					SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
+							id, JMessage.Method.MESSAGE_FEEDBACK);
+					resp.setErrorInfo(JMessage.Error.SIGNATURE_INVALID, JMessage.Error.getErrorMessage(JMessage.Error.SIGNATURE_INVALID));
+					client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
+					return;
+				}
 			}
 		}
 		long rid = Long.parseLong(id);
@@ -562,7 +648,7 @@ public class V1 {
 		} finally {
 			redisClient.returnResource(jedis);
 		}
-
+		
 		MsgContentBean msgContent = new MsgContentBean();
 		msgContent.setVersion(version);
 		msgContent.setTarget_type(targetType);
@@ -652,7 +738,7 @@ public class V1 {
 		String appKey = "";
 		String userName = "";
 		String keyAndname = WebImServer.sessionClientToUserNameMap.get(client);
-		log.info(String.format("respMessageReceived request data -- data: %s", gson.toJson(data)));
+		log.info(String.format("respMessageReceived -- request data -- data: %s", gson.toJson(data)));
 		if (StringUtils.isEmpty(keyAndname)) {
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
 					id, JMessage.Method.MESSAGE_FEEDBACK);
@@ -727,7 +813,7 @@ public class V1 {
 		String appKey = "";
 		String userName = "";
 		String keyAndname = WebImServer.sessionClientToUserNameMap.get(client);
-		log.info(String.format("respEventReceived request data: %s", gson.toJson(data)));
+		log.info(String.format("respEventReceived -- request data: %s", gson.toJson(data)));
 		if (StringUtils.isEmpty(keyAndname)) {
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
 					id, JMessage.Method.EVENT_FEEDBACK);
@@ -792,9 +878,11 @@ public class V1 {
 		String id = data.getId();
 		String groupname = data.getParams().getGroupName();
 		String group_description = data.getParams().getGroupDescription();
-		log.info(String.format("createGroup request data -- data: %s", gson.toJson(data)));
+		String signature = data.getParams().getSignature();
+		log.info(String.format("createGroup -- request data -- data: %s", gson.toJson(data)));
 		if (StringUtils.isEmpty(groupname)
-				|| StringUtils.isEmpty(group_description)) {
+			||StringUtils.isEmpty(group_description)
+			||StringUtils.isEmpty(signature)) {
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
 					id, JMessage.Method.GROUP_CREATE);
 			resp.setErrorInfo(JMessage.Error.ARGUMENTS_EXCEPTION, JMessage.Error.getErrorMessage(JMessage.Error.ARGUMENTS_EXCEPTION));
@@ -816,6 +904,15 @@ public class V1 {
 			if (StringUtils.isEmpty(appKey) || StringUtils.isEmpty(userName)) {
 				log.warn("through keyAndname resovle username exception");
 				return;
+			} else {
+				// 签名有效性验证
+				if(!V1.isSignatureValid(client.getSessionId().toString(), signature)){
+					SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
+							id, JMessage.Method.GROUP_CREATE);
+					resp.setErrorInfo(JMessage.Error.SIGNATURE_INVALID, JMessage.Error.getErrorMessage(JMessage.Error.SIGNATURE_INVALID));
+					client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
+					return;
+				}
 			}
 		}
 		long rid = Long.parseLong(id);
@@ -838,6 +935,7 @@ public class V1 {
 		} finally {
 			redisClient.returnResource(jedis);
 		}
+		
 		int group_level = 200;
 		int flag = 0;
 		CreateGroupRequestBean bean = new CreateGroupRequestBean(groupname,
@@ -860,8 +958,9 @@ public class V1 {
 	public static void getGroupInfo(SocketIOClient client, SdkRequestObject data) {
 		String id = data.getId();
 		long group_id = data.getParams().getGroupId();
-		log.info(String.format("getgGroupInfo request data -- data: %s", gson.toJson(data)));
-		if (0 == group_id) {
+		String signature = data.getParams().getSignature();
+		log.info(String.format("getgGroupInfo -- request data -- data: %s", gson.toJson(data)));
+		if (0 == group_id || StringUtils.isEmpty(signature)) {
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
 					id, JMessage.Method.GROUPINFO_GET);
 			resp.setErrorInfo(JMessage.Error.ARGUMENTS_EXCEPTION, JMessage.Error.getErrorMessage(JMessage.Error.ARGUMENTS_EXCEPTION));
@@ -883,6 +982,15 @@ public class V1 {
 			if (StringUtils.isEmpty(appKey) || StringUtils.isEmpty(userName)) {
 				log.warn("resovle username exception");
 				return;
+			} else {
+				// 签名有效性验证
+				if(!V1.isSignatureValid(client.getSessionId().toString(), signature)){
+					SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
+							id, JMessage.Method.GROUPINFO_GET);
+					resp.setErrorInfo(JMessage.Error.SIGNATURE_INVALID, JMessage.Error.getErrorMessage(JMessage.Error.SIGNATURE_INVALID));
+					client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
+					return;
+				}
 			}
 		}
 		Jedis jedis = null;
@@ -958,10 +1066,10 @@ public class V1 {
 			SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(
 					V1.VERSION, id, JMessage.Method.GROUPINFO_GET,
 					gson.toJson(groupInfoObject));
-			log.info("getGroupInfo resp data -- data: " + gson.toJson(groupInfoObject));
+			log.info("getGroupInfo -- resp data -- data: " + gson.toJson(groupInfoObject));
 			client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
 		} else {
-			log.warn(String.format("getGroupInfo call sdk-api exception"));
+			log.warn(String.format("getGroupInfo -- call sdk-api exception"));
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
 					id, JMessage.Method.GROUPINFO_GET);
 			resp.setErrorInfo(1000, "call sdk-api exception");
@@ -980,12 +1088,13 @@ public class V1 {
 		String id = data.getId();
 		long group_id = data.getParams().getGroupId();
 		List<String> member_usernames = data.getParams().getMemberUsernames();
+		String signature = data.getParams().getSignature();
 		int memberCount = member_usernames.size();
 		String appKey = "";
 		String userName = "";
 		String keyAndname = WebImServer.sessionClientToUserNameMap.get(client);
-		log.info(String.format("addGroupMembers request data -- data: %s", gson.toJson(data)));
-		if(0==group_id||0==memberCount){
+		log.info(String.format("addGroupMembers -- request data -- data: %s", gson.toJson(data)));
+		if(0==group_id||0==memberCount||StringUtils.isEmpty(signature)){
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
 					id, JMessage.Method.GROUPMEMBERS_ADD);
 			resp.setErrorInfo(JMessage.Error.ARGUMENTS_EXCEPTION, JMessage.Error.getErrorMessage(JMessage.Error.ARGUMENTS_EXCEPTION));
@@ -1003,6 +1112,15 @@ public class V1 {
 			if (StringUtils.isEmpty(appKey) || StringUtils.isEmpty(userName)) {
 				log.warn("through keyAndname resovle username exception");
 				return;
+			} else {
+				// 签名有效性验证
+				if(!V1.isSignatureValid(client.getSessionId().toString(), signature)){
+					SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
+							id, JMessage.Method.GROUPMEMBERS_ADD);
+					resp.setErrorInfo(JMessage.Error.SIGNATURE_INVALID, JMessage.Error.getErrorMessage(JMessage.Error.SIGNATURE_INVALID));
+					client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
+					return;
+				}
 			}
 		}
 		log.info(String.format("user: %s add group member", userName));
@@ -1039,7 +1157,7 @@ public class V1 {
 				addUid = userInfo.getUid();
 				list.add(addUid);
 			} else {
-				log.warn(String.format("addGroupMembers call sdk-api getUserInfo exception"));
+				log.warn(String.format("addGroupMembers -- call sdk-api getUserInfo exception"));
 			}
 		}
 		AddGroupMemberRequestBean bean = new AddGroupMemberRequestBean(
@@ -1066,13 +1184,14 @@ public class V1 {
 		String id = data.getId();
 		long group_id = data.getParams().getGroupId();
 		List<String> member_usernames = data.getParams().getMemberUsernames();
+		String signature = data.getParams().getSignature();
 		int memberCount = member_usernames.size();
 		long rid = Long.parseLong(id);
 		String appKey = "";
 		String userName = "";
 		String keyAndname = WebImServer.sessionClientToUserNameMap.get(client);
-		log.info(String.format("removeGroupMembers request data -- data: %s", gson.toJson(data)));
-		if(0==group_id||0==memberCount){
+		log.info(String.format("removeGroupMembers -- request data -- data: %s", gson.toJson(data)));
+		if(0==group_id||0==memberCount||StringUtils.isEmpty(signature)){
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
 					id, JMessage.Method.GROUPMEMBERS_REMOVE);
 			resp.setErrorInfo(JMessage.Error.ARGUMENTS_EXCEPTION, JMessage.Error.getErrorMessage(JMessage.Error.ARGUMENTS_EXCEPTION));
@@ -1091,6 +1210,15 @@ public class V1 {
 			if (StringUtils.isEmpty(appKey) || StringUtils.isEmpty(userName)) {
 				log.warn("through keyAndname resovle username exception");
 				return;
+			} else {
+				// 签名有效性验证
+				if(!V1.isSignatureValid(client.getSessionId().toString(), signature)){
+					SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
+							id, JMessage.Method.GROUPMEMBERS_REMOVE);
+					resp.setErrorInfo(JMessage.Error.SIGNATURE_INVALID, JMessage.Error.getErrorMessage(JMessage.Error.SIGNATURE_INVALID));
+					client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
+					return;
+				}
 			}
 		}
 		Jedis jedis = null;
@@ -1125,7 +1253,7 @@ public class V1 {
 				addUid = userInfo.getUid();
 				list.add(addUid);
 			} else {
-				log.warn(String.format("removeGroupMembers call sdk-api getUserInfo exception"));
+				log.warn(String.format("removeGroupMembers -- call sdk-api getUserInfo exception"));
 			}
 		}
 		DeleteGroupMemberRequestBean bean = new DeleteGroupMemberRequestBean(
@@ -1149,12 +1277,13 @@ public class V1 {
 		log.info("exit group event");
 		String id = data.getId();
 		long group_id = data.getParams().getGroupId();
+		String signature = data.getParams().getSignature();
 		long rid = Long.parseLong(id);
 		String appKey = "";
 		String userName = "";
 		String keyAndname = WebImServer.sessionClientToUserNameMap.get(client);
-		log.info(String.format("exitGroup request data -- data: %s", gson.toJson(data)));
-		if(0==group_id){
+		log.info(String.format("exitGroup -- request data -- data: %s", gson.toJson(data)));
+		if(0==group_id||StringUtils.isEmpty(signature)){
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
 					id, JMessage.Method.GROUP_EXIT);
 			resp.setErrorInfo(JMessage.Error.ARGUMENTS_EXCEPTION, JMessage.Error.getErrorMessage(JMessage.Error.ARGUMENTS_EXCEPTION));
@@ -1173,6 +1302,15 @@ public class V1 {
 			if (StringUtils.isEmpty(appKey) || StringUtils.isEmpty(userName)) {
 				log.warn("through keyAndname resovle username exception");
 				return;
+			} else {
+				// 签名有效性验证
+				if(!V1.isSignatureValid(client.getSessionId().toString(), signature)){
+					SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
+							id, JMessage.Method.GROUP_EXIT);
+					resp.setErrorInfo(JMessage.Error.SIGNATURE_INVALID, JMessage.Error.getErrorMessage(JMessage.Error.SIGNATURE_INVALID));
+					client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
+					return;
+				}
 			}
 		}
 		Jedis jedis = null;
@@ -1212,10 +1350,18 @@ public class V1 {
 	 */
 	public static void getGroupList(SocketIOClient client, SdkRequestObject data) {
 		String id = data.getId();
+		String signature = data.getParams().getSignature();
 		String appKey = "";
 		String userName = "";
 		String keyAndname = WebImServer.sessionClientToUserNameMap.get(client);
-		log.info(String.format("getGroupList request data -- data: %s", data));
+		log.info(String.format("getGroupList -- request data -- data: %s", data));
+		if(StringUtils.isEmpty(signature)){
+			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
+					id, JMessage.Method.GROUPLIST_GET);
+			resp.setErrorInfo(JMessage.Error.ARGUMENTS_EXCEPTION, JMessage.Error.getErrorMessage(JMessage.Error.ARGUMENTS_EXCEPTION));
+			client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
+			return;
+		}
 		if (StringUtils.isEmpty(keyAndname)) {
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
 					id, JMessage.Method.GROUPLIST_GET);
@@ -1226,8 +1372,17 @@ public class V1 {
 			appKey = StringUtils.getAppKey(keyAndname);
 			userName = StringUtils.getUserName(keyAndname);
 			if (StringUtils.isEmpty(appKey) || StringUtils.isEmpty(userName)) {
-				log.warn("getGroupList through map resovle username exception");
+				log.warn("getGroupList -- through map resovle username exception");
 				return;
+			} else {
+				// 签名有效性验证
+				if(!V1.isSignatureValid(client.getSessionId().toString(), signature)){
+					SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
+							id, JMessage.Method.GROUPLIST_GET);
+					resp.setErrorInfo(JMessage.Error.SIGNATURE_INVALID, JMessage.Error.getErrorMessage(JMessage.Error.SIGNATURE_INVALID));
+					client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
+					return;
+				}
 			}
 		}
 		Jedis jedis = null;
@@ -1289,16 +1444,16 @@ public class V1 {
 									groupInfoObject.setOwnerUsername(name);
 								}
 							} else {
-								log.warn(String.format("getGroupList call sdk-api getUserInfoByUid exception"));
+								log.warn(String.format("getGroupList -- call sdk-api getUserInfoByUid exception"));
 							}
 						}
 						groupInfoObject.setMembersUsername(members_name);
 					} else {
-						log.warn(String.format("getGroupList call sdk-api getGroupMemberList exception"));
+						log.warn(String.format("getGroupList -- call sdk-api getGroupMemberList exception"));
 					}
 					groupsList.add(groupInfoObject);
 				} else {
-					log.warn(String.format("getGroupList call sdk-api getGroupInfo exception"));
+					log.warn(String.format("getGroupList -- call sdk-api getGroupInfo exception"));
 				}
 			}
 			SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(
@@ -1307,7 +1462,7 @@ public class V1 {
 			client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
 			log.info(String.format("user: %d get group list success", uid));
 		} else {
-			log.warn(String.format("getGroupList call sdk-api getGroupList exception"));
+			log.warn(String.format("getGroupList -- call sdk-api getGroupList exception"));
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
 					id, JMessage.Method.GROUPLIST_GET);
 			resp.setErrorInfo(1000, "call sdk-api exception");
@@ -1327,11 +1482,12 @@ public class V1 {
 		long gid = data.getParams().getGroupId();
 		String group_name = data.getParams().getGroupName();
 		String group_desc = data.getParams().getGroupDescription();
+		String signature = data.getParams().getSignature();
 		String appKey = "";
 		String userName = "";
 		String keyAndname = WebImServer.sessionClientToUserNameMap.get(client);
-		log.info(String.format("updateGroupInfo request data -- data: %s", gson.toJson(data)));
-		if(0==gid){
+		log.info(String.format("updateGroupInfo -- request data -- data: %s", gson.toJson(data)));
+		if(0==gid||StringUtils.isEmpty(signature)){
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
 					id, JMessage.Method.GROUPINFO_UPDATE);
 			resp.setErrorInfo(JMessage.Error.ARGUMENTS_EXCEPTION, JMessage.Error.getErrorMessage(JMessage.Error.ARGUMENTS_EXCEPTION));
@@ -1350,6 +1506,15 @@ public class V1 {
 			if (StringUtils.isEmpty(appKey) || StringUtils.isEmpty(userName)) {
 				log.warn("through keyAndname resovle username exception");
 				return;
+			} else {
+				// 签名有效性验证
+				if(!V1.isSignatureValid(client.getSessionId().toString(), signature)){
+					SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
+							id, JMessage.Method.GROUPINFO_UPDATE);
+					resp.setErrorInfo(JMessage.Error.SIGNATURE_INVALID, JMessage.Error.getErrorMessage(JMessage.Error.SIGNATURE_INVALID));
+					client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
+					return;
+				}
 			}
 		}
 		Jedis jedis = null;
@@ -1432,6 +1597,29 @@ public class V1 {
 		map.put("mediaId", mediaId);
 		map.put("crc32", checksum);
 		return map;
+	}
+	
+	public static boolean isSignatureValid(String clientSessionId, String signature){
+		log.info("confirm user signature");
+		Jedis jedis = null;
+		boolean result = false;
+		try {
+			jedis = redisClient.getJeids();
+			if(jedis.exists(clientSessionId)){
+				String _signature = jedis.get(clientSessionId);
+				if(_signature!=null&&_signature.equals(signature)){
+					result = true;
+					log.info("user signature is valid");
+				}
+			}
+		} catch (JedisConnectionException e) {
+			log.error(e.getMessage());
+			redisClient.returnBrokenResource(jedis);
+			throw new JedisConnectionException(e);
+		} finally {
+			redisClient.returnResource(jedis);
+		}
+		return result;
 	}
 
 }
