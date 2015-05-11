@@ -56,6 +56,7 @@ import cn.jpush.webim.socketio.bean.SdkGroupObject;
 import cn.jpush.webim.socketio.bean.SdkSyncEventObject;
 import cn.jpush.webim.socketio.bean.SdkSyncMsgObject;
 import cn.jpush.webim.socketio.bean.SdkUserInfoObject;
+import cn.jpush.webim.socketio.bean.UserInfo;
 
 import com.google.gson.Gson;
 
@@ -133,10 +134,10 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 							juid, password));
 			UidResourcesPool.addUidToPool(juid, password);
 			UidResourcesPool.capacityCountDown.countDown();
-			if (UidResourcesPool.capacityCountDown.getCount() == 0) {
-				UidResourcesPool.produceResourceSemaphore.release();
+			//if (UidResourcesPool.capacityCountDown.getCount() == 0) {
+			//	UidResourcesPool.produceResourceSemaphore.release();
 				ctx.channel().close();
-			}
+			//}
 			log.info("client handler add jpush reg resp data to pool success.");
 		}
 		if (msg instanceof PushLoginResponseBean) {
@@ -275,7 +276,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 						log.info("send single msg success");
 						SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(
 								JPushTcpClientHandler.VERSION, String.valueOf(rid),
-								JMessage.Method.MESSAGE_FEEDBACK, "");
+								JMessage.Method.TEXTMESSAGE_SEND, "");
 						sessionClient.sendEvent(JPushTcpClientHandler.DATA_AISLE, gson.toJson(resp));
 					} else {
 						log.info("send single msg failture");
@@ -321,12 +322,12 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					if (imGroupMsgRespCode == TcpCode.IM.SUCCESS) {
 						SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(
 								JPushTcpClientHandler.VERSION, String.valueOf(rid),
-								JMessage.Method.MESSAGE_FEEDBACK, "");
+								JMessage.Method.TEXTMESSAGE_SEND, "");
 						sessionClient.sendEvent(JPushTcpClientHandler.DATA_AISLE, gson.toJson(resp));
 					} else {
 						SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(
 								JPushTcpClientHandler.VERSION, String.valueOf(rid),
-								JMessage.Method.MESSAGE_FEEDBACK);
+								JMessage.Method.TEXTMESSAGE_SEND);
 						resp.setErrorInfo(imGroupMsgRespCode, imGroupMsgRespMsg);
 						sessionClient.sendEvent(JPushTcpClientHandler.DATA_AISLE, gson.toJson(resp));
 					}
@@ -565,17 +566,17 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					return;
 				}
 				SdkSyncEventObject syncEventObject = new SdkSyncEventObject();
-				syncEventObject.setFrom_uid(eventNotification.getFromUid());
-				syncEventObject.setEvent_id(eventNotification.getEventId());
-				syncEventObject.setI_event_type(sync_eventType);
+				syncEventObject.setFromUid(eventNotification.getFromUid());
+				syncEventObject.setEventId(eventNotification.getEventId());
+				syncEventObject.setiEventType(sync_eventType);
 				if (sync_eventType == 8) {
-					syncEventObject.setEvent_type("create_group");
+					syncEventObject.setEventType("create_group");
 				} else if (sync_eventType == 9) {
-					syncEventObject.setEvent_type("exit_group");
+					syncEventObject.setEventType("exit_group");
 				} else if (sync_eventType == 10) {
-					syncEventObject.setEvent_type("add_members");
+					syncEventObject.setEventType("add_members");
 				} else if (sync_eventType == 11) {
-					syncEventObject.setEvent_type("remove_members");
+					syncEventObject.setEventType("remove_members");
 				}
 				String keyAndname = WebImServer.pushChannelToUsernameMap
 						.get(ctx.channel());
@@ -612,7 +613,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 				if (responseWrapper.isOK()) {
 					SdkUserInfoObject userInfo = gson.fromJson(
 							responseWrapper.content, SdkUserInfoObject.class);
-					syncEventObject.setFrom_username(userInfo.getUsername());
+					syncEventObject.setFromUsername(userInfo.getUsername());
 				}
 				syncEventObject.setGid(sync_gid);
 				List<Long> uidList = eventNotification.getToUidlistList();
@@ -622,18 +623,21 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 							appKey, String.valueOf(userId), token);
 					if (wrapper.isOK()) {
 						SdkUserInfoObject userInfo = gson.fromJson(
-								responseWrapper.content,
+								wrapper.content,
 								SdkUserInfoObject.class);
 						usernameList.add(userInfo.getUsername());
+						log.info(String.format("through uid: %s get username: %s", userId, userInfo.getUsername()));
 					}
 				}
-				syncEventObject.setTo_username_list(usernameList);
+				syncEventObject.setToUsernameList(usernameList);
 				syncEventObject.setDescription(eventNotification
 						.getDescription().toStringUtf8());
 				if (sessionClient != null) {
+					String respContent = gson.toJson(syncEventObject);
+					log.info(String.format("resp to client sync event data: %s", respContent));
 					SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(
-							JPushTcpClientHandler.VERSION, String.valueOf(rid), JMessage.Method.EVENT_RECEIVE,
-							gson.toJson(syncEventObject));
+							JPushTcpClientHandler.VERSION, String.valueOf(rid), JMessage.Method.EVENT_PUSH,
+							respContent);
 					sessionClient.sendEvent(JPushTcpClientHandler.DATA_AISLE, gson.toJson(resp));
 				} else {
 					log.warn("the user is not online");
@@ -681,10 +685,8 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 									.getTarget_name());
 							syncMsgObject.setFromId(content.getFrom_id());
 							syncMsgObject.setFromName(content.getFrom_name());
-							syncMsgObject.setCreateTime(content
-									.getCreate_time());
-							syncMsgObject.setMsgBody(content.getMsg_body()
-									.toString());
+							syncMsgObject.setCreateTime(content.getCreate_time());
+							syncMsgObject.setMsgBody(content.getMsg_body());
 							if ("text".equals(content.getMsg_type())) {
 								syncMsgObject.setMsgType("text");
 							} else if ("image".equals(content.getMsg_type())) {
@@ -694,7 +696,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 							}
 							SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(
 									JPushTcpClientHandler.VERSION, String.valueOf(rid),
-									JMessage.Method.MESSAGE_RECEIVE,
+									JMessage.Method.MESSAGE_PUSH,
 									gson.toJson(syncMsgObject));
 							sessionClient.sendEvent(JPushTcpClientHandler.DATA_AISLE, gson.toJson(resp));
 							log.info(String.format("single msg data: %s",
@@ -732,8 +734,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 							syncMsgObject.setFromName(content.getFrom_name());
 							syncMsgObject.setCreateTime(content
 									.getCreate_time());
-							syncMsgObject.setMsgBody(content.getMsg_body()
-									.toString());
+							syncMsgObject.setMsgBody(content.getMsg_body());
 							if ("text".endsWith(content.getMsg_type())) {
 								syncMsgObject.setMsgType("text");
 							} else if ("image".endsWith(content.getMsg_type())) {
@@ -746,7 +747,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 							if (sessionClient != null) {
 								SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(
 										JPushTcpClientHandler.VERSION, String.valueOf(rid),
-										JMessage.Method.MESSAGE_RECEIVE,
+										JMessage.Method.MESSAGE_PUSH,
 										gson.toJson(syncMsgObject));
 								sessionClient.sendEvent(JPushTcpClientHandler.DATA_AISLE,
 										gson.toJson(resp));

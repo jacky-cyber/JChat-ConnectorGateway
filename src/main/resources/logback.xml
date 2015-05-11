@@ -1,5 +1,4 @@
 <configuration>
-<!-- 尽量别用绝对路径，如果带参数不同容器路径解释可能不同 --> 
     <property name="LOG_HOME" value="logs/"/>    
     <property name="LOG_EXCEPTION_HOME" value="logs/exception/"/>    
     <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
@@ -12,11 +11,11 @@
     <appender name="FILE"
         class="ch.qos.logback.core.rolling.RollingFileAppender"> 
         <Encoding>UTF-8</Encoding> 
-        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+        <!-- <filter class="ch.qos.logback.classic.filter.LevelFilter">
         		<level>info</level>
             <onMatch>ACCEPT</onMatch>
             <onMismatch>DENY</onMismatch>
-        </filter>
+        </filter> -->
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy"> 
             <FileNamePattern>${LOG_HOME}/imserver-%d{yyyy-MM-dd}.log</FileNamePattern> 
             <MaxHistory>30</MaxHistory> 
@@ -45,11 +44,9 @@
        </layout> 
     </appender>  
 
-  
-    <logger name="cn.jpush" level="info" /> 
-    <root level="info"> 
-        <appender-ref ref="Console" /> 
-        <appender-ref ref="FILE" />
-        <appender-ref ref="EXCEPTION_FILE" />
+    <root level="info" >
+    	<appender-ref ref="Console" />
+      <appender-ref ref="FILE" />
+      <appender-ref ref="EXCEPTION_FILE" />
     </root>
 </configuration>

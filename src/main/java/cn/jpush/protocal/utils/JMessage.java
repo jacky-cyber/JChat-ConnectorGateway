@@ -10,10 +10,10 @@ public class JMessage {
 		public static final String USERINFO_GET = "userinfo.get";
 		public static final String TEXTMESSAGE_SEND = "textMessage.send";
 		public static final String IMAGEMESSAGE_SEND = "imageMessage.send";
-		public static final String MESSAGE_FEEDBACK = "message.feedback";
-		public static final String EVENT_FEEDBACK = "event.feedback";
-		public static final String MESSAGE_RECEIVE = "message.receive";
-		public static final String EVENT_RECEIVE = "event.receive";
+		public static final String MESSAGE_RECEIVED = "message.received";
+		public static final String EVENT_RECEIVED = "event.received";
+		public static final String MESSAGE_PUSH = "message.push";
+		public static final String EVENT_PUSH = "event.push";
 		public static final String GROUP_CREATE = "group.create";
 		public static final String GROUPMEMBERS_ADD = "groupMembers.add";
 		public static final String GROUPMEMBERS_REMOVE = "groupMembers.remove";

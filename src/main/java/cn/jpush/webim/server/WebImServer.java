@@ -214,9 +214,9 @@ public class WebImServer {
 							V1.sendTextMessage(client, data);
 						} else if(JMessage.Method.IMAGEMESSAGE_SEND.equals(method)){
 							V1.sendImageMessage(client, data);
-						} else if(JMessage.Method.MESSAGE_FEEDBACK.equals(method)){
+						} else if(JMessage.Method.MESSAGE_RECEIVED.equals(method)){
 							V1.respMessageReceived(client, data);
-						} else if(JMessage.Method.EVENT_FEEDBACK.equals(method)){
+						} else if(JMessage.Method.EVENT_RECEIVED.equals(method)){
 							V1.respEventReceived(client, data);
 						} else if(JMessage.Method.GROUP_CREATE.equals(method)){
 							V1.createGroup(client, data);

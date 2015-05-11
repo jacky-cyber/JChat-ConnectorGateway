@@ -12,7 +12,7 @@ public class RedisClient {
   private final  int PORT = SystemConfig.getIntProperty("redis.server.port");;
   public  int MAXTOTAL = 1000;
   public  int MAXIDL = 200;
-  public  int MAXWAITMILLIS = 1000;
+  public  int MAXWAITMILLIS = 2000;
 
   public  JedisPool pool;
   public  ShardedJedisPool shardedJedisPool;

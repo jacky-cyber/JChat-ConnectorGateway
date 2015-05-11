@@ -2,6 +2,10 @@ package cn.jpush.protocal.push;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import com.google.gson.Gson;
 
 import cn.jpush.protocal.im.request.BaseRequest;
 import cn.jpush.protocal.utils.Command;
@@ -36,6 +40,16 @@ public class PushRegRequest extends BaseRequest {
 				e1.printStackTrace();
 			}
 		}
+	}
+
+	@Override
+	public String toString() {
+		Gson gson = new Gson();
+		Map data = new HashMap();
+		data.put("version", this.version);
+		data.put("rid", this.rid);
+		data.put("content", gson.toJson(content));
+		return gson.toJson(data);
 	}
 
 }

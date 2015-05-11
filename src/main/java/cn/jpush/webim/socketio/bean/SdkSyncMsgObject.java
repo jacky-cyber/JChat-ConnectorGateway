@@ -14,7 +14,7 @@ public class SdkSyncMsgObject {
 	private String fromName;
 	private int createTime;
 	private String msgType;
-	private String msgBody;
+	private Object msgBody;
 	public long getMessageId() {
 		return messageId;
 	}
@@ -93,10 +93,10 @@ public class SdkSyncMsgObject {
 	public void setMsgType(String msgType) {
 		this.msgType = msgType;
 	}
-	public String getMsgBody() {
+	public Object getMsgBody() {
 		return msgBody;
 	}
-	public void setMsgBody(String msgBody) {
+	public void setMsgBody(Object msgBody) {
 		this.msgBody = msgBody;
 	}
 	

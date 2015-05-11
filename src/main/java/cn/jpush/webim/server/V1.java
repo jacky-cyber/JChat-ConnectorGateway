@@ -80,6 +80,7 @@ import cn.jpush.webim.common.CouchBaseManager;
 import cn.jpush.webim.common.RedisClient;
 import cn.jpush.webim.common.UidResourcesPool;
 import cn.jpush.webim.socketio.bean.GroupMember;
+import cn.jpush.webim.socketio.bean.HttpErrorObject;
 import cn.jpush.webim.socketio.bean.ImageMsgBody;
 import cn.jpush.webim.socketio.bean.InnerGroupObject;
 import cn.jpush.webim.socketio.bean.MsgContentBean;
@@ -133,14 +134,14 @@ public class V1 {
 			return;
 		} else {
 			// TODO 加入验证过程
-			/*CouchbaseClient cbClient = CouchBaseManager.getCouchbaseClientInstance("appbucket");
-			String masterSecrect_json = (String) cbClient.get("appKey");
+			CouchbaseClient cbClient = CouchBaseManager.getCouchbaseClientInstance("appbucket");
+			String masterSecrect_json = (String) cbClient.get(appKey);
 			Map dataMap = gson.fromJson(masterSecrect_json, HashMap.class);
 			String masterSecrect = (String) dataMap.get("apiMasterSecret");
 			log.info("couchbase get value: "+masterSecrect_json);
 			log.info("from cb get masterSecect: "+masterSecrect);
-			String _signature = Sign.getSignature(appKey, timestamp, randomStr, masterSecrect);*/
-			String _signature = Sign.getSignature(appKey, timestamp, randomStr, "054d6103823a726fc12d0466");
+			String _signature = Sign.getSignature(appKey, timestamp, randomStr, masterSecrect);
+			//String _signature = Sign.getSignature(appKey, timestamp, randomStr, "054d6103823a726fc12d0466");
 			if(signature.equals(_signature)){
 				SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(
 						V1.VERSION, id, JMessage.Method.CONFIG, "");
@@ -150,7 +151,7 @@ public class V1 {
 				Jedis jedis = null;
 				try {
 					jedis = redisClient.getJeids();
-					jedis.set(client.getSessionId().toString(), signature);
+					jedis.set(appKey+signature, signature);
 					jedis.expire(appKey, 7200);  // 签名2小时过期
 				} catch (JedisConnectionException e) {
 					log.error(e.getMessage());
@@ -200,9 +201,17 @@ public class V1 {
 				client);
 		WebImServer.sessionClientToUserNameMap.put(client, appkey + ":"
 				+ username);
+		jpushIMTcpClient = new JPushTcpClient(appkey);
+		Channel pushChannel = jpushIMTcpClient.getChannel();
+		// 关系绑定
+		WebImServer.userNameToPushChannelMap.put(appkey + ":" + username,
+				pushChannel);
+		WebImServer.pushChannelToUsernameMap.put(pushChannel, appkey + ":"
+				+ username);
 		
 		// 签名有效性验证
-		if(!V1.isSignatureValid(client.getSessionId().toString(), signature)){
+		if(!V1.isSignatureValid(appkey, signature)){
+			log.error("user signature is invalid");
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
 					id, JMessage.Method.LOGIN);
 			resp.setErrorInfo(JMessage.Error.SIGNATURE_INVALID, JMessage.Error.getErrorMessage(JMessage.Error.SIGNATURE_INVALID));
@@ -218,15 +227,6 @@ public class V1 {
 		long juid = Long.parseLong(String.valueOf(juidData.get("uid")));
 		String juid_password = String.valueOf(juidData.get("password"));
 		pushLoginInCountDown = new CountDownLatch(1);
-
-		jpushIMTcpClient = new JPushTcpClient(appkey);
-		Channel pushChannel = jpushIMTcpClient.getChannel();
-
-		// 关系绑定
-		WebImServer.userNameToPushChannelMap.put(appkey + ":" + username,
-				pushChannel);
-		WebImServer.pushChannelToUsernameMap.put(pushChannel, appkey + ":"
-				+ username);
 
 		PushLoginRequestBean pushLoginBean = new PushLoginRequestBean(juid,
 				"a", ProtocolUtil.md5Encrypt(juid_password), 10800, appkey, 0);
@@ -386,7 +386,7 @@ public class V1 {
 				return;
 			} else {
 				// 签名有效性验证
-				if(!V1.isSignatureValid(client.getSessionId().toString(), signature)){
+				if(!V1.isSignatureValid(appKey, signature)){
 					SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
 							id, JMessage.Method.USERINFO_GET);
 					resp.setErrorInfo(JMessage.Error.SIGNATURE_INVALID, JMessage.Error.getErrorMessage(JMessage.Error.SIGNATURE_INVALID));
@@ -442,10 +442,12 @@ public class V1 {
 			log.info("getUserInfo -- resp data -- " + gson.toJson(userInfo));
 			client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
 		} else {
-			log.warn(String.format("getUserInfo -- call sdk-api exception"));
+			log.warn(String.format("getUserInfo -- call sdk-api exception response is not ok"));
+			log.warn(responseWrapper.content);
+			HttpErrorObject errorObject = gson.fromJson(responseWrapper.content, HttpErrorObject.class);
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
 					id, JMessage.Method.USERINFO_GET);
-			resp.setErrorInfo(1000, "call sdk-api exception");
+			resp.setErrorInfo(errorObject.getError().getCode(), errorObject.getError().getMessage());
 			client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
 		}
 	}
@@ -470,14 +472,14 @@ public class V1 {
 		if(StringUtils.isEmpty(targetId)||StringUtils.isEmpty(targetType)
 				||StringUtils.isEmpty(text)||StringUtils.isEmpty(signature)){
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
-					id, JMessage.Method.MESSAGE_FEEDBACK);
+					id, JMessage.Method.TEXTMESSAGE_SEND);
 			resp.setErrorInfo(JMessage.Error.ARGUMENTS_EXCEPTION, JMessage.Error.getErrorMessage(JMessage.Error.ARGUMENTS_EXCEPTION));
 			client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
 			return;
 		}
 		if (StringUtils.isEmpty(keyAndname)) {
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
-					id, JMessage.Method.MESSAGE_FEEDBACK);
+					id, JMessage.Method.TEXTMESSAGE_SEND);
 			resp.setErrorInfo(JMessage.Error.USER_NOT_LOGIN, JMessage.Error.getErrorMessage(JMessage.Error.USER_NOT_LOGIN));
 			client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
 			return;
@@ -489,9 +491,9 @@ public class V1 {
 				return;
 			} else {
 				// 签名有效性验证
-				if(!V1.isSignatureValid(client.getSessionId().toString(), signature)){
+				if(!V1.isSignatureValid(appKey, signature)){
 					SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
-							id, JMessage.Method.MESSAGE_FEEDBACK);
+							id, JMessage.Method.TEXTMESSAGE_SEND);
 					resp.setErrorInfo(JMessage.Error.SIGNATURE_INVALID, JMessage.Error.getErrorMessage(JMessage.Error.SIGNATURE_INVALID));
 					client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
 					return;
@@ -597,14 +599,14 @@ public class V1 {
 		if(StringUtils.isEmpty(targetId)||StringUtils.isEmpty(targetType)
 				||StringUtils.isEmpty(fileId)||StringUtils.isEmpty(signature)){
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
-					id, JMessage.Method.MESSAGE_FEEDBACK);
+					id, JMessage.Method.IMAGEMESSAGE_SEND);
 			resp.setErrorInfo(JMessage.Error.ARGUMENTS_EXCEPTION, JMessage.Error.getErrorMessage(JMessage.Error.ARGUMENTS_EXCEPTION));
 			client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
 			return;
 		}
 		if (StringUtils.isEmpty(keyAndname)) {
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
-					id, JMessage.Method.MESSAGE_FEEDBACK);
+					id, JMessage.Method.IMAGEMESSAGE_SEND);
 			resp.setErrorInfo(JMessage.Error.USER_NOT_LOGIN, JMessage.Error.getErrorMessage(JMessage.Error.USER_NOT_LOGIN));
 			client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
 			return;
@@ -616,9 +618,9 @@ public class V1 {
 				return;
 			} else {
 				// 签名有效性验证
-				if(!V1.isSignatureValid(client.getSessionId().toString(), signature)){
+				if(!V1.isSignatureValid(appKey, signature)){
 					SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
-							id, JMessage.Method.MESSAGE_FEEDBACK);
+							id, JMessage.Method.IMAGEMESSAGE_SEND);
 					resp.setErrorInfo(JMessage.Error.SIGNATURE_INVALID, JMessage.Error.getErrorMessage(JMessage.Error.SIGNATURE_INVALID));
 					client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
 					return;
@@ -741,7 +743,7 @@ public class V1 {
 		log.info(String.format("respMessageReceived -- request data -- data: %s", gson.toJson(data)));
 		if (StringUtils.isEmpty(keyAndname)) {
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
-					id, JMessage.Method.MESSAGE_FEEDBACK);
+					id, JMessage.Method.MESSAGE_RECEIVED);
 			resp.setErrorInfo(JMessage.Error.USER_NOT_LOGIN, JMessage.Error.getErrorMessage(JMessage.Error.USER_NOT_LOGIN));
 			client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
 			return;
@@ -816,7 +818,7 @@ public class V1 {
 		log.info(String.format("respEventReceived -- request data: %s", gson.toJson(data)));
 		if (StringUtils.isEmpty(keyAndname)) {
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
-					id, JMessage.Method.EVENT_FEEDBACK);
+					id, JMessage.Method.EVENT_RECEIVED);
 			resp.setErrorInfo(JMessage.Error.USER_NOT_LOGIN, JMessage.Error.getErrorMessage(JMessage.Error.USER_NOT_LOGIN));
 			client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
 			return;
@@ -906,7 +908,7 @@ public class V1 {
 				return;
 			} else {
 				// 签名有效性验证
-				if(!V1.isSignatureValid(client.getSessionId().toString(), signature)){
+				if(!V1.isSignatureValid(appKey, signature)){
 					SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
 							id, JMessage.Method.GROUP_CREATE);
 					resp.setErrorInfo(JMessage.Error.SIGNATURE_INVALID, JMessage.Error.getErrorMessage(JMessage.Error.SIGNATURE_INVALID));
@@ -984,7 +986,7 @@ public class V1 {
 				return;
 			} else {
 				// 签名有效性验证
-				if(!V1.isSignatureValid(client.getSessionId().toString(), signature)){
+				if(!V1.isSignatureValid(appKey, signature)){
 					SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
 							id, JMessage.Method.GROUPINFO_GET);
 					resp.setErrorInfo(JMessage.Error.SIGNATURE_INVALID, JMessage.Error.getErrorMessage(JMessage.Error.SIGNATURE_INVALID));
@@ -1114,7 +1116,7 @@ public class V1 {
 				return;
 			} else {
 				// 签名有效性验证
-				if(!V1.isSignatureValid(client.getSessionId().toString(), signature)){
+				if(!V1.isSignatureValid(appKey, signature)){
 					SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
 							id, JMessage.Method.GROUPMEMBERS_ADD);
 					resp.setErrorInfo(JMessage.Error.SIGNATURE_INVALID, JMessage.Error.getErrorMessage(JMessage.Error.SIGNATURE_INVALID));
@@ -1212,7 +1214,7 @@ public class V1 {
 				return;
 			} else {
 				// 签名有效性验证
-				if(!V1.isSignatureValid(client.getSessionId().toString(), signature)){
+				if(!V1.isSignatureValid(appKey, signature)){
 					SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
 							id, JMessage.Method.GROUPMEMBERS_REMOVE);
 					resp.setErrorInfo(JMessage.Error.SIGNATURE_INVALID, JMessage.Error.getErrorMessage(JMessage.Error.SIGNATURE_INVALID));
@@ -1304,7 +1306,7 @@ public class V1 {
 				return;
 			} else {
 				// 签名有效性验证
-				if(!V1.isSignatureValid(client.getSessionId().toString(), signature)){
+				if(!V1.isSignatureValid(appKey, signature)){
 					SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
 							id, JMessage.Method.GROUP_EXIT);
 					resp.setErrorInfo(JMessage.Error.SIGNATURE_INVALID, JMessage.Error.getErrorMessage(JMessage.Error.SIGNATURE_INVALID));
@@ -1376,7 +1378,7 @@ public class V1 {
 				return;
 			} else {
 				// 签名有效性验证
-				if(!V1.isSignatureValid(client.getSessionId().toString(), signature)){
+				if(!V1.isSignatureValid(appKey, signature)){
 					SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
 							id, JMessage.Method.GROUPLIST_GET);
 					resp.setErrorInfo(JMessage.Error.SIGNATURE_INVALID, JMessage.Error.getErrorMessage(JMessage.Error.SIGNATURE_INVALID));
@@ -1487,7 +1489,7 @@ public class V1 {
 		String userName = "";
 		String keyAndname = WebImServer.sessionClientToUserNameMap.get(client);
 		log.info(String.format("updateGroupInfo -- request data -- data: %s", gson.toJson(data)));
-		if(0==gid||StringUtils.isEmpty(signature)){
+		if(0==gid||StringUtils.isEmpty(signature)||(group_name==null&&group_desc==null)){
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
 					id, JMessage.Method.GROUPINFO_UPDATE);
 			resp.setErrorInfo(JMessage.Error.ARGUMENTS_EXCEPTION, JMessage.Error.getErrorMessage(JMessage.Error.ARGUMENTS_EXCEPTION));
@@ -1508,7 +1510,7 @@ public class V1 {
 				return;
 			} else {
 				// 签名有效性验证
-				if(!V1.isSignatureValid(client.getSessionId().toString(), signature)){
+				if(!V1.isSignatureValid(appKey, signature)){
 					SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
 							id, JMessage.Method.GROUPINFO_UPDATE);
 					resp.setErrorInfo(JMessage.Error.SIGNATURE_INVALID, JMessage.Error.getErrorMessage(JMessage.Error.SIGNATURE_INVALID));
@@ -1599,18 +1601,19 @@ public class V1 {
 		return map;
 	}
 	
-	public static boolean isSignatureValid(String clientSessionId, String signature){
+	public static boolean isSignatureValid(String appKey, String signature){
 		log.info("confirm user signature");
 		Jedis jedis = null;
 		boolean result = false;
 		try {
 			jedis = redisClient.getJeids();
-			if(jedis.exists(clientSessionId)){
-				String _signature = jedis.get(clientSessionId);
+			if(jedis.exists(appKey+signature)){
+				result = true;
+				/*String _signature = jedis.get(clientSessionId);
 				if(_signature!=null&&_signature.equals(signature)){
 					result = true;
 					log.info("user signature is valid");
-				}
+				}*/
 			}
 		} catch (JedisConnectionException e) {
 			log.error(e.getMessage());

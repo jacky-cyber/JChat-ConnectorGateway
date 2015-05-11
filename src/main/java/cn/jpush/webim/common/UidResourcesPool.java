@@ -26,8 +26,8 @@ import cn.jpush.protocal.utils.StringUtils;
 
 public class UidResourcesPool {
 	private static Logger log = (Logger) LoggerFactory.getLogger(UidResourcesPool.class);
-	public static final int DEFAULT_CAPACITY = 50;  //  池容量
-	private static final float DEFAULR_LOAD_FACTOR = 0.7f;  //  负载因子
+	public static final int DEFAULT_CAPACITY = 40;  //  池容量
+	private static final float DEFAULR_LOAD_FACTOR = 0.8f;  //  负载因子
 	private static RedisClient redisClient = new RedisClient();
 	public static Semaphore produceResourceSemaphore = new Semaphore(1);  // 互斥产生资源线程
 	private static Semaphore getUidSemaphore = new Semaphore(1);  // 互斥获取数据线程
@@ -38,6 +38,7 @@ public class UidResourcesPool {
 	 * 从池中获取uid
 	 */
 	public static Map<String, String> getUidAndPassword() throws InterruptedException{
+		log.info("user get JUID from IDPool");
 		Jedis jedis = null;
 		String uid = "";
 		Map<String, String> data = new HashMap<String, String>();
@@ -120,6 +121,11 @@ public class UidResourcesPool {
 			log.info(e.getMessage());
 		}
 		executor.submit(new ProduceUidResourcesThread()); 
+		produceResourceSemaphore.release();
+	}
+	
+	public static void main(String[] arg){
+		UidResourcesPool.produceResource();
 	}
 	
 }
@@ -131,20 +137,20 @@ class ProduceUidResourcesThread implements Runnable{
 	@Override
 	public void run() {
 		log.info("produce uid pool resources.");
-		jpushClient = new JPushTcpClient("ebbd49c14a649e0fa4f01f3f");
-		channel = jpushClient.getChannel();
 		for(int i=0; i<UidResourcesPool.DEFAULT_CAPACITY; i++){
+			jpushClient = new JPushTcpClient("ebbd49c14a649e0fa4f01f3f");
+			channel = jpushClient.getChannel();
 			String imei = StringUtils.getIntRandom(15);
 			String imsi = StringUtils.getIntRandom(15);
 			String deviceId = StringUtils.getStringRandom(32);
+			log.info("data -- imei: "+imei+", imsi: "+imsi+", deviceId: "+deviceId);
 			String arg2 = imei+"$$"+imsi+"$$com.android.mypushdemo180src$$ebbd49c14a649e0fa4f01f3f";
-			String arg3 = "1$$"+deviceId+"$$00000000$$b095c7a18792bd8b$$CC:3A:61:BD:CB:3D";
+			String arg3 = "1$$"+deviceId+"$$"+imei+"$$b095c7a18792bd8b$$CC:3A:61:BD:CB:3D";
 			PushRegRequestBean request = new PushRegRequestBean(arg2,
 					"1.8.0", "4.4.2,19$$SCH-I959$$I959KEUHND6$$ja3gduosctc$$developer-default$$1.8.0$$0$$1080*1920", 
 					"", 0, 0, 0, arg3);
 			channel.writeAndFlush(request);
 		}
 	}
-	
 }
 

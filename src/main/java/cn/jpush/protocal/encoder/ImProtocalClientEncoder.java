@@ -57,7 +57,9 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 		if (msg instanceof PushRegRequestBean) {  // push reg protocal
 			log.info("encode PushReg request");
 			PushRegRequestBean bean = (PushRegRequestBean) msg;
-			PushRegRequest request = new PushRegRequest(JPUSH_VERSION, 1, 0, 0, bean);
+			long rid = StringUtils.getRID();
+			PushRegRequest request = new PushRegRequest(7, rid, 0, 0, bean);
+			//log.info("request: "+request.toString());
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 			log.info("client send PushReg success");
