@@ -170,7 +170,19 @@ public class V1 {
 			}
 		}
 	}
-
+	
+	public static Channel getPushChannel(String appKey){
+		jpushIMTcpClient = new JPushTcpClient(appKey);
+		Channel pushChannel = null;
+		try {
+			pushChannel = jpushIMTcpClient.getChannel();
+		} catch (InterruptedException e) {
+			log.warn("gateway tcp connect to jpush is failture");
+			pushChannel = getPushChannel(appKey);
+		}
+		return pushChannel;
+	}
+	
 	/**
 	 * 用户登陆
 	 * 
@@ -201,8 +213,11 @@ public class V1 {
 				client);
 		WebImServer.sessionClientToUserNameMap.put(client, appkey + ":"
 				+ username);
-		jpushIMTcpClient = new JPushTcpClient(appkey);
-		Channel pushChannel = jpushIMTcpClient.getChannel();
+		
+		/*jpushIMTcpClient = new JPushTcpClient(appkey);
+		Channel pushChannel = jpushIMTcpClient.getChannel();*/
+		Channel pushChannel = getPushChannel(appkey);
+		
 		// 关系绑定
 		WebImServer.userNameToPushChannelMap.put(appkey + ":" + username,
 				pushChannel);
@@ -415,12 +430,23 @@ public class V1 {
 				username, token);
 		if (responseWrapper.isOK()) {
 			SdkUserInfoObject userInfo = new SdkUserInfoObject();
-			Map infoData = gson.fromJson(responseWrapper.content, HashMap.class);
+			userInfo = gson.fromJson(responseWrapper.content, SdkUserInfoObject.class);
+			/*Map infoData = gson.fromJson(responseWrapper.content, HashMap.class);
 			String _username = infoData.containsKey("username")?(String)infoData.get("username"):"";
 			String _nickname = infoData.containsKey("nickname")?(String)infoData.get("nickname"):"";
 			int _star = infoData.containsKey("star")?(int)infoData.get("star"):0;
 			String _avatar = infoData.containsKey("avatar")?(String)infoData.get("avatar"):"";
-			int _gender = infoData.containsKey("gender")?(int)infoData.get("gender"):0;
+			int _gender = 0;
+			try {
+				_gender = infoData.containsKey("gender")?(int)infoData.get("gender"):0;
+			} catch (Exception e){
+				String gender = (String)infoData.get("gender");
+				if("1".equals(gender)){
+					_gender = 1;
+				} else if("2".equals(gender)){
+					_gender = 1;
+				}
+			}
 			String _signature = infoData.containsKey("signature")?(String)infoData.get("signature"):"";
 			String _region = infoData.containsKey("region")?(String)infoData.get("region"):"";
 			String _address = infoData.containsKey("address")?(String)infoData.get("address"):"";
@@ -435,7 +461,7 @@ public class V1 {
 			userInfo.setRegion(_region);
 			userInfo.setAddress(_address);
 			userInfo.setMtime(_mtime);
-			userInfo.setCtime(_ctime);
+			userInfo.setCtime(_ctime);*/
 			SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(
 					V1.VERSION, id, JMessage.Method.USERINFO_GET,
 					gson.toJson(userInfo));
@@ -470,7 +496,7 @@ public class V1 {
 		String targetType = data.getParams().getTargetType();
 		String text = data.getParams().getText();
 		if(StringUtils.isEmpty(targetId)||StringUtils.isEmpty(targetType)
-				||StringUtils.isEmpty(text)||StringUtils.isEmpty(signature)){
+				/*||StringUtils.isEmpty(text)*/||StringUtils.isEmpty(signature)){
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
 					id, JMessage.Method.TEXTMESSAGE_SEND);
 			resp.setErrorInfo(JMessage.Error.ARGUMENTS_EXCEPTION, JMessage.Error.getErrorMessage(JMessage.Error.ARGUMENTS_EXCEPTION));
@@ -537,6 +563,7 @@ public class V1 {
 		msgContent.setMsg_type("text");
 		TextMsgBody msgBody = new TextMsgBody();
 		msgBody.setText(text);
+		msgBody.setExtras(new HashMap());
 		msgContent.setMsg_body(msgBody);
 
 		log.info(String.format("user: %s send chat msg, content is: ",
@@ -682,8 +709,8 @@ public class V1 {
 				.get("width"))));
 		msgBody.setHeight(Integer.parseInt(String.valueOf(fileInfoMap
 				.get("height"))));
+		msgBody.setExtras(new HashMap());
 		msgContent.setMsg_body(msgBody);
-
 		log.info(String.format("user: %s send chat msg, content is: ",
 				userName, gson.toJson(data)));
 		Channel channel = WebImServer.userNameToPushChannelMap.get(appKey + ":"

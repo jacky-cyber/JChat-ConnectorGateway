@@ -1,5 +1,7 @@
 package cn.jpush.webim.socketio.bean;
 
+import java.util.Map;
+
 import com.google.gson.Gson;
 
 public class TextMsgBody{
@@ -11,7 +13,7 @@ public class TextMsgBody{
 	private int height;
 	private String format;
 	private String img_link;*/
-	private Object extras;
+	private Map extras;
 	
 	/*public int getDuration() {
 		return duration;
@@ -63,14 +65,15 @@ public class TextMsgBody{
 	}*/
 	
 	
-	public Object getExtras() {
+	public Map getExtras() {
 		return extras;
 	}
-	public void setExtras(Object extras) {
+	public void setExtras(Map extras) {
 		this.extras = extras;
 	}
 	public String toString(){
 		Gson gson = new Gson();
 		return gson.toJson(this);
 	}
+	
 }

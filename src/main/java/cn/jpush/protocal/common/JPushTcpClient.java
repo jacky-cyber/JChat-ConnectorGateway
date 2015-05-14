@@ -112,13 +112,9 @@ public class JPushTcpClient {
 		});		
 	}
 	
-	public Channel getChannel(){
+	public Channel getChannel() throws InterruptedException{
 		Channel channel = null;
-		try {
-			channel = b.connect(HOST, PORT).sync().channel();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		channel = b.connect(HOST, PORT).sync().channel();
 		return channel;
 	}
 	

@@ -1,5 +1,7 @@
 package cn.jpush.webim.socketio.bean;
 
+import java.util.Map;
+
 import com.google.gson.Gson;
 
 public class ImageMsgBody{
@@ -9,7 +11,7 @@ public class ImageMsgBody{
 	private int height;
 	private String format;
 	private String img_link;
-	private Object extras;
+	private Map extras;
 	
 	public String getMedia_id() {
 		return media_id;
@@ -59,11 +61,11 @@ public class ImageMsgBody{
 		this.img_link = img_link;
 	}
 
-	public Object getExtras() {
+	public Map getExtras() {
 		return extras;
 	}
 
-	public void setExtras(Object extras) {
+	public void setExtras(Map extras) {
 		this.extras = extras;
 	}
 

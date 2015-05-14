@@ -10,7 +10,7 @@ import redis.clients.jedis.exceptions.JedisConnectionException;
 public class RedisClient {
   private final  String BASE_URL = SystemConfig.getProperty("redis.server.host");
   private final  int PORT = SystemConfig.getIntProperty("redis.server.port");;
-  public  int MAXTOTAL = 1000;
+  public  int MAXTOTAL = 10000;
   public  int MAXIDL = 200;
   public  int MAXWAITMILLIS = 2000;
 

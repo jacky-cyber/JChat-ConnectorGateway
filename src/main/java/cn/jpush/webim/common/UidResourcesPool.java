@@ -139,7 +139,11 @@ class ProduceUidResourcesThread implements Runnable{
 		log.info("produce uid pool resources.");
 		for(int i=0; i<UidResourcesPool.DEFAULT_CAPACITY; i++){
 			jpushClient = new JPushTcpClient("ebbd49c14a649e0fa4f01f3f");
-			channel = jpushClient.getChannel();
+			try {
+				channel = jpushClient.getChannel();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 			String imei = StringUtils.getIntRandom(15);
 			String imsi = StringUtils.getIntRandom(15);
 			String deviceId = StringUtils.getStringRandom(32);
