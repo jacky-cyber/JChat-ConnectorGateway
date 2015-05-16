@@ -249,6 +249,7 @@ public final class NativeHttpClient {
 	 */
 	public static HttpResponseWrapper request(String url, String content,
 			String method, String authCode) throws Exception {
+		log.info("");
 		HttpURLConnection conn = null;
 		OutputStream out = null;
 		StringBuffer sb = new StringBuffer();

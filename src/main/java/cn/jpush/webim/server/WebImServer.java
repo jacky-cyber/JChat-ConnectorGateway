@@ -139,10 +139,10 @@ public class WebImServer {
 	}
 	
 	public void configMessageEventAndStart() throws InterruptedException{
-		if(config==null||server==null){
+		if(config==null || server==null){
 			log.error("you have not init the config and server. please do this first.");
 			return;
-		} 
+		}
 		
 		 //用户连接
 		 server.addConnectListener(new ConnectListener() {
@@ -167,7 +167,8 @@ public class WebImServer {
 						try{
 							kan = WebImServer.sessionClientToUserNameMap.get(client);
 						} catch (Exception e){
-							log.error(String.format("user disconnect exception: %s", e.getMessage()));
+							log.error(String.format("through client get username exception: %s, so can not close connect to im server", e.getMessage()));
+							return;
 						}
 					}
 					if(StringUtils.isNotEmpty(kan)){
@@ -179,7 +180,7 @@ public class WebImServer {
 							WebImServer.pushChannelToUsernameMap.remove(channel);
 							channel.close();   //  断开与push server的长连接
 						} else {
-							log.error(String.format("user: %s gateway to push's channel is disconnected", kan));
+							log.error(String.format("user: %s get tcp connector to im server exception", kan));
 						}
 					}
 				}	
@@ -233,10 +234,10 @@ public class WebImServer {
 						} else if(JMessage.Method.GROUPLIST_GET.equals(method)){
 							V1.getGroupList(client, data);
 						} else {
-							log.error("no correct mapping for JMessage method");
+							log.error("Undefined JMessage method Error");
 						}
 					} else {
-						log.error("SDK Version Error");
+						log.error("Undefined SDK Version Error");
 					}
 				}
 				

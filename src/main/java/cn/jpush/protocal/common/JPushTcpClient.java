@@ -49,6 +49,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.ConnectTimeoutException;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
@@ -76,7 +77,7 @@ public class JPushTcpClient {
 			log.info("ips: "+str);
 		}
 		if(list==null||list.size()==0){
-			log.error("JPush Connection SIS Failture.");
+			log.error("get sis data failture, response list is empty");
 		} else {
 			String[] str = list.get(0).split(":");
 			this.HOST = str[0];
@@ -87,14 +88,14 @@ public class JPushTcpClient {
 			b = new Bootstrap();
 			try {
 				this.init();
-			} catch (InterruptedException e) {
-				log.error("init client failture, please try again.");
+			} catch (Exception e) {
+				log.error(String.format("gateway to im server connect channel init exception: %s", e.getMessage()));
 			}
 		}
 	}
 	
-	public void init() throws InterruptedException{
-		log.info("jpush tcp client is init......");
+	public void init() {
+		log.info("gateway to imserver connect channel begin init ...");
 		jPushClientHandler = new JPushTcpClientHandler();
 		workGroup = new NioEventLoopGroup();
 		b.group(workGroup);
@@ -108,11 +109,11 @@ public class JPushTcpClient {
 								.addLast(new ImProtocalClientEncoder())
 								.addLast(new ImProtocalClientDecoder())
 								.addLast(jPushClientHandler);
-			}	
+			}
 		});		
 	}
 	
-	public Channel getChannel() throws InterruptedException{
+	public Channel getChannel() throws Exception {
 		Channel channel = null;
 		channel = b.connect(HOST, PORT).sync().channel();
 		return channel;
@@ -146,7 +147,13 @@ public class JPushTcpClient {
 		try {
 			//client.init();
 			log.info("success to connect the server.");
-			Channel channel = client.getChannel(); 
+			Channel channel = null;
+			try {
+				channel = client.getChannel();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			//long juid = UidResourcesPool.getUid();
 			PushLoginRequestBean req = new PushLoginRequestBean(1268846131, "a", ProtocolUtil.md5Encrypt("2600424017"), 10800, "ebbd49c14a649e0fa4f01f3f", 0);
          /*String imei = getIntRandom(15);

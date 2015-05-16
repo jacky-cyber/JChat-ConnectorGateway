@@ -71,6 +71,7 @@ public final class APIProxy {
 	
 	public static HttpResponseWrapper getUserInfo(String appkey, String username, String token) {
 		String url = API_URL + "/users/" + username + "?idtype=username";
+		log.info(String.format("call sdk-api url: %s", url));
 		HttpResponseWrapper result = null;
 		try {
 			result = NativeHttpClient.doGet(url, appkey, true, token);

@@ -141,7 +141,8 @@ class ProduceUidResourcesThread implements Runnable{
 			jpushClient = new JPushTcpClient("ebbd49c14a649e0fa4f01f3f");
 			try {
 				channel = jpushClient.getChannel();
-			} catch (InterruptedException e) {
+			} catch (Exception e) {
+				log.warn("tcp connect exception");
 				e.printStackTrace();
 			}
 			String imei = StringUtils.getIntRandom(15);
