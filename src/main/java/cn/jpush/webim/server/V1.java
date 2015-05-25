@@ -109,7 +109,7 @@ public class V1 {
 	private static Gson gson = new Gson();
 	private static RedisClient redisClient = new RedisClient();
 	public static CountDownLatch pushLoginInCountDown;
-	private static JPushTcpClient jpushIMTcpClient;
+	private JPushTcpClient jpushIMTcpClient;
 
 	/**
 	 * SDK 配置校验
@@ -117,7 +117,7 @@ public class V1 {
 	 * @param client
 	 * @param data
 	 */
-	public static void config(SocketIOClient client, SdkRequestObject data) {
+	public void config(SocketIOClient client, SdkRequestObject data) {
 		String id = data.getId();
 		String appKey = data.getParams().getAppKey();
 		String timestamp = data.getParams().getTimestamp();
@@ -133,14 +133,14 @@ public class V1 {
 			return;
 		} else {
 			// couchbase master secrect 验证
-			CouchbaseClient cbClient = CouchBaseManager.getCouchbaseClientInstance("appbucket");
+			/*CouchbaseClient cbClient = CouchBaseManager.getCouchbaseClientInstance("appbucket");
 			String masterSecrect_json = (String) cbClient.get(appKey);
 			Map dataMap = gson.fromJson(masterSecrect_json, HashMap.class);
 			String masterSecrect = (String) dataMap.get("apiMasterSecret");
 			log.info("couchbase get value: "+masterSecrect_json);
 			log.info("from cb get masterSecect: "+masterSecrect);
-			String _signature = Sign.getSignature(appKey, timestamp, randomStr, masterSecrect);
-			//String _signature = Sign.getSignature(appKey, timestamp, randomStr, "054d6103823a726fc12d0466");
+			String _signature = Sign.getSignature(appKey, timestamp, randomStr, masterSecrect);*/
+			String _signature = Sign.getSignature(appKey, timestamp, randomStr, "054d6103823a726fc12d0466");
 			if(signature.equals(_signature)){
 				SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(V1.VERSION, id, JMessage.Method.CONFIG, "");
 				log.info(String.format("v1 config -- resp data -- %s", gson.toJson(resp)));
@@ -168,10 +168,10 @@ public class V1 {
 		}
 	}
 	
-	public static Channel getPushChannel(String appKey){
+	public Channel getPushChannel(String appKey){
 		log.info("v1 user build connect channel to im server");
 		jpushIMTcpClient = new JPushTcpClient(appKey);
-		Channel pushChannel = null;
+		Channel pushChannel = null;                                                       
 		try {
 			pushChannel = jpushIMTcpClient.getChannel();
 		} catch (Exception e) {
@@ -188,7 +188,7 @@ public class V1 {
 	 * @param data
 	 * @throws InterruptedException
 	 */
-	public static void login(SocketIOClient client, SdkRequestObject data)
+	public void login(SocketIOClient client, SdkRequestObject data)
 			throws InterruptedException {
 		String id = data.getId();
 		String appkey = data.getParams().getAppKey();
@@ -292,7 +292,7 @@ public class V1 {
 	 * @param client
 	 * @param data
 	 */
-	public static void logout(SocketIOClient client, SdkRequestObject data) {
+	public void logout(SocketIOClient client, SdkRequestObject data) {
 		String id = data.getId();
 		long rid = Long.parseLong(id);
 		String appKey = "";
@@ -301,8 +301,7 @@ public class V1 {
 		log.info(String.format("v1 logout -- request data -- data: %s", gson.toJson(data)));
 		if (StringUtils.isEmpty(keyAndname)) {
 			log.error("v1 logout -- search data cache exception, maybe you have not login");
-			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION,
-					id, JMessage.Method.LOGOUT);
+			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION, id, JMessage.Method.LOGOUT);
 			resp.setErrorInfo(JMessage.Error.USER_NOT_LOGIN, JMessage.Error.getErrorMessage(JMessage.Error.USER_NOT_LOGIN));
 			client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
 			return;
@@ -352,7 +351,7 @@ public class V1 {
 	 * @param client
 	 * @param data
 	 */
-	public static void getUserInfo(SocketIOClient client, SdkRequestObject data) {
+	public void getUserInfo(SocketIOClient client, SdkRequestObject data) {
 		String id = data.getId();
 		String username = data.getParams().getUsername();
 		String signature = data.getParams().getSignature();
@@ -408,7 +407,7 @@ public class V1 {
 		
 		log.info(String.format("v1 getUserInfo -- begin call sdk-api-getUserInfo"));
 		HttpResponseWrapper responseWrapper = APIProxy.getUserInfo(appKey, username, token);
-		if (responseWrapper.isOK()) {
+		if (responseWrapper!=null&&responseWrapper.isOK()) {
 			log.info(String.format("v1 getUserInfo -- call sdk-api-getUserInfo success"));
 			SdkUserInfoObject userInfo = new SdkUserInfoObject();
 			userInfo = gson.fromJson(responseWrapper.content, SdkUserInfoObject.class);
@@ -430,7 +429,7 @@ public class V1 {
 	 * @param client
 	 * @param data
 	 */
-	public static void sendTextMessage(SocketIOClient client, SdkRequestObject data) {
+	public void sendTextMessage(SocketIOClient client, SdkRequestObject data) {
 		String id = data.getId();
 		String signature = data.getParams().getSignature();
 		String appKey = "";
@@ -503,6 +502,14 @@ public class V1 {
 		msgContent.setFrom_platform("web");
 		msgContent.setFrom_id(userName);
 		msgContent.setFrom_name(userName);
+		HttpResponseWrapper _wrapper = APIProxy.getUserInfo(appKey, userName, token);
+		if (_wrapper.isOK()) {
+			UserInfo userInfo = gson.fromJson(_wrapper.content, UserInfo.class);
+			String _nickName = userInfo.getNickname();
+			if(!StringUtils.isEmpty(_nickName)){
+				msgContent.setFrom_name(_nickName);
+			}
+		}
 		msgContent.setCreate_time(StringUtils.getCreateTime());
 		msgContent.setMsg_type("text");
 		TextMsgBody msgBody = new TextMsgBody();
@@ -516,7 +523,7 @@ public class V1 {
 			log.warn(String.format("v1 sendTextMessage -- search data cache through key and name get channel null exception"));
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION, String.valueOf(rid), 
 					JMessage.Method.TEXTMESSAGE_SEND);
-			resp.setErrorInfo(1001, "get channel exception");
+			resp.setErrorInfo(JMessage.Error.CONNECTION_DISCONNECT, JMessage.Error.getErrorMessage(JMessage.Error.CONNECTION_DISCONNECT));
 			client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
 			return;
 		}
@@ -551,7 +558,7 @@ public class V1 {
 	 * @param client
 	 * @param data
 	 */
-	public static void sendImageMessage(SocketIOClient client, SdkRequestObject data) {
+	public void sendImageMessage(SocketIOClient client, SdkRequestObject data) {
 		String id = data.getId();
 		String signature = data.getParams().getSignature();
 		String appKey = "";
@@ -651,7 +658,7 @@ public class V1 {
 			log.warn("v1 sendImageMessage -- user search data cache get channel to im server exception");
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION, String.valueOf(rid), 
 					JMessage.Method.TEXTMESSAGE_SEND);
-			resp.setErrorInfo(1001, "get channel exception");
+			resp.setErrorInfo(JMessage.Error.CONNECTION_DISCONNECT, JMessage.Error.getErrorMessage(JMessage.Error.CONNECTION_DISCONNECT));
 			client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
 			return;
 		}
@@ -686,7 +693,7 @@ public class V1 {
 	 * @param client
 	 * @param data
 	 */
-	public static void respMessageReceived(SocketIOClient client,
+	public void respMessageReceived(SocketIOClient client,
 			SdkRequestObject data) {
 		String id = data.getId();
 		String appKey = "";
@@ -754,7 +761,7 @@ public class V1 {
 	 * @param client
 	 * @param data
 	 */
-	public static void respEventReceived(SocketIOClient client, SdkRequestObject data) {
+	public void respEventReceived(SocketIOClient client, SdkRequestObject data) {
 		String id = data.getId();
 		long rid = Long.parseLong(id);
 		long eventId = data.getParams().getEventId();
@@ -821,7 +828,7 @@ public class V1 {
 	 * @param client
 	 * @param data
 	 */
-	public static void createGroup(SocketIOClient client, SdkRequestObject data) {
+	public void createGroup(SocketIOClient client, SdkRequestObject data) {
 		String id = data.getId();
 		String groupname = data.getParams().getGroupName();
 		String group_description = data.getParams().getGroupDescription();
@@ -891,6 +898,9 @@ public class V1 {
 		if(channel!=null){
 			channel.writeAndFlush(req);
 		} else {
+			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION, id, JMessage.Method.GROUP_CREATE);
+			resp.setErrorInfo(JMessage.Error.CONNECTION_DISCONNECT, JMessage.Error.getErrorMessage(JMessage.Error.CONNECTION_DISCONNECT));
+			client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
 			log.error(String.format("v1 createGroup -- search data cache to get channel to im server null exception"));
 		}
 	}
@@ -901,7 +911,7 @@ public class V1 {
 	 * @param client
 	 * @param data
 	 */
-	public static void getGroupInfo(SocketIOClient client, SdkRequestObject data) {
+	public void getGroupInfo(SocketIOClient client, SdkRequestObject data) {
 		String id = data.getId();
 		long group_id = data.getParams().getGroupId();
 		String signature = data.getParams().getSignature();
@@ -979,7 +989,9 @@ public class V1 {
 						if (1 == member.getFlag()) {
 							groupInfoObject.setOwnerUsername(name);
 						}
-						Map infoData = gson.fromJson(wrapper.content, HashMap.class);
+						
+						userInfo = gson.fromJson(wrapper.content, SdkUserInfoObject.class);
+						/*Map infoData = gson.fromJson(wrapper.content, HashMap.class);
 						String _username = infoData.containsKey("username")?(String)infoData.get("username"):"";
 						String _nickname = infoData.containsKey("nickname")?(String)infoData.get("nickname"):"";
 						int _star = infoData.containsKey("star")?(int)infoData.get("star"):0;
@@ -999,7 +1011,7 @@ public class V1 {
 						userInfo.setRegion(_region);
 						userInfo.setAddress(_address);
 						userInfo.setMtime(_mtime);
-						userInfo.setCtime(_ctime);
+						userInfo.setCtime(_ctime);*/
 					} else {
 						log.error("v1 getGroupInfo -- call sdk-api-getUserInfoByUid exception: %s", wrapper.content);
 					}
@@ -1015,8 +1027,9 @@ public class V1 {
 			client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
 		} else {
 			log.warn(String.format("v1 getGroupInfo -- call sdk-api-getGroupInfo exception: %s", responseWrapper.content));
+			HttpErrorObject errorObject = gson.fromJson(responseWrapper.content, HttpErrorObject.class);
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION, id, JMessage.Method.GROUPINFO_GET);
-			resp.setErrorInfo(1000, "call sdk-api exception");
+			resp.setErrorInfo(errorObject.getError().getCode(), errorObject.getError().getMessage());
 			client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
 		}
 	}
@@ -1027,7 +1040,7 @@ public class V1 {
 	 * @param client
 	 * @param data
 	 */
-	public static void addGroupMembers(SocketIOClient client, SdkRequestObject data) {
+	public void addGroupMembers(SocketIOClient client, SdkRequestObject data) {
 		String id = data.getId();
 		long group_id = data.getParams().getGroupId();
 		List<String> member_usernames = data.getParams().getMemberUsernames();
@@ -1109,6 +1122,9 @@ public class V1 {
 		if (channel!=null) {
 			channel.writeAndFlush(req);
 		} else {
+			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION, id, JMessage.Method.GROUPMEMBERS_ADD);
+			resp.setErrorInfo(JMessage.Error.CONNECTION_DISCONNECT, JMessage.Error.getErrorMessage(JMessage.Error.CONNECTION_DISCONNECT));
+			client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
 			log.error(String.format("v1 addGroupMembers -- search data cache to get channel to im server null exception"));
 		}
 	}
@@ -1119,7 +1135,7 @@ public class V1 {
 	 * @param client
 	 * @param data
 	 */
-	public static void removeGroupMembers(SocketIOClient client,
+	public void removeGroupMembers(SocketIOClient client,
 			SdkRequestObject data) {
 		String id = data.getId();
 		long group_id = data.getParams().getGroupId();
@@ -1203,6 +1219,9 @@ public class V1 {
 		if (channel!=null) {
 			channel.writeAndFlush(req);
 		} else {
+			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION, id, JMessage.Method.GROUPMEMBERS_REMOVE);
+			resp.setErrorInfo(JMessage.Error.CONNECTION_DISCONNECT, JMessage.Error.getErrorMessage(JMessage.Error.CONNECTION_DISCONNECT));
+			client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
 			log.error(String.format("v1 removeGroupMembers -- search data cache to get channel to im server null exception"));
 		}
 	}
@@ -1213,7 +1232,7 @@ public class V1 {
 	 * @param client
 	 * @param data
 	 */
-	public static void exitGroup(SocketIOClient client, SdkRequestObject data) {
+	public void exitGroup(SocketIOClient client, SdkRequestObject data) {
 		String id = data.getId();
 		long group_id = data.getParams().getGroupId();
 		String signature = data.getParams().getSignature();
@@ -1279,6 +1298,9 @@ public class V1 {
 		if (channel!=null) {
 			channel.writeAndFlush(req);
 		} else {
+			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION, id, JMessage.Method.GROUP_EXIT);
+			resp.setErrorInfo(JMessage.Error.CONNECTION_DISCONNECT, JMessage.Error.getErrorMessage(JMessage.Error.CONNECTION_DISCONNECT));
+			client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
 			log.error(String.format("v1 exitGroup -- search data cache to get channel to im server null exception"));
 		}
 	}
@@ -1289,7 +1311,7 @@ public class V1 {
 	 * @param client
 	 * @param data
 	 */
-	public static void getGroupList(SocketIOClient client, SdkRequestObject data) {
+	public void getGroupList(SocketIOClient client, SdkRequestObject data) {
 		String id = data.getId();
 		String signature = data.getParams().getSignature();
 		String appKey = "";
@@ -1393,8 +1415,9 @@ public class V1 {
 			client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
 		} else {
 			log.error(String.format("v1 getGroupList -- call sdk-api-getGroupList exception: %s", result.content));
+			HttpErrorObject errorObject = gson.fromJson(result.content, HttpErrorObject.class);
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION, id, JMessage.Method.GROUPLIST_GET);
-			resp.setErrorInfo(1000, "call sdk-api exception");
+			resp.setErrorInfo(errorObject.getError().getCode(), errorObject.getError().getMessage());
 			client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
 		}
 	}
@@ -1405,7 +1428,7 @@ public class V1 {
 	 * @param client
 	 * @param data
 	 */
-	public static void updateGroupInfo(SocketIOClient client,
+	public void updateGroupInfo(SocketIOClient client,
 			SdkRequestObject data) {
 		String id = data.getId();
 		long gid = data.getParams().getGroupId();

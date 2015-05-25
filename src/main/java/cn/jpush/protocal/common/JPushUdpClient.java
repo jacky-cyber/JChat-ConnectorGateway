@@ -14,6 +14,7 @@ import com.google.gson.Gson;
 
 import ch.qos.logback.classic.Logger;
 import cn.jpush.protocal.im.request.SISRequest;
+import cn.jpush.protocal.push.PushLoginResponseBean;
 import cn.jpush.protocal.utils.SystemConfig;
 import cn.jpush.webim.socketio.bean.UdpRespBean;
 

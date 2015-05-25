@@ -64,6 +64,7 @@ import cn.jpush.protocal.utils.JMessage;
 import cn.jpush.protocal.utils.ProtocolUtil;
 import cn.jpush.protocal.utils.StringUtils;
 import cn.jpush.protocal.utils.SystemConfig;
+import cn.jpush.socketio.AckMode;
 import cn.jpush.socketio.AckRequest;
 import cn.jpush.socketio.Configuration;
 import cn.jpush.socketio.SocketIOClient;
@@ -134,7 +135,8 @@ public class WebImServer {
 	public void init() {
 		 config = new Configuration();
 		 config.setPort(PORT);
-		 config.setTransports(Transport.WEBSOCKET);
+		 //config.setAckMode(AckMode.AUTO);
+		 //config.setTransports(Transport.WEBSOCKET);
 		 server = new SocketIOServer(config);
 	}
 	
@@ -152,7 +154,7 @@ public class WebImServer {
 				SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject("1.0", "1000010", JMessage.Method.CONNECT, null);
 				client.sendEvent("onConnected", gson.toJson(resp));
 			}
-		 }); 
+		 });
 		 
 		 // 用户断开
 		 server.addDisconnectListener(new DisconnectListener() {
@@ -186,7 +188,7 @@ public class WebImServer {
 				}	
 			}
 		});
-		  
+	
 		 // gateway 数据接收处理
 		 server.addEventListener(WebImServer.DATA_AISLE, SdkRequestObject.class, new DataListener<SdkRequestObject>() {
 				@Override
@@ -203,46 +205,62 @@ public class WebImServer {
 						return;
 					}
 					if(version.equals(SDK_VERSION_V1)){
-						if(JMessage.Method.CONFIG.equals(method)){
-							V1.config(client, data);
-						} else if(JMessage.Method.LOGIN.equals(method)){
-							V1.login(client, data);
-						} else if(JMessage.Method.LOGOUT.equals(method)){
-							V1.logout(client, data);
-						} else if(JMessage.Method.USERINFO_GET.equals(method)){
-							V1.getUserInfo(client, data);
-						} else if(JMessage.Method.TEXTMESSAGE_SEND.equals(method)){
-							V1.sendTextMessage(client, data);
-						} else if(JMessage.Method.IMAGEMESSAGE_SEND.equals(method)){
-							V1.sendImageMessage(client, data);
-						} else if(JMessage.Method.MESSAGE_RECEIVED.equals(method)){
-							V1.respMessageReceived(client, data);
-						} else if(JMessage.Method.EVENT_RECEIVED.equals(method)){
-							V1.respEventReceived(client, data);
-						} else if(JMessage.Method.GROUP_CREATE.equals(method)){
-							V1.createGroup(client, data);
-						} else if(JMessage.Method.GROUPMEMBERS_ADD.equals(method)){
-							V1.addGroupMembers(client, data);
-						} else if(JMessage.Method.GROUPMEMBERS_REMOVE.equals(method)){
-							V1.removeGroupMembers(client, data);
-						} else if(JMessage.Method.GROUPINFO_GET.equals(method)){
-							V1.getGroupInfo(client, data);
-						} else if(JMessage.Method.GROUPINFO_UPDATE.equals(method)){
-							V1.updateGroupInfo(client, data);
-						} else if(JMessage.Method.GROUP_EXIT.equals(method)){
-							V1.exitGroup(client, data);
-						} else if(JMessage.Method.GROUPLIST_GET.equals(method)){
-							V1.getGroupList(client, data);
-						} else {
-							log.error("Undefined JMessage method Error");
+						V1 v1 = new V1();
+						switch (method) {
+							case JMessage.Method.CONFIG:
+								v1.config(client, data);
+								break;
+							case JMessage.Method.LOGIN:
+								v1.login(client, data);
+								break;
+							case JMessage.Method.LOGOUT:
+								v1.logout(client, data);
+								break;
+							case JMessage.Method.USERINFO_GET:
+								v1.getUserInfo(client, data);
+								break;
+							case JMessage.Method.TEXTMESSAGE_SEND:
+								v1.sendTextMessage(client, data);
+								break;
+							case JMessage.Method.IMAGEMESSAGE_SEND:
+								v1.sendImageMessage(client, data);
+								break;
+							case JMessage.Method.MESSAGE_RECEIVED:
+								v1.respMessageReceived(client, data);
+								break;
+							case JMessage.Method.EVENT_RECEIVED:
+								v1.respEventReceived(client, data);
+								break;
+							case JMessage.Method.GROUP_CREATE:
+								v1.createGroup(client, data);
+								break;
+							case JMessage.Method.GROUPMEMBERS_ADD:
+								v1.addGroupMembers(client, data);
+								break;
+							case JMessage.Method.GROUPMEMBERS_REMOVE:
+								v1.removeGroupMembers(client, data);
+								break;
+							case JMessage.Method.GROUPINFO_GET:
+								v1.getGroupInfo(client, data);
+								break;
+							case JMessage.Method.GROUPINFO_UPDATE:
+								v1.updateGroupInfo(client, data);
+								break;
+							case JMessage.Method.GROUP_EXIT:
+								v1.exitGroup(client, data);
+								break;
+							case JMessage.Method.GROUPLIST_GET:
+								v1.getGroupList(client, data);
+								break;
+							default:
+								log.error("Undefined JMessage method Error");
+								break;
 						}
 					} else {
 						log.error("Undefined SDK Version Error");
 					}
-				}
-				
+				}	
 		 });
-		
 		 server.start();
 	}
 	

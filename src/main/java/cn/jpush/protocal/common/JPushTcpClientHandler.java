@@ -93,7 +93,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 			} catch (Exception e) {
 				log.error(String.format("from data cache get appkey and username through channel exception: %s", e.getMessage()));
 			}
-			if (StringUtils.isNotEmpty(kan)) {
+			if (StringUtils.isNotEmpty(kan)) { // 非客户端主动断开，需要重连
 				SocketIOClient sessionClient = WebImServer.userNameToSessionCilentMap.get(kan);
 				if (sessionClient != null) {
 					SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(
@@ -102,6 +102,12 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 				} else {
 					log.error("from data cache get client connection exception, so can not send channel removed message to client");
 				}
+				// 重建连接
+				V1 v1 = new V1();
+				String appKey = StringUtils.getAppKey(kan);
+				Channel _channel = v1.getPushChannel(appKey);
+				WebImServer.userNameToPushChannelMap.put(kan, _channel);
+				WebImServer.pushChannelToUsernameMap.put(_channel, kan);
 			} else {
 				log.error(String.format("from data cache get appkey and username null exception"));
 			}
