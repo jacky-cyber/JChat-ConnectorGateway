@@ -110,7 +110,7 @@ public class JPushTcpClient {
 								.addLast(new ImProtocalClientDecoder())
 								.addLast(jPushClientHandler);
 			}
-		});		
+		});	
 	}
 	
 	public Channel getChannel() throws Exception {
@@ -144,7 +144,7 @@ public class JPushTcpClient {
 	
 	public static void main(String[] args) {
 		JPushTcpClient client = new JPushTcpClient("ebbd49c14a649e0fa4f01f3f");
-		try {
+		//try {
 			//client.init();
 			log.info("success to connect the server.");
 			Channel channel = null;
@@ -154,13 +154,13 @@ public class JPushTcpClient {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			//long juid = UidResourcesPool.getUid();
+			/*//long juid = UidResourcesPool.getUid();
 			PushLoginRequestBean req = new PushLoginRequestBean(1268846131, "a", ProtocolUtil.md5Encrypt("2600424017"), 10800, "ebbd49c14a649e0fa4f01f3f", 0);
-         /*String imei = getIntRandom(15);
+         String imei = getIntRandom(15);
 			String imsi = getIntRandom(15);
 			String deviceId = getStringRandom(32);
 			String arg2 = imei+"$$"+imsi+"$$com.android.mypushdemo180src$$ebbd49c14a649e0fa4f01f3f";
-			String arg3 = "1$$"+deviceId+"$$00000000$$b095c7a18792bd8b$$CC:3A:61:BD:CB:3D";*/
+			String arg3 = "1$$"+deviceId+"$$00000000$$b095c7a18792bd8b$$CC:3A:61:BD:CB:3D";
 			//"b095c7a18792bd8b$$ $$com.android.mypushdemo180src$$ebbd49c14a649e0fa4f01f3f"
 			//String uu = "1$$a72007a3fb00024bde5191f4f7c27702$$00000000$$b095c7a18792bd8b$$CC:3A:61:BD:CB:3D";
 			//PushRegRequestBean req = new PushRegRequestBean(arg2,
@@ -168,64 +168,64 @@ public class JPushTcpClient {
 			//															"", 0, 0, 0, arg3);
 			//PushLogoutRequest req = new PushLogoutRequest(7, 1, 0, 1153535375);
 			//HeartBeatRequest req = new HeartBeatRequest(2, 1, 0, 1153535375);
-			/******  im 业务     *********/
+			*//******  im 业务     *********//*
 			//  login
 			LoginRequestBean bean = new LoginRequestBean("kkk","kkk");
 			List<Integer> cookie = new ArrayList<Integer>();
 			//cookie.add(123);
 			//ImLoginRequestProto req = new ImLoginRequestProto(Command.JPUSH_IM.LOGIN, 1, 0, 2657, 1004360871,"ebbd49c14a649e0fa4f01f3f", cookie, bean); //4f7aef34fb361292c566a1cd
 			// logout
-		   /*LogoutRequestBean bean = new LogoutRequestBean("walter");
+		   LogoutRequestBean bean = new LogoutRequestBean("walter");
 			List<Integer> cookie = new ArrayList<Integer>();
 			cookie.add(123);
-			ImLogoutRequestProto req = new ImLogoutRequestProto(Command.JPUSH_IM.LOGOUT, 1, 2324, SystemConfig.getProperty("jpush.appkey"), cookie, bean);*/
+			ImLogoutRequestProto req = new ImLogoutRequestProto(Command.JPUSH_IM.LOGOUT, 1, 2324, SystemConfig.getProperty("jpush.appkey"), cookie, bean);
 			//* send single message
-			/*SendSingleMsgRequestBean bean = new SendSingleMsgRequestBean(32451225, "this is a single msg.");
+			SendSingleMsgRequestBean bean = new SendSingleMsgRequestBean(32451225, "this is a single msg.");
 			List<Integer> cookie = new ArrayList<Integer>();
 			cookie.add(123);
-			ImSendSingleMsgRequestProto req = new ImSendSingleMsgRequestProto(Command.JPUSH_IM.SENDMSG_SINGAL, 1, 2324, SystemConfig.getProperty("jpush.appkey"), cookie, bean);*/
+			ImSendSingleMsgRequestProto req = new ImSendSingleMsgRequestProto(Command.JPUSH_IM.SENDMSG_SINGAL, 1, 2324, SystemConfig.getProperty("jpush.appkey"), cookie, bean);
 			//* send group message
-		   /*SendGroupMsgRequestBean bean = new SendGroupMsgRequestBean(345342, "this is a group msg");
+		   SendGroupMsgRequestBean bean = new SendGroupMsgRequestBean(345342, "this is a group msg");
 			List<Integer> cookie = new ArrayList<Integer>();
 			cookie.add(123);
-			ImSendGroupMsgRequestProto req = new ImSendGroupMsgRequestProto(Command.JPUSH_IM.SENDMSG_GROUP, 1, 2312, SystemConfig.getProperty("jpush.appkey"), cookie, bean);*/
+			ImSendGroupMsgRequestProto req = new ImSendGroupMsgRequestProto(Command.JPUSH_IM.SENDMSG_GROUP, 1, 2312, SystemConfig.getProperty("jpush.appkey"), cookie, bean);
 			//* create group request
 			//CreateGroupRequestBean bean = new CreateGroupRequestBean("group_001", "Jpush Group", 1, 2);
 			//List<Integer> cookie = new ArrayList<Integer>();
 			//cookie.add(123);
 			//ImCreateGroupRequestProto req = new ImCreateGroupRequestProto(Command.JPUSH_IM.CREATE_GROUP, 1, 1153535375, "ebbd49c14a649e0fa4f01f3f", cookie, bean);
 			//* exit group message
-			/*ExitGroupRequestBean bean = new ExitGroupRequestBean(123456);
+			ExitGroupRequestBean bean = new ExitGroupRequestBean(123456);
 			List<Integer> cookie = new ArrayList<Integer>();
 			cookie.add(123);
-			ImExitGroupRequestProto req = new ImExitGroupRequestProto(Command.JPUSH_IM.EXIT_GROUP, 1, 12212, SystemConfig.getProperty("jpush.appkey"), cookie, bean);*/
+			ImExitGroupRequestProto req = new ImExitGroupRequestProto(Command.JPUSH_IM.EXIT_GROUP, 1, 12212, SystemConfig.getProperty("jpush.appkey"), cookie, bean);
 			// add group members
-			/*List<Long> list = new ArrayList();
+			List<Long> list = new ArrayList();
 			list.add(12334L);list.add(546232L);list.add(456456L);
 			AddGroupMemberRequestBean bean = new AddGroupMemberRequestBean(12234, 3, list);
 			List<Integer> cookie = new ArrayList<Integer>();
 			cookie.add(123);
-			ImAddGroupMemberRequestProto req = new ImAddGroupMemberRequestProto(Command.JPUSH_IM.ADD_GROUP_MEMBER, 1, 1232, SystemConfig.getProperty("jpush.appkey"), cookie, bean);*/
+			ImAddGroupMemberRequestProto req = new ImAddGroupMemberRequestProto(Command.JPUSH_IM.ADD_GROUP_MEMBER, 1, 1232, SystemConfig.getProperty("jpush.appkey"), cookie, bean);
 			//* delete group members
-			/*List<Long> list = new ArrayList();
+			List<Long> list = new ArrayList();
 			list.add(1111L);list.add(22222L);list.add(555556L);
 			DeleteGroupMemberRequestBean bean = new DeleteGroupMemberRequestBean(12234, 3, list);
 			List<Integer> cookie = new ArrayList<Integer>();
 			cookie.add(123);
-			ImDeleteGroupMemberRequestProto req = new ImDeleteGroupMemberRequestProto(Command.JPUSH_IM.DEL_GROUP_MEMBER, 1, 2323, SystemConfig.getProperty("jpush.appkey"), cookie, bean);*/
+			ImDeleteGroupMemberRequestProto req = new ImDeleteGroupMemberRequestProto(Command.JPUSH_IM.DEL_GROUP_MEMBER, 1, 2323, SystemConfig.getProperty("jpush.appkey"), cookie, bean);
 			//* update group info message
-			/*UpdateGroupInfoRequestBean bean = new UpdateGroupInfoRequestBean(1234, "jpush dev group", "modify group info");
+			UpdateGroupInfoRequestBean bean = new UpdateGroupInfoRequestBean(1234, "jpush dev group", "modify group info");
 			List<Integer> cookie = new ArrayList<Integer>();
 			cookie.add(123);
-			ImUpdateGroupInfoRequestProto req = new ImUpdateGroupInfoRequestProto(Command.JPUSH_IM.UPDATE_GROUP_INFO, 1, 23321, SystemConfig.getProperty("jpush.appkey"), cookie, bean);*/
+			ImUpdateGroupInfoRequestProto req = new ImUpdateGroupInfoRequestProto(Command.JPUSH_IM.UPDATE_GROUP_INFO, 1, 23321, SystemConfig.getProperty("jpush.appkey"), cookie, bean);
 			String mm = StringUtils.toMD5("1111");
 			System.out.println(" 1 pwd: "+mm);
 			mm = StringUtils.toMD5(mm);
 			System.out.println(" 2 pwd: "+mm);
 			client.sendRequest(channel, req);
-		} catch (InterruptedException e) {
+		} catch (Exception e) {
 			log.error("connect server exception."+e.getMessage());
-		}
+		}*/
 	}
 
 }

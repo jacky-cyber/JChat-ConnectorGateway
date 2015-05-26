@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 import jpushim.s2b.JpushimSdk2B.AddGroupMember;
 import jpushim.s2b.JpushimSdk2B.ChatMsg;
@@ -25,10 +26,13 @@ import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 import ch.qos.logback.classic.Logger;
+import cn.jpush.protocal.im.bean.LoginRequestBean;
 import cn.jpush.protocal.im.req.proto.ImChatMsgSyncRequestProto;
+import cn.jpush.protocal.im.req.proto.ImLoginRequestProto;
 import cn.jpush.protocal.im.resp.proto.ImLoginResponseProto;
 import cn.jpush.protocal.im.response.ImLoginResponse;
 import cn.jpush.protocal.push.HeartBeatRequest;
+import cn.jpush.protocal.push.PushLoginRequestBean;
 import cn.jpush.protocal.push.PushLoginResponseBean;
 import cn.jpush.protocal.push.PushLogoutResponseBean;
 import cn.jpush.protocal.push.PushMessageRequestBean;
@@ -73,7 +77,8 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 	private RedisClient redisClient = new RedisClient();
 	private Gson gson = new Gson();
 	private PushLoginResponseBean pushLoginResponseBean;
-	private int sid;
+	private static CountDownLatch handlePushLoginCount;
+	private static int sid;
 	private long juid;
 
 	@Override
@@ -94,18 +99,54 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 				log.error(String.format("from data cache get appkey and username through channel exception: %s", e.getMessage()));
 			}
 			if (StringUtils.isNotEmpty(kan)) { // 非客户端主动断开，需要重连
-				SocketIOClient sessionClient = WebImServer.userNameToSessionCilentMap.get(kan);
+				/*SocketIOClient sessionClient = WebImServer.userNameToSessionCilentMap.get(kan);
 				if (sessionClient != null) {
 					SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(
 							JPushTcpClientHandler.VERSION, "1000001", JMessage.Method.DISCONNECT, "");
 					sessionClient.sendEvent("onDisconnected", gson.toJson(resp));
 				} else {
 					log.error("from data cache get client connection exception, so can not send channel removed message to client");
-				}
+				}*/
 				// 重建连接
+				log.warn("到 IM Server 的连接断开, 将要进行重连 ...");
 				V1 v1 = new V1();
 				String appKey = StringUtils.getAppKey(kan);
+				String userName = StringUtils.getUserName(kan);
 				Channel _channel = v1.getPushChannel(appKey);
+				// 重新login
+				long _juid;
+				String _password;
+				String _juidPassword;
+				Jedis jedis = null;
+				try {
+					jedis = redisClient.getJeids();
+					List<String> dataList = jedis.hmget(kan, "juid", "password", "juidPassword");
+					_juid = Long.parseLong(dataList.get(0));
+					_password = dataList.get(1);
+					_juidPassword = dataList.get(2);
+				} catch (JedisConnectionException e) {
+					log.error(String.format("ClientHander reconnect relogin -- redis exception: %s", e.getMessage()));
+					redisClient.returnBrokenResource(jedis);
+					throw new JedisConnectionException(e);
+				} finally {
+					redisClient.returnResource(jedis);
+				}
+
+				handlePushLoginCount = new CountDownLatch(1);
+				PushLoginRequestBean pushLoginBean = new PushLoginRequestBean(_juid, "a", ProtocolUtil.md5Encrypt(_juidPassword), 10800, appKey, 0);
+				_channel.writeAndFlush(pushLoginBean);
+				try {
+					handlePushLoginCount.await();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				log.info("reconnect begin im login ... ");
+				long rid = StringUtils.getRID();
+				LoginRequestBean bean = new LoginRequestBean(userName, StringUtils.toMD5(_password));
+				List<Integer> cookie = new ArrayList<Integer>();
+				ImLoginRequestProto req = new ImLoginRequestProto(Command.JPUSH_IM.LOGIN, 1, 0, sid,
+						_juid, appKey, rid, cookie, bean);
+				_channel.writeAndFlush(req);
 				WebImServer.userNameToPushChannelMap.put(kan, _channel);
 				WebImServer.pushChannelToUsernameMap.put(_channel, kan);
 			} else {
@@ -136,7 +177,11 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 		}
 		if (msg instanceof PushLoginResponseBean) {
 			pushLoginResponseBean = (PushLoginResponseBean) msg;
+			sid = pushLoginResponseBean.getSid();
 			V1.pushLoginInCountDown.countDown();
+			if(JPushTcpClientHandler.handlePushLoginCount!=null){
+				JPushTcpClientHandler.handlePushLoginCount.countDown();
+			}
 			log.info(String.format("client handler resolve jpush login response data: %s", gson.toJson(pushLoginResponseBean)));
 		}
 		if (msg instanceof PushLogoutResponseBean) {

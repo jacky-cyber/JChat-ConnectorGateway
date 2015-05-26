@@ -219,7 +219,7 @@ public class V1 {
 		WebImServer.pushChannelToUsernameMap.put(pushChannel, dataCacheKey);
 		log.info(String.format("v1 login -- add data cache username: %s <--> channel: %s data cache", dataCacheKey, pushChannel));
 		
-		// 签名有效性验证
+		// 签名有效性验证 
 		if(!V1.isSignatureValid(appkey, signature)){
 			log.error("v1 login -- user signature exception");
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION, id, JMessage.Method.LOGIN);
@@ -631,6 +631,14 @@ public class V1 {
 		msgContent.setFrom_platform("web");
 		msgContent.setFrom_id(userName);
 		msgContent.setFrom_name(userName);
+		HttpResponseWrapper _wrapper = APIProxy.getUserInfo(appKey, userName, token);
+		if (_wrapper.isOK()) {
+			UserInfo userInfo = gson.fromJson(_wrapper.content, UserInfo.class);
+			String _nickName = userInfo.getNickname();
+			if(!StringUtils.isEmpty(_nickName)){
+				msgContent.setFrom_name(_nickName);
+			}
+		}
 		msgContent.setCreate_time(StringUtils.getCreateTime());
 		msgContent.setMsg_type("image");
 		ImageMsgBody msgBody = new ImageMsgBody();

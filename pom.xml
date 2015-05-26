@@ -141,7 +141,7 @@
 					<manifest>
 						<addClasspath>true</addClasspath>
 						<classpathPrefix>lib/</classpathPrefix>
-						<mainClass>cn.jpush.webim.server.WebImServer</mainClass> 
+						<mainClass>cn.jpush.webim.server.WebImServer</mainClass>
 						<!-- <mainClass>cn.jpush.webim.server.WebIMFileServer</mainClass> -->
 					</manifest>
 				</archive>
