@@ -5,6 +5,7 @@ public class JMessage {
 		public static final String CONNECT = "connect";
 		public static final String DISCONNECT = "disconnect";
 		public static final String CONFIG = "config";
+		public static final String INFO_NOTIFICATION = "info.notification";
 		public static final String LOGIN = "login";
 		public static final String LOGOUT = "logout";
 		public static final String USERINFO_GET = "userinfo.get";
@@ -32,6 +33,7 @@ public class JMessage {
 		public static final int SIGNATURE_INVALID = 872005; // 签名失效
 		public static final int REQUEST_TIMEOUT = 872006; // 请求超时
 		public static final int CONNECTION_DISCONNECT = 872007; // 与 IM Server连接断开
+		public static final int Multi_Login = 872008; // 用户多处登陆
 		
 		
 		public static String getErrorMessage(int code){
@@ -57,6 +59,9 @@ public class JMessage {
 					break;
 				case Error.CONNECTION_DISCONNECT:
 					msg = "connection disconnect";
+					break;
+				case Error.Multi_Login:
+					msg = "user login in other place";
 					break;
 				default:
 					msg = "unkown error";

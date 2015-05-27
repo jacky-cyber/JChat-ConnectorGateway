@@ -87,7 +87,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 	}
 
 	@Override
-	public void handlerRemoved(ChannelHandlerContext ctx) {
+	public void handlerRemoved(ChannelHandlerContext ctx) throws InterruptedException {
 		Channel channel = ctx.channel();
 		log.warn(String.format("handler: %s removed from push server", channel.toString()));
 		// 与JPush Server断开后，通知相应用户掉线
@@ -114,16 +114,19 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 				String userName = StringUtils.getUserName(kan);
 				Channel _channel = v1.getPushChannel(appKey);
 				// 重新login
-				long _juid;
+				Map<String, String> juidData = UidResourcesPool.getUidAndPassword();
+				if(juidData==null){
+					log.error(String.format("client handler reconnect -- get juid and password exception"));
+					return;
+				}
+				long _juid = Long.parseLong(String.valueOf(juidData.get("uid")));
+				String _juid_password = String.valueOf(juidData.get("password"));
 				String _password;
-				String _juidPassword;
 				Jedis jedis = null;
 				try {
 					jedis = redisClient.getJeids();
-					List<String> dataList = jedis.hmget(kan, "juid", "password", "juidPassword");
-					_juid = Long.parseLong(dataList.get(0));
-					_password = dataList.get(1);
-					_juidPassword = dataList.get(2);
+					List<String> dataList = jedis.hmget(kan, "password");
+					_password = dataList.get(0);
 				} catch (JedisConnectionException e) {
 					log.error(String.format("ClientHander reconnect relogin -- redis exception: %s", e.getMessage()));
 					redisClient.returnBrokenResource(jedis);
@@ -133,7 +136,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 				}
 
 				handlePushLoginCount = new CountDownLatch(1);
-				PushLoginRequestBean pushLoginBean = new PushLoginRequestBean(_juid, "a", ProtocolUtil.md5Encrypt(_juidPassword), 10800, appKey, 0);
+				PushLoginRequestBean pushLoginBean = new PushLoginRequestBean(_juid, "a", ProtocolUtil.md5Encrypt(_juid_password), 10800, appKey, 0);
 				_channel.writeAndFlush(pushLoginBean);
 				try {
 					handlePushLoginCount.await();

@@ -133,14 +133,14 @@ public class V1 {
 			return;
 		} else {
 			// couchbase master secrect 验证
-			/*CouchbaseClient cbClient = CouchBaseManager.getCouchbaseClientInstance("appbucket");
+			CouchbaseClient cbClient = CouchBaseManager.getCouchbaseClientInstance("appbucket");
 			String masterSecrect_json = (String) cbClient.get(appKey);
 			Map dataMap = gson.fromJson(masterSecrect_json, HashMap.class);
 			String masterSecrect = (String) dataMap.get("apiMasterSecret");
 			log.info("couchbase get value: "+masterSecrect_json);
 			log.info("from cb get masterSecect: "+masterSecrect);
-			String _signature = Sign.getSignature(appKey, timestamp, randomStr, masterSecrect);*/
-			String _signature = Sign.getSignature(appKey, timestamp, randomStr, "054d6103823a726fc12d0466");
+			String _signature = Sign.getSignature(appKey, timestamp, randomStr, masterSecrect);
+			//String _signature = Sign.getSignature(appKey, timestamp, randomStr, "054d6103823a726fc12d0466");
 			if(signature.equals(_signature)){
 				SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(V1.VERSION, id, JMessage.Method.CONFIG, "");
 				log.info(String.format("v1 config -- resp data -- %s", gson.toJson(resp)));
@@ -203,6 +203,21 @@ public class V1 {
 			resp.setErrorInfo(JMessage.Error.ARGUMENTS_EXCEPTION, JMessage.Error.getErrorMessage(JMessage.Error.ARGUMENTS_EXCEPTION));
 			client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
 			return;
+		}
+		
+		// 对同一用户的之前的连接做下线通知
+		SocketIOClient preClient = WebImServer.userNameToSessionCilentMap.get(appkey+":"+username);
+		if(preClient!=null){
+			log.error("v1 login -- offline to pre client -- user --"+username);
+			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION, "100001", JMessage.Method.INFO_NOTIFICATION);
+			resp.setErrorInfo(JMessage.Error.Multi_Login, JMessage.Error.getErrorMessage(JMessage.Error.Multi_Login));
+			preClient.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
+			log.info("send data to client: "+gson.toJson(resp));
+			Channel preChannel = WebImServer.userNameToPushChannelMap.get(appkey+":"+username);
+			if(preChannel!=null){
+				WebImServer.pushChannelToUsernameMap.remove(preChannel);
+				preChannel.close();
+			}
 		}
 		
 		// 关系绑定
