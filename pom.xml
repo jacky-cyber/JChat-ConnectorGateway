@@ -112,6 +112,11 @@
       <artifactId>couchbase-client</artifactId>
       <version>1.2.1</version>
     </dependency>
+    <dependency>
+ 		<groupId>com.corundumstudio.socketio</groupId>
+ 		<artifactId>netty-socketio</artifactId>
+ 		<version>1.7.6</version>
+	 </dependency>
      <!-- <dependency>
     	<groupId>com.jpush</groupId>
   		<artifactId>socketio</artifactId>

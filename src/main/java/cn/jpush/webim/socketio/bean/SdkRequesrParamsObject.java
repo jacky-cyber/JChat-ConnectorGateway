@@ -7,6 +7,7 @@ public class SdkRequesrParamsObject {
 	private String timestamp;
 	private String randomStr;
 	private String signature;
+	private String isReLogin;
 
 	private String username;
 	private String password;
@@ -60,6 +61,14 @@ public class SdkRequesrParamsObject {
 
 	public void setSignature(String signature) {
 		this.signature = signature;
+	}
+
+	public String getIsReLogin() {
+		return isReLogin;
+	}
+
+	public void setIsReLogin(String isReLogin) {
+		this.isReLogin = isReLogin;
 	}
 
 	public String getUsername() {

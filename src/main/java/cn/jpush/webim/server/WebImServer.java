@@ -1,6 +1,7 @@
 package cn.jpush.webim.server;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -73,6 +74,7 @@ import cn.jpush.socketio.Transport;
 import cn.jpush.socketio.listener.ConnectListener;
 import cn.jpush.socketio.listener.DataListener;
 import cn.jpush.socketio.listener.DisconnectListener;
+import cn.jpush.socketio.listener.ExceptionListener;
 import cn.jpush.socketio.transport.NamespaceClient;
 import cn.jpush.webim.common.RedisClient;
 import cn.jpush.webim.common.UidResourcesPool;
@@ -135,8 +137,36 @@ public class WebImServer {
 	public void init() {
 		 config = new Configuration();
 		 config.setPort(PORT);
-		 //config.setAckMode(AckMode.AUTO);
-		 //config.setTransports(Transport.WEBSOCKET);
+		 config.setExceptionListener(new ExceptionListener() {	
+				@Override
+				public void onMessageException(Exception e, String data,
+						SocketIOClient client) {
+					log.warn("client onMessageException: "+e.getMessage());
+				}
+				@Override
+				public void onJsonException(Exception e, Object data, SocketIOClient client) {
+					
+				}
+				@Override
+				public void onEventException(Exception e, List<Object> args,
+						SocketIOClient client) {
+					log.warn("client onEventException: "+e.getMessage());
+				}
+				@Override
+				public void onDisconnectException(Exception e, SocketIOClient client) {
+					log.warn("client onDisconnectException: "+e.getMessage());
+				}
+				@Override
+				public void onConnectException(Exception e, SocketIOClient client) {
+					log.warn("client exception: "+e.getMessage());
+				}
+				@Override
+				public boolean exceptionCaught(ChannelHandlerContext ctx, Throwable e)
+						throws Exception {
+					log.warn("client exceptionCaught: "+e.getMessage());
+					return false;
+				}
+		 });
 		 server = new SocketIOServer(config);
 	}
 	
@@ -174,7 +204,7 @@ public class WebImServer {
 						}
 					}
 					if(StringUtils.isNotEmpty(kan)){
-						WebImServer.userNameToSessionCilentMap.remove(kan);
+						//WebImServer.userNameToSessionCilentMap.remove(kan);
 						Channel channel = WebImServer.userNameToPushChannelMap.get(kan);
 						WebImServer.userNameToPushChannelMap.remove(kan);
 						WebImServer.sessionClientToUserNameMap.remove(client);

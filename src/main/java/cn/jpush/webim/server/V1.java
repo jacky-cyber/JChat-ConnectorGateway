@@ -38,7 +38,9 @@ import com.qiniu.api.auth.digest.Mac;
 import com.qiniu.api.io.IoApi;
 import com.qiniu.api.io.PutExtra;
 import com.qiniu.api.io.PutRet;
+import com.qiniu.api.net.CallRet;
 import com.qiniu.api.rs.PutPolicy;
+import com.qiniu.api.rs.RSClient;
 
 import ch.qos.logback.classic.Logger;
 import cn.jpush.protocal.common.JPushTcpClient;
@@ -133,15 +135,15 @@ public class V1 {
 			return;
 		} else {
 			// couchbase master secrect 验证
-			CouchbaseClient cbClient = CouchBaseManager.getCouchbaseClientInstance("appbucket");
+			/*CouchbaseClient cbClient = CouchBaseManager.getCouchbaseClientInstance("appbucket");
 			String masterSecrect_json = (String) cbClient.get(appKey);
 			Map dataMap = gson.fromJson(masterSecrect_json, HashMap.class);
 			String masterSecrect = (String) dataMap.get("apiMasterSecret");
 			log.info("couchbase get value: "+masterSecrect_json);
 			log.info("from cb get masterSecect: "+masterSecrect);
-			String _signature = Sign.getSignature(appKey, timestamp, randomStr, masterSecrect);
-			//String _signature = Sign.getSignature(appKey, timestamp, randomStr, "054d6103823a726fc12d0466");
-			if(signature.equals(_signature)){
+			String _signature = Sign.getSignature(appKey, timestamp, randomStr, masterSecrect);*/
+			String _signature = Sign.getSignature(appKey, timestamp, randomStr, "054d6103823a726fc12d0466");
+			if(signature.equals(_signature)){ 
 				SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(V1.VERSION, id, JMessage.Method.CONFIG, "");
 				log.info(String.format("v1 config -- resp data -- %s", gson.toJson(resp)));
 				client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
@@ -171,7 +173,7 @@ public class V1 {
 	public Channel getPushChannel(String appKey){
 		log.info("v1 user build connect channel to im server");
 		jpushIMTcpClient = new JPushTcpClient(appKey);
-		Channel pushChannel = null;                                                       
+		Channel pushChannel = null;                                   
 		try {
 			pushChannel = jpushIMTcpClient.getChannel();
 		} catch (Exception e) {
@@ -195,6 +197,7 @@ public class V1 {
 		String username = data.getParams().getUsername();
 		String password = data.getParams().getPassword();
 		String signature = data.getParams().getSignature();
+		//String isReLogin = data.getParams().getIsReLogin();
 		log.info(String.format("v1 login -- request data -- data: %s", gson.toJson(data)));
 		if (StringUtils.isEmpty(appkey) || StringUtils.isEmpty(username)
 				|| StringUtils.isEmpty(password) || StringUtils.isEmpty(signature)) {
@@ -208,15 +211,17 @@ public class V1 {
 		// 对同一用户的之前的连接做下线通知
 		SocketIOClient preClient = WebImServer.userNameToSessionCilentMap.get(appkey+":"+username);
 		if(preClient!=null){
-			log.error("v1 login -- offline to pre client -- user --"+username);
-			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION, "100001", JMessage.Method.INFO_NOTIFICATION);
-			resp.setErrorInfo(JMessage.Error.Multi_Login, JMessage.Error.getErrorMessage(JMessage.Error.Multi_Login));
-			preClient.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
-			log.info("send data to client: "+gson.toJson(resp));
-			Channel preChannel = WebImServer.userNameToPushChannelMap.get(appkey+":"+username);
-			if(preChannel!=null){
-				WebImServer.pushChannelToUsernameMap.remove(preChannel);
-				preChannel.close();
+			if(!preClient.getSessionId().equals(client.getSessionId())){  // 区分是否同一个连接，避免断开重新登陆的时候下发该通知
+				log.error("v1 login -- offline to pre client -- user --"+username);
+				SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION, "100001", JMessage.Method.INFO_NOTIFICATION);
+				resp.setErrorInfo(JMessage.Error.Multi_Login, JMessage.Error.getErrorMessage(JMessage.Error.Multi_Login));
+				preClient.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
+				log.info("send data to client: "+gson.toJson(resp));
+				Channel preChannel = WebImServer.userNameToPushChannelMap.get(appkey+":"+username);
+				if(preChannel!=null){
+					WebImServer.pushChannelToUsernameMap.remove(preChannel);
+					preChannel.close();
+				}
 			}
 		}
 		
@@ -224,8 +229,6 @@ public class V1 {
 		WebImServer.userNameToSessionCilentMap.put(appkey+":"+username, client);
 		WebImServer.sessionClientToUserNameMap.put(client, appkey+":"+username);
 		
-		/*jpushIMTcpClient = new JPushTcpClient(appkey);
-		Channel pushChannel = jpushIMTcpClient.getChannel();*/
 		Channel pushChannel = getPushChannel(appkey);
 		
 		// 关系绑定
@@ -254,7 +257,7 @@ public class V1 {
 
 		PushLoginRequestBean pushLoginBean = new PushLoginRequestBean(juid, "a", ProtocolUtil.md5Encrypt(juid_password), 10800, appkey, 0);
 		pushChannel.writeAndFlush(pushLoginBean);
-		log.info(String.format("v1 login -- user: %s begin jpush login -- juid: %d, password: %s", username, juid, juid_password));
+		log.info(String.format("v1 login -- user: ..%s begin jpush login -- juid: %d, password: %s", username, juid, juid_password));
 		
 		pushLoginInCountDown.await(); // 等待push login返回数据
 		PushLoginResponseBean pushLoginResponseBean = jpushIMTcpClient.getjPushClientHandler().getPushLoginResponseBean();
@@ -1583,6 +1586,28 @@ public class V1 {
 			redisClient.returnResource(jedis);
 		}
 		return result;
+	}
+	
+	// http://7xjfat.dl1.z0.glb.clouddn.com
+	public static void main(String argus[]) throws AuthException, JSONException{
+		//String filePath = "/home/chujieyang/eclipse_projects/js-im-sdk/demo/js/jmessage-1.0.0.js";
+		//String filePath = "/home/chujieyang/eclipse_projects/js-im-sdk/demo/js/jquery.min.js";
+		//String filePath = "/home/chujieyang/eclipse_projects/js-im-sdk/demo/js/socket.io.min.js"; --
+		String filePath = "/home/chujieyang/eclipse_projects/js-im-sdk/demo/js/min/jmessage-1.0.0.min.js";
+		//String filePath = "/home/chujieyang/eclipse_projects/js-im-sdk/demo/js/min/ajaxfileupload.min.js";
+		Mac mac = new Mac(Configure.QNCloudInterface.QN_ACCESS_KEY, Configure.QNCloudInterface.QN_SECRET_KEY);
+		PutPolicy putPolicy = new PutPolicy("jmsgweb");
+		//putPolicy.expires = 14400;
+		String token = putPolicy.token(mac);
+		PutExtra extra = new PutExtra();
+		String key = "jmessage-1.0.0.min.js";
+		PutRet ret = IoApi.putFile(token, key, filePath, extra);
+		log.info("result: "+ret.response);
+		
+		// delete
+		/*RSClient client = new RSClient(mac);
+		CallRet ret = client.delete("jmsgweb", "socket.io.min.js");
+		System.out.println(ret.getResponse());*/
 	}
 
 }

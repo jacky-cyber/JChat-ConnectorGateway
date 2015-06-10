@@ -35,7 +35,7 @@ public class SocketConfig {
 
     private boolean reuseAddress = false;
 
-    private int acceptBackLog = 1024;
+    private int acceptBackLog = 2048;
 
     public boolean isTcpNoDelay() {
         return tcpNoDelay;

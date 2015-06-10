@@ -69,6 +69,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.util.ReferenceCountUtil;
 
 public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 	private static Logger log = (Logger) LoggerFactory.getLogger(JPushTcpClientHandler.class);
@@ -89,6 +90,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 	@Override
 	public void handlerRemoved(ChannelHandlerContext ctx) throws InterruptedException {
 		Channel channel = ctx.channel();
+		channel.close();
 		log.warn(String.format("handler: %s removed from push server", channel.toString()));
 		// 与JPush Server断开后，通知相应用户掉线
 		if (channel != null) {
@@ -99,14 +101,14 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 				log.error(String.format("from data cache get appkey and username through channel exception: %s", e.getMessage()));
 			}
 			if (StringUtils.isNotEmpty(kan)) { // 非客户端主动断开，需要重连
-				/*SocketIOClient sessionClient = WebImServer.userNameToSessionCilentMap.get(kan);
+				SocketIOClient sessionClient = WebImServer.userNameToSessionCilentMap.get(kan);
 				if (sessionClient != null) {
 					SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(
 							JPushTcpClientHandler.VERSION, "1000001", JMessage.Method.DISCONNECT, "");
 					sessionClient.sendEvent("onDisconnected", gson.toJson(resp));
 				} else {
 					log.error("from data cache get client connection exception, so can not send channel removed message to client");
-				}*/
+				}
 				// 重建连接
 				log.warn("到 IM Server 的连接断开, 将要进行重连 ...");
 				V1 v1 = new V1();
@@ -181,11 +183,12 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 		if (msg instanceof PushLoginResponseBean) {
 			pushLoginResponseBean = (PushLoginResponseBean) msg;
 			sid = pushLoginResponseBean.getSid();
-			V1.pushLoginInCountDown.countDown();
+			V1.pushLoginInCountDown.countDown();  // countdown 让其他等待线程继续
 			if(JPushTcpClientHandler.handlePushLoginCount!=null){
 				JPushTcpClientHandler.handlePushLoginCount.countDown();
 			}
 			log.info(String.format("client handler resolve jpush login response data: %s", gson.toJson(pushLoginResponseBean)));
+			ReferenceCountUtil.release(msg);
 		}
 		if (msg instanceof PushLogoutResponseBean) {
 			PushLogoutResponseBean bean = (PushLogoutResponseBean) msg;
@@ -688,6 +691,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
 			throws Exception {
+		log.warn("tcp client handler exception: \n");
 		cause.printStackTrace();
 		ctx.close();
 	}
