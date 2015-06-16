@@ -83,7 +83,7 @@ public class JPushTcpClient {
 			this.HOST = str[0];
 			this.PORT = Integer.parseInt(str[1]);
 			//this.HOST = "183.232.42.208";
-			//this.PORT = 9000;
+			//this.PORT = 3000;
 			log.info(String.format("当前接入机器信息: %s:%s", this.HOST, this.PORT));
 			b = new Bootstrap();
 			try {

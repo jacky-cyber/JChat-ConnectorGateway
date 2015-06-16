@@ -17,7 +17,7 @@ import com.qiniu.api.rs.PutPolicy;
 
 
 /*
- * http 协议从 Server 拉 IM 数据
+ * 该代理用于访问 SDK-HTTP-API
  */
 public final class APIProxy {
 	private static Logger log = (Logger) LoggerFactory.getLogger(APIProxy.class);
@@ -143,7 +143,7 @@ public final class APIProxy {
 	
 	public static void main(String[] argus) throws Exception{
 		HttpResponseWrapper result = null;
-		result = APIProxy.getToken("10000288", "C4CA4238A0B923820DCC509A6F75849B");
+		result = APIProxy.getToken("10001447", "B59C67BF196A4758191E42F76670CEBA");
 		//String token = BASE64Utils.encodeString("10000288"+":"+"JSyof+KglitsHcfg6keXNDipvhI=\n");
 		//result = APIProxy.register(APPKEY, "p011", "p011");
 		//result = APIProxy.getUserInfo(APPKEY, "p001", token);

@@ -118,25 +118,34 @@ import com.qiniu.api.io.PutRet;
 import com.qiniu.api.rs.PutPolicy;
 
 /**
- * Web Im 业务 Server
- *
+ * Web IM 客户端接入
+ * 
+ * 启动该独立进程监听端口，完成 Web 客户端的连接
+ * 
  */
 public class WebImServer {
 	private static Logger log = (Logger) LoggerFactory.getLogger(WebImServer.class);
+	/*
+	 * 采用 Map 缓存 Web IM 用户标识和客户端到gateway长连接以及gateway到 IM Server 的长连接的对应关系
+	 * 方便根据用户找到双向的长连接来发送消息
+	 */
 	public static Hashtable<String, SocketIOClient> userNameToSessionCilentMap = new Hashtable<String, SocketIOClient>();  //  appKey:用户名 --> 客户端
 	public static Hashtable<SocketIOClient, String> sessionClientToUserNameMap = new Hashtable<SocketIOClient, String>();  //  客户端  --> appKey:用户名
 	public static Hashtable<String, Channel> userNameToPushChannelMap = new Hashtable<String, Channel>();   //  appKey:用户名 --> IM Server
 	public static Hashtable<Channel, String> pushChannelToUsernameMap = new Hashtable<Channel, String>();   //  IM Server --> appKey:用户名
-	private static final int PORT = SystemConfig.getIntProperty("webim.server.port");
-	private static final String SDK_VERSION_V1 = "1.0";
-	private static final String DATA_AISLE = "data";
+	
+	private static final int PORT = SystemConfig.getIntProperty("webim.server.port");  // WebIM 监听端口，配置文件中配置
+	private static final String SDK_VERSION_V1 = "1.0";  //  Gateway 与 JS-SDK 交互数据结构中的版本标识
+	private static final String DATA_AISLE = "data";  //  Gateway 返回给 JS-SDK 的数据结构中表示i数据内容的key
+	
 	private Gson gson = new Gson();
 	private Configuration config;
 	private SocketIOServer server;
 	
 	public void init() {
 		 config = new Configuration();
-		 config.setPort(PORT);
+		 config.setPort(PORT);config.setAllowCustomRequests(true);
+		 log.info("----origin ----"+config.getOrigin());
 		 config.setExceptionListener(new ExceptionListener() {	
 				@Override
 				public void onMessageException(Exception e, String data,
@@ -179,7 +188,7 @@ public class WebImServer {
 		 //用户连接
 		 server.addConnectListener(new ConnectListener() {
 			@Override
-			public void onConnect(SocketIOClient client) {
+			public void onConnect(SocketIOClient client) {   //  客户端连接成功后需要向客户端发送连接成功响应
 				log.info(String.format("connect from web client -- the session id is %s, client transport method is %s", client.getSessionId(), client.getTransport()));
 				SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject("1.0", "1000010", JMessage.Method.CONNECT, null);
 				client.sendEvent("onConnected", gson.toJson(resp));
@@ -197,20 +206,20 @@ public class WebImServer {
 					String kan = "";
 					if(WebImServer.sessionClientToUserNameMap!=null){
 						try{
-							kan = WebImServer.sessionClientToUserNameMap.get(client);
+							kan = WebImServer.sessionClientToUserNameMap.get(client);   //  从缓存中根据客户端长连接获取用户标识
 						} catch (Exception e){
 							log.error(String.format("through client get username exception: %s, so can not close connect to im server", e.getMessage()));
 							return;
 						}
 					}
-					if(StringUtils.isNotEmpty(kan)){
+					if(StringUtils.isNotEmpty(kan)){  //  根据用户标识来清空该断开用户的所有缓存数据
 						//WebImServer.userNameToSessionCilentMap.remove(kan);
 						Channel channel = WebImServer.userNameToPushChannelMap.get(kan);
 						WebImServer.userNameToPushChannelMap.remove(kan);
 						WebImServer.sessionClientToUserNameMap.remove(client);
 						if(channel!=null){
 							WebImServer.pushChannelToUsernameMap.remove(channel);
-							channel.close();   //  断开与push server的长连接
+							channel.close();   //  断开与 IM Server的长连接
 						} else {
 							log.error(String.format("user: %s get tcp connector to im server exception", kan));
 						}
@@ -219,13 +228,16 @@ public class WebImServer {
 			}
 		});
 	
-		 // gateway 数据接收处理
+		 /*
+		  * Web IM Server 处理 JS-SDK 定义的 API 所对应的后台逻辑
+		  */
 		 server.addEventListener(WebImServer.DATA_AISLE, SdkRequestObject.class, new DataListener<SdkRequestObject>() {
 				@Override
 				public void onData(SocketIOClient client, SdkRequestObject data,
 						AckRequest ackSender) throws Exception {
-					String version = data.getApiVersion();
-					String method = data.getMethod();
+					String version = data.getApiVersion();  //  JS-SDK 版本号
+					String method = data.getMethod();       //  JS-SDK API 对应的 method   
+					
 					if(StringUtils.isEmpty(method)||StringUtils.isEmpty(version)){
 						log.error(String.format("user pass empty method or version arguments, deny to execute"));
 						return;
@@ -234,9 +246,9 @@ public class WebImServer {
 						log.error(String.format("data eventlistener SocketIOClient object is null, deny to execute"));
 						return;
 					}
-					if(version.equals(SDK_VERSION_V1)){
-						V1 v1 = new V1();
-						switch (method) {
+					if(version.equals(SDK_VERSION_V1)){   //  JS-SDK V1版本的处理逻辑
+						V1 v1 = new V1();  
+						switch (method) { 
 							case JMessage.Method.CONFIG:
 								v1.config(client, data);
 								break;

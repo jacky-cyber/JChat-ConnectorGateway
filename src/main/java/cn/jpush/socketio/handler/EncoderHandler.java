@@ -114,6 +114,15 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
 
         HttpHeaders.addHeader(res, "Set-Cookie", "io=" + msg.getSessionId());
         HttpHeaders.addHeader(res, CONNECTION, KEEP_ALIVE);
+        if (configuration.getOrigin() == null) {
+        		if (msg.getOrigin() != null) {
+        			HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_ORIGIN, msg.getOrigin());
+        			HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
+        		}
+        } else {
+        		HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_ORIGIN, configuration.getOrigin());
+        		HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
+           }
         HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_HEADERS, CONTENT_TYPE);
         addOriginHeaders(ctx.channel(), res);
 

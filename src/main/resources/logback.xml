@@ -44,7 +44,7 @@
        </layout> 
     </appender>  
 
-    <root level="info" >
+    <root level="debug" >
     	<appender-ref ref="Console" />
       <appender-ref ref="FILE" />
       <appender-ref ref="EXCEPTION_FILE" />

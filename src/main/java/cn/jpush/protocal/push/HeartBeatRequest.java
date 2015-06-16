@@ -18,7 +18,7 @@ public class HeartBeatRequest extends BaseRequest {
 	public void buidRequestBody() {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		try{
-			bos.write(ProtocolUtil.intToByteArray(64, 1));  
+			bos.write(ProtocolUtil.intToByteArray(0, 1));  
 			//bos.write(ProtocolUtil.intToByteArray(this.version, 1));
 			this.mBody = bos.toByteArray();
 		} catch (Exception e) {

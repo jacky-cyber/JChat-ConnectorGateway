@@ -6,10 +6,16 @@ import java.io.UnsupportedEncodingException;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.Inflater;
 
+import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.Logger;
+import cn.jpush.protocal.encoder.ImProtocalClientEncoder;
 import cn.jpush.protocal.utils.Command;
 import cn.jpush.protocal.utils.ProtocolUtil;
+import cn.jpush.protocal.utils.StringUtils;
 
 public class BaseRequest {
+	private static Logger log = (Logger) LoggerFactory.getLogger(BaseRequest.class);
 	//  request head  
 	protected int pkg_length = 0;   // 2B
 	protected int version;      // 1B
@@ -42,6 +48,8 @@ public class BaseRequest {
 			bos.write(ProtocolUtil.intToByteArray(this.sid, 4));   // sid   4B
 			bos.write(ProtocolUtil.longToByteArray(this.juid, 8));  // juid    8B
 			this.mHeader = bos.toByteArray();
+			log.info(String.format("-- jpush protocol head -- version: %s -- command: %s -- rid: %s -- sid: %s -- juid: %s", 
+					this.version, this.command, this.rid, this.sid, this.juid));
 		} catch (Exception e) {
 			try {
 				bos.close();
@@ -83,6 +91,7 @@ public class BaseRequest {
 			if (body != null) {
 				baos.write(body);
 			}
+			log.info(String.format("-- protocol data -- head: %s -- body: %s --", header.length, body.length));
 			return updateTotalLength(baos);
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
@@ -105,8 +114,25 @@ public class BaseRequest {
 		}
 		byte[] data = bos.toByteArray();
 		System.arraycopy(totalLenth, 0, data, 0, 2);
+		log.info(String.format("-- detail data -- %s ", BaseRequest.bytesToHexString(data)));
 		return data;
 	}
+	
+	public static String bytesToHexString(byte[] src){   
+	    StringBuilder stringBuilder = new StringBuilder("");   
+	    if (src == null || src.length <= 0) {   
+	        return null;   
+	    }   
+	    for (int i = 0; i < src.length; i++) {   
+	        int v = src[i] & 0xFF;   
+	        String hv = Integer.toHexString(v);   
+	        if (hv.length() < 2) {   
+	            stringBuilder.append(0);   
+	        }   
+	        stringBuilder.append(hv);   
+	    }   
+	    return stringBuilder.toString();   
+	}   
 	
 	/**
 	 * 写 TLV2 类型的数据

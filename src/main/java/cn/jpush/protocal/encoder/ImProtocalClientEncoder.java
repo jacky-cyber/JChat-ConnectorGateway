@@ -82,6 +82,8 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 		if (msg instanceof HeartBeatRequest) {  // push heart beat protocal
 			log.info("encode HeartBeat request");
 			HeartBeatRequest request = (HeartBeatRequest) msg;
+			log.info(String.format("-- heart beat data -- command: %s -- version: %s -- rid: %s -- sid: %s -- juid: %s", 
+					request.getCommand(), request.getVersion(), request.getRid(), request.getSid(), request.getJuid()));
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 			log.info("client send HeartBeat success");

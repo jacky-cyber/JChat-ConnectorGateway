@@ -71,6 +71,10 @@ import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.ReferenceCountUtil;
 
+/**
+ * 处理与 IM Server 的长连接的响应
+ *
+ */
 public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 	private static Logger log = (Logger) LoggerFactory.getLogger(JPushTcpClientHandler.class);
 	private static final String VERSION = "1.0";
@@ -79,7 +83,8 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 	private Gson gson = new Gson();
 	private PushLoginResponseBean pushLoginResponseBean;
 	private static CountDownLatch handlePushLoginCount;
-	private static int sid;
+	private V1 v1;
+	private int sid;
 	private long juid;
 
 	@Override
@@ -102,33 +107,23 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 			}
 			if (StringUtils.isNotEmpty(kan)) { // 非客户端主动断开，需要重连
 				SocketIOClient sessionClient = WebImServer.userNameToSessionCilentMap.get(kan);
-				if (sessionClient != null) {
-					SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(
-							JPushTcpClientHandler.VERSION, "1000001", JMessage.Method.DISCONNECT, "");
-					sessionClient.sendEvent("onDisconnected", gson.toJson(resp));
-				} else {
-					log.error("from data cache get client connection exception, so can not send channel removed message to client");
-				}
 				// 重建连接
 				log.warn("到 IM Server 的连接断开, 将要进行重连 ...");
-				V1 v1 = new V1();
+				v1 = new V1();
 				String appKey = StringUtils.getAppKey(kan);
 				String userName = StringUtils.getUserName(kan);
 				Channel _channel = v1.getPushChannel(appKey);
-				// 重新login
-				Map<String, String> juidData = UidResourcesPool.getUidAndPassword();
-				if(juidData==null){
-					log.error(String.format("client handler reconnect -- get juid and password exception"));
-					return;
-				}
-				long _juid = Long.parseLong(String.valueOf(juidData.get("uid")));
-				String _juid_password = String.valueOf(juidData.get("password"));
+			
+				long _juid;
+				String _juid_password;
 				String _password;
 				Jedis jedis = null;
 				try {
 					jedis = redisClient.getJeids();
-					List<String> dataList = jedis.hmget(kan, "password");
+					List<String> dataList = jedis.hmget(kan, "password", "juid", "juidPassword");
 					_password = dataList.get(0);
+					_juid = Long.parseLong(dataList.get(1));
+					_juid_password = dataList.get(2);
 				} catch (JedisConnectionException e) {
 					log.error(String.format("ClientHander reconnect relogin -- redis exception: %s", e.getMessage()));
 					redisClient.returnBrokenResource(jedis);
@@ -137,21 +132,14 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 					redisClient.returnResource(jedis);
 				}
 
-				handlePushLoginCount = new CountDownLatch(1);
+				//handlePushLoginCount = new CountDownLatch(1);
+				log.info(String.format("user: %s reconnect to IM Server - juid: %s ", userName, _juid));
 				PushLoginRequestBean pushLoginBean = new PushLoginRequestBean(_juid, "a", ProtocolUtil.md5Encrypt(_juid_password), 10800, appKey, 0);
 				_channel.writeAndFlush(pushLoginBean);
-				try {
-					handlePushLoginCount.await();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-				log.info("reconnect begin im login ... ");
-				long rid = StringUtils.getRID();
-				LoginRequestBean bean = new LoginRequestBean(userName, StringUtils.toMD5(_password));
-				List<Integer> cookie = new ArrayList<Integer>();
-				ImLoginRequestProto req = new ImLoginRequestProto(Command.JPUSH_IM.LOGIN, 1, 0, sid,
-						_juid, appKey, rid, cookie, bean);
-				_channel.writeAndFlush(req);
+				log.info("Send Push-Login-Request to IM Server Success");
+				
+				v1.getTcpClient().getjPushClientHandler().setJuid(_juid);
+				
 				WebImServer.userNameToPushChannelMap.put(kan, _channel);
 				WebImServer.pushChannelToUsernameMap.put(_channel, kan);
 			} else {
@@ -184,8 +172,11 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 			pushLoginResponseBean = (PushLoginResponseBean) msg;
 			sid = pushLoginResponseBean.getSid();
 			V1.pushLoginInCountDown.countDown();  // countdown 让其他等待线程继续
-			if(JPushTcpClientHandler.handlePushLoginCount!=null){
+			/*if(JPushTcpClientHandler.handlePushLoginCount!=null){
 				JPushTcpClientHandler.handlePushLoginCount.countDown();
+			}*/
+			if(v1!=null){  // 重连后要设置 sid和juid，用于完成心跳
+				v1.getTcpClient().getjPushClientHandler().setSid(sid);
 			}
 			log.info(String.format("client handler resolve jpush login response data: %s", gson.toJson(pushLoginResponseBean)));
 			ReferenceCountUtil.release(msg);
@@ -204,6 +195,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 			log.info(String.format("client handler resolve IM Packet, the IM Command is: %d", command));
 			switch (command) {
 			case Command.JPUSH_IM.LOGIN:
+				long startTime = System.currentTimeMillis();
 				log.info(String.format("client handler resolve -- IM login -- data: %s", protocol.toString()));
 				Login loginBean = ProtocolUtil.getLogin(protocol);
 				String userName = loginBean.getUsername().toStringUtf8();
@@ -247,6 +239,8 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 							gson.toJson(loginComResp));
 					log.info(String.format("client handler resolve -- IM login -- send client data: %s", gson.toJson(loginComResp)));
 				}
+				long endTime = System.currentTimeMillis();
+				log.info("----- 处理 login 响应耗时 ------ "+(endTime-startTime));
 				break;
 			case Command.JPUSH_IM.LOGOUT:
 				log.info(String.format("client handler resolve -- IM logout -- resp data: %s", protocol.toString()));
@@ -682,7 +676,7 @@ public class JPushTcpClientHandler extends ChannelInboundHandlerAdapter {
 			if (e.state() == IdleState.WRITER_IDLE) {
 				log.info("client heartbeat...write idle:" + ctx.channel().toString());
 				// 心跳请求
-				HeartBeatRequest request = new HeartBeatRequest(2, 1, this.getSid(), this.getJuid());
+				HeartBeatRequest request = new HeartBeatRequest(3, 1, this.getSid(), this.getJuid());
 				ctx.channel().writeAndFlush(request);
 			}
 		}
