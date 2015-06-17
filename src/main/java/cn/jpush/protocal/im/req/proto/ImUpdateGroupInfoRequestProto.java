@@ -6,7 +6,10 @@ import jpushim.s2b.JpushimSdk2B;
 import cn.jpush.protocal.im.bean.UpdateGroupInfoRequestBean;
 
 import com.google.protobuf.ByteString;
-
+/**
+ * IM 更新群组信息请求 protobuf 封装
+ * protobuf 定义请参考wiki文档
+ */
 public class ImUpdateGroupInfoRequestProto extends BaseProtobufRequest {
 	private long rid;
 	public ImUpdateGroupInfoRequestProto(int cmd, int version, long uid,

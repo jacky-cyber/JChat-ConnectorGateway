@@ -4,7 +4,10 @@ import java.util.List;
 
 import jpushim.s2b.JpushimSdk2B;
 import cn.jpush.protocal.im.bean.ExitGroupRequestBean;
-
+/**
+ * IM 退出群组请求 protobuf 封装
+ * protobuf 定义请参考wiki文档
+ */
 public class ImExitGroupRequestProto extends BaseProtobufRequest {
 	private long rid;
 	public ImExitGroupRequestProto(int cmd, int version, long uid,

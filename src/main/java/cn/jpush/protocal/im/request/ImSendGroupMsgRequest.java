@@ -6,7 +6,10 @@ import java.io.IOException;
 import jpushim.s2b.JpushimSdk2B.Packet;
 import cn.jpush.protocal.utils.Command;
 import cn.jpush.protocal.utils.ProtocolUtil;
-
+/**
+ * JPush 发送群聊消息请求协议包
+ * 详细内容参考jpush wiki文档
+ */
 public class ImSendGroupMsgRequest extends BaseRequest {
 	private Packet protobuf;
 	public ImSendGroupMsgRequest(int version, long rid, int sid, long juid, Packet protobuf) {

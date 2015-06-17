@@ -7,6 +7,10 @@ import jpushim.s2b.JpushimSdk2B.Packet;
 import cn.jpush.protocal.utils.Command;
 import cn.jpush.protocal.utils.ProtocolUtil;
 
+/**
+ * JPush 删除群组成员请求协议包
+ * 详细内容参考jpush wiki文档
+ */
 public class ImDeleteGroupMemberRequest extends BaseRequest {
 	private Packet protobuf;
 	public ImDeleteGroupMemberRequest(int version, long rid, int sid, long juid, Packet protobuf) {

@@ -14,12 +14,16 @@ import cn.jpush.protocal.utils.Command;
 import cn.jpush.protocal.utils.ProtocolUtil;
 import cn.jpush.protocal.utils.StringUtils;
 
+/**
+ * JPush 请求协议包
+ * 详细内容参考jpush wiki文档
+ */
 public class BaseRequest {
 	private static Logger log = (Logger) LoggerFactory.getLogger(BaseRequest.class);
-	//  request head  
+	//  协议头部  
 	protected int pkg_length = 0;   // 2B
 	protected int version;      // 1B
-	protected int command = Command.JPUSH_IM.COMMAND;      // 1B   
+	protected int command = Command.JPUSH_IM.COMMAND;      // 1B
 	protected long rid;         // 8B
 	protected int sid;          // 4B
 	protected long juid;        // 8B

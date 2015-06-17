@@ -4,7 +4,10 @@ import java.util.List;
 
 import jpushim.s2b.JpushimSdk2B;
 import cn.jpush.protocal.im.bean.DeleteGroupMemberRequestBean;
-
+/**
+ * IM 删除群组成员请求 protobuf 封装
+ * protobuf 定义请参考wiki文档
+ */
 public class ImDeleteGroupMemberRequestProto extends BaseProtobufRequest {
 	private long rid;
 	public ImDeleteGroupMemberRequestProto(int cmd, int version, long uid,

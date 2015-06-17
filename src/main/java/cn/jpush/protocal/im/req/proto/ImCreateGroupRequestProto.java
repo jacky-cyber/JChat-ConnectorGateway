@@ -6,7 +6,10 @@ import jpushim.s2b.JpushimSdk2B;
 import cn.jpush.protocal.im.bean.CreateGroupRequestBean;
 
 import com.google.protobuf.ByteString;
-
+/**
+ * IM 创建群组请求 protobuf 封装
+ * protobuf 定义请参考wiki文档
+ */
 public class ImCreateGroupRequestProto extends BaseProtobufRequest {
 	private long rid;
 	public ImCreateGroupRequestProto(int cmd, int version, long uid,

@@ -6,7 +6,10 @@ import jpushim.s2b.JpushimSdk2B;
 import cn.jpush.protocal.im.bean.SendSingleMsgRequestBean;
 
 import com.google.protobuf.ByteString;
-
+/**
+ * IM 发送单聊消息请求 protobuf 封装
+ * protobuf 定义请参考wiki文档
+ */
 public class ImSendSingleMsgRequestProto extends BaseProtobufRequest {
 	private long rid;
 	public ImSendSingleMsgRequestProto(int cmd, int version, long uid,

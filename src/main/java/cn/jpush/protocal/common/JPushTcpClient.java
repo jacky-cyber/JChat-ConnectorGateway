@@ -83,7 +83,7 @@ public class JPushTcpClient {
 			this.HOST = str[0];
 			this.PORT = Integer.parseInt(str[1]);
 			//this.HOST = "183.232.42.208";
-			//this.PORT = 3000;
+			//this.PORT = 3001;
 			log.info(String.format("当前接入机器信息: %s:%s", this.HOST, this.PORT));
 			b = new Bootstrap();
 			try {
@@ -105,10 +105,10 @@ public class JPushTcpClient {
 		b.handler(new ChannelInitializer<SocketChannel>() {
 			@Override
 			protected void initChannel(SocketChannel ch) throws Exception {
-				ch.pipeline().addLast("idleStateHandler", new IdleStateHandler(30, 30, 0))
-								.addLast(new ImProtocalClientEncoder())
-								.addLast(new ImProtocalClientDecoder())
-								.addLast(jPushClientHandler);
+				ch.pipeline().addLast("idleStateHandler", new IdleStateHandler(30, 30, 0))  // 空闲时间设置，用于发送心跳
+								.addLast(new ImProtocalClientEncoder())   //  协议编码
+								.addLast(new ImProtocalClientDecoder())   //  协议解码
+								.addLast(jPushClientHandler);  //  返回数据的逻辑处理
 			}
 		});	
 	}
@@ -140,7 +140,6 @@ public class JPushTcpClient {
 	public void setjPushClientHandler(JPushTcpClientHandler jPushClientHandler) {
 		this.jPushClientHandler = jPushClientHandler;
 	}
-
 	
 	public static void main(String[] args) {
 		JPushTcpClient client = new JPushTcpClient("ebbd49c14a649e0fa4f01f3f");

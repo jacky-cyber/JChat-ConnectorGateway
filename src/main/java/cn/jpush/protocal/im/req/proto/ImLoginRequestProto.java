@@ -7,7 +7,10 @@ import cn.jpush.protocal.im.bean.LoginRequestBean;
 import cn.jpush.protocal.utils.Command;
 
 import com.google.protobuf.ByteString;
-
+/**
+ * IM 用户登陆请求 protobuf 封装
+ * protobuf 定义请参考wiki文档
+ */
 public class ImLoginRequestProto extends BaseProtobufRequest {
 	private long rid;
 	public ImLoginRequestProto(int cmd, int version, long uid, int sid, long juid, String appkey,

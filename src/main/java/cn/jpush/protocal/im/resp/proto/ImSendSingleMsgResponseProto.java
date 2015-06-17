@@ -6,7 +6,10 @@ import jpushim.s2b.JpushimSdk2B;
 import jpushim.s2b.JpushimSdk2B.Packet;
 import jpushim.s2b.JpushimSdk2B.ProtocolBody;
 import jpushim.s2b.JpushimSdk2B.SingleMsg;
-
+/**
+ * IM 发送单聊消息响应 protobuf 封装
+ * 详细内容参考jpush wiki文档
+ */
 public class ImSendSingleMsgResponseProto extends BaseProtobufResponse {
 	private long msgid;
 	public ImSendSingleMsgResponseProto(Packet protocol) {

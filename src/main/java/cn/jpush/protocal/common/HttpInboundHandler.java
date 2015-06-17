@@ -69,12 +69,6 @@ public class HttpInboundHandler extends SimpleChannelInboundHandler<HttpObject> 
 	}
 	@Override
 	public void channelReadComplete(ChannelHandlerContext ctx) throws UnsupportedEncodingException {
-		/*log.info("filePath: "+filePath);
-		if(filePath!=null&&!"".equals(filePath)){
-			this.responseUploadSuccess(ctx, filePath);
-		} else {
-			this.responseUploadError(ctx);
-		}*/
 		ctx.flush();
 	}
 	

@@ -5,7 +5,10 @@ import com.google.protobuf.ByteString;
 import jpushim.s2b.JpushimSdk2B;
 import jpushim.s2b.JpushimSdk2B.Packet;
 import jpushim.s2b.JpushimSdk2B.ProtocolBody;
-
+/**
+ * IM 用户登陆响应 protobuf 封装
+ * 详细内容参考jpush wiki文档
+ */
 public class ImLoginResponseProto extends BaseProtobufResponse {
 
 	public ImLoginResponseProto(Packet protocol) {

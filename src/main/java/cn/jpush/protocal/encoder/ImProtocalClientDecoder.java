@@ -25,26 +25,27 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 
+/**
+ * IM 协议解析器
+ *
+ */
 public class ImProtocalClientDecoder extends ByteToMessageDecoder {
 	private static Logger log = (Logger) LoggerFactory.getLogger(ImProtocalClientDecoder.class);
+	
 	@Override
 	protected void decode(ChannelHandlerContext ctx, ByteBuf in,
 			List<Object> out) throws Exception {
 		log.info("client decode data from jpush server");
-		int length = in.readableBytes();
+		int length = in.readableBytes();  //  获取可读字节数
 		log.info(String.format("client decode readable bytes length is %d", length));
-		if(length<2){
+		if(length < 2) {  // 可读数小于2字节，这2字节表示2包大小
 			return;
 		} else {
 			in.markReaderIndex();
 			byte[] len = in.readBytes(2).array();
 			in.resetReaderIndex();
-			int pkg_len = ProtocolUtil.byteArrayToInt(len);
+			int pkg_len = ProtocolUtil.byteArrayToInt(len);  // 解析数据包长度
 			log.info(String.format("client decode the data package length: %d", pkg_len));
-			//in.markReaderIndex();
-			//byte[] content = in.readBytes(pkg_len).array();
-			//log.info("数据包内容： "+ProtocolUtil.byteToHexString(content));
-			//in.resetReaderIndex();
 			if(pkg_len<0||pkg_len==0){
 				in.readBytes(2);
 				return;
@@ -53,10 +54,12 @@ public class ImProtocalClientDecoder extends ByteToMessageDecoder {
 				in.resetReaderIndex(); 
 				return;
 			} else {
-				JHead head = new JHead(in);
-				int command = head.getCommandInResponse();
-				long rid = head.getRid();  // 标示消息
+				JHead head = new JHead(in);  //  协议头封装
+				int command = head.getCommandInResponse();  // 命令字解析
+				long rid = head.getRid();  // 请求RID解析
+				
 				switch (command) {
+					
 					case Command.KKPUSH_REG.COMMAND:
 						log.info("client decode recv JPUSH reg from jpush server");
 						PushRegResponseBean Regbean = ProtocolUtil.getPushRegResponseBean(in);
@@ -74,16 +77,6 @@ public class ImProtocalClientDecoder extends ByteToMessageDecoder {
 						PushLogoutResponseBean bean = ProtocolUtil.getPushLogoutResponseBean(in);
 						out.add(bean);
 						break;
-					
-//					case Command.KKPUSH_HEARTBEAT.COMMAND:
-//						log.info("client decode recv JPUSH heartbeat from jpush server");
-//						break;
-//					
-//					case Command.KKPUSH_MESSAGE.COMMAND:
-//						log.info("receive im message(througn jpush message) request");
-//						PushMessageRequestBean Messagebean = ProtocolUtil.getPushMessageRequestBean(in);
-//						out.add(Messagebean);
-//						break;
 						
 					case Command.JPUSH_IM.COMMAND:
 						log.info("client decode recv IM command from jpush server");
@@ -101,7 +94,7 @@ public class ImProtocalClientDecoder extends ByteToMessageDecoder {
 					default:
 						log.warn(String.format("未处理的消息类型 command： %d", command));
 						in.readBytes(pkg_len-20);
-						log.warn("丢弃为定义消息类型数据.");
+						log.warn("丢弃该未处理命令字的数据包.");
 						break;
 				}
 			

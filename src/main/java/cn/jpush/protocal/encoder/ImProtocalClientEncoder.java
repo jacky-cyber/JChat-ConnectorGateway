@@ -43,28 +43,28 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 
 /**
- * IM 协议编码器 
+ * IM 协议编码器
+ * 把Bean中的数据按照IM协议封装
  */
 public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 	private static Logger log = (Logger) LoggerFactory.getLogger(ImProtocalClientEncoder.class);
-	private static final int JPUSH_VERSION = SystemConfig.getIntProperty("jpush.version");
-	private static final int JMESSAGE_VERSION = SystemConfig.getIntProperty("jmessage.version");
+	private static final int JPUSH_VERSION = SystemConfig.getIntProperty("jpush.version");  //  协议中的JPush版本号
+	private static final int JMESSAGE_VERSION = SystemConfig.getIntProperty("jmessage.version");  // 协议中IM版本号
 	
 	@Override
 	protected void encode(ChannelHandlerContext ctx, Object msg, ByteBuf out)
 			throws Exception {
 		log.info("--------- protocol client encode ---------------");
-		if (msg instanceof PushRegRequestBean) {  // push reg protocal
+		if (msg instanceof PushRegRequestBean) {  // JPush 注册
 			log.info("encode PushReg request");
 			PushRegRequestBean bean = (PushRegRequestBean) msg;
 			long rid = StringUtils.getRID();
 			PushRegRequest request = new PushRegRequest(7, rid, 0, 0, bean);
-			//log.info("request: "+request.toString());
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 			log.info("client send PushReg success");
 		}
-		if (msg instanceof PushLoginRequestBean) {  // push login protocal
+		if (msg instanceof PushLoginRequestBean) {  // JPush 登陆
 			log.info("encode PushLogin request");
 			PushLoginRequestBean reqBean = (PushLoginRequestBean)msg;
 			PushLoginRequest request = new PushLoginRequest(JPUSH_VERSION, 1, 0, reqBean.getUid(), reqBean);
@@ -72,14 +72,14 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			out.writeBytes(data);
 			log.info("client send PushLogin success");
 		}
-		if (msg instanceof PushLogoutRequest) {  // push logout protocal
+		if (msg instanceof PushLogoutRequest) {  //  JPush 登出，未使用
 			log.info("encode PushLogout request");
 			PushLogoutRequest request = (PushLogoutRequest) msg;
 			byte[] data = request.getRequestPackage();
 			out.writeBytes(data);
 			log.info("client send PushLogout success");
 		}
-		if (msg instanceof HeartBeatRequest) {  // push heart beat protocal
+		if (msg instanceof HeartBeatRequest) {  // JPush 和 IM 心跳
 			log.info("encode HeartBeat request");
 			HeartBeatRequest request = (HeartBeatRequest) msg;
 			log.info(String.format("-- heart beat data -- command: %s -- version: %s -- rid: %s -- sid: %s -- juid: %s", 
@@ -88,7 +88,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			out.writeBytes(data);
 			log.info("client send HeartBeat success");
 		}
-		if(msg instanceof ImLoginRequestProto){  // im login 
+		if(msg instanceof ImLoginRequestProto){  // IM 登陆
 			log.info("encode IMLogin request");
 			ImLoginRequestProto req = (ImLoginRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
@@ -98,7 +98,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			out.writeBytes(data);
 			log.info("client send IMLogin success");
 		}
-		if(msg instanceof ImLogoutRequestProto){  // im logout
+		if(msg instanceof ImLogoutRequestProto){  // IM 登出
 			log.info("encode IMLogout request");
 			ImLogoutRequestProto req = (ImLogoutRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
@@ -108,7 +108,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			out.writeBytes(data);
 			log.info("client send IMLogout success");
 		}
-		if(msg instanceof ImSendSingleMsgRequestProto){  // im single message
+		if(msg instanceof ImSendSingleMsgRequestProto){  // IM 单聊消息
 			log.info("encode IMSendSingleMsg request");
 			ImSendSingleMsgRequestProto req = (ImSendSingleMsgRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
@@ -118,7 +118,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			out.writeBytes(data);
 			log.info("client send IMSendSingleMsg success");
 		}
-		if(msg instanceof ImSendGroupMsgRequestProto){  // im group message
+		if(msg instanceof ImSendGroupMsgRequestProto){  // IM 群聊消息
 			log.info("encode IMSendGroupMsg request");
 			ImSendGroupMsgRequestProto req = (ImSendGroupMsgRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
@@ -128,7 +128,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			out.writeBytes(data);
 			log.info("client send IMSendGroupMsg success");
 		}
-		if(msg instanceof ImCreateGroupRequestProto){  // im create group message
+		if(msg instanceof ImCreateGroupRequestProto){  // IM 创建群组
 			log.info("encode IMCreateGroup request");
 			ImCreateGroupRequestProto req = (ImCreateGroupRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
@@ -138,7 +138,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			out.writeBytes(data);
 			log.info("client send IMCreateGroup success");
 		}
-		if(msg instanceof ImExitGroupRequestProto){  // im exit group message
+		if(msg instanceof ImExitGroupRequestProto){  // IM 退出群组
 			log.info("encode IMExitGroup request");
 			ImExitGroupRequestProto req = (ImExitGroupRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
@@ -148,7 +148,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			out.writeBytes(data);
 			log.info("client send IMExitGroup success");
 		}
-		if(msg instanceof ImAddGroupMemberRequestProto){  // im add group members message
+		if(msg instanceof ImAddGroupMemberRequestProto){  // IM 添加群成员
 			log.info("encode IMAddGroupMember request");
 			ImAddGroupMemberRequestProto req = (ImAddGroupMemberRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
@@ -158,7 +158,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			out.writeBytes(data);
 			log.info("client send IMAddGroupMember success");
 		}
-		if(msg instanceof ImDeleteGroupMemberRequestProto){  // im delete group members message
+		if(msg instanceof ImDeleteGroupMemberRequestProto){  // IM 删除群成员
 			log.info("encode IMDeleteGroupMember request");
 			ImDeleteGroupMemberRequestProto req = (ImDeleteGroupMemberRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
@@ -168,7 +168,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			out.writeBytes(data);
 			log.info("client send IMDeleteGroupMember success");
 		}
-		if(msg instanceof ImUpdateGroupInfoRequestProto){  // im modify group info message
+		if(msg instanceof ImUpdateGroupInfoRequestProto){  // IM 修改群信息
 			log.info("encode IMUpdateGroupMember request");
 			ImUpdateGroupInfoRequestProto req = (ImUpdateGroupInfoRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
@@ -178,7 +178,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			out.writeBytes(data);
 			log.info("client send IMUpdateGroupMember success");
 		}
-		if(msg instanceof ImChatMsgSyncRequestProto){  //  返回同步消息表示已收到
+		if(msg instanceof ImChatMsgSyncRequestProto){  //  IM 消息下发反馈，表示已收到
 			log.info("encode IMRespMsgReceived request");
 			ImChatMsgSyncRequestProto req = (ImChatMsgSyncRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();
@@ -188,7 +188,7 @@ public class ImProtocalClientEncoder extends MessageToByteEncoder<Object> {
 			out.writeBytes(data);
 			log.info("client send IMRespMsgReceived success");
 		}
-		if(msg instanceof ImEventSyncRequestProto){  //  返回同步事件表示已处理
+		if(msg instanceof ImEventSyncRequestProto){  //  IM 事件下发反馈，表示已收到
 			log.info("encode IMRespEventReceived request");
 			ImEventSyncRequestProto req = (ImEventSyncRequestProto) msg;
 			Packet reqProtobuf = req.buildProtoBufProtocal();

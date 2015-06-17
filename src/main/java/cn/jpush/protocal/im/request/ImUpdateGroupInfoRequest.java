@@ -6,7 +6,10 @@ import java.io.IOException;
 import jpushim.s2b.JpushimSdk2B.Packet;
 import cn.jpush.protocal.utils.Command;
 import cn.jpush.protocal.utils.ProtocolUtil;
-
+/**
+ * JPush 更新群组信息请求协议包
+ * 详细内容参考jpush wiki文档
+ */
 public class ImUpdateGroupInfoRequest extends BaseRequest {
 	private Packet protobuf;
 	public ImUpdateGroupInfoRequest(int version, long rid, int sid, long juid, Packet protobuf) {

@@ -114,7 +114,7 @@ public class V1 {
 	/**
 	 * SDK 配置校验逻辑
 	 * 
-	 * @param client
+	 * @param client  到客户端的长连接对象
 	 * @param data  自定义Object，用来封装 JS-SDK API 请求中的数据
 	 */
 	public void config(SocketIOClient client, SdkRequestObject data) {
@@ -139,12 +139,12 @@ public class V1 {
 			/*CouchbaseClient cbClient = CouchBaseManager.getCouchbaseClientInstance("appbucket");
 			String masterSecrect_json = (String) cbClient.get(appKey);
 			Map dataMap = gson.fromJson(masterSecrect_json, HashMap.class);
-			String masterSecrect = (String) dataMap.get("apiMasterSecret"); 
+			String masterSecrect = (String) dataMap.get("apiMasterSecret");
 			log.info("couchbase get value: "+masterSecrect_json);
 			log.info("from cb get masterSecect: "+masterSecrect);
 			String _signature = Sign.getSignature(appKey, timestamp, randomStr, masterSecrect);*/
 			String _signature = Sign.getSignature(appKey, timestamp, randomStr, "054d6103823a726fc12d0466");
-			if(signature.equals(_signature)){ 
+			if(signature.equals(_signature)){
 				SdkCommonSuccessRespObject resp = new SdkCommonSuccessRespObject(V1.VERSION, id, JMessage.Method.CONFIG, "");
 				log.info(String.format("v1 config -- resp data -- %s", gson.toJson(resp)));
 				client.sendEvent(V1.DATA_AISLE, gson.toJson(resp));
@@ -175,6 +175,11 @@ public class V1 {
 		return this.jpushIMTcpClient;
 	}
 	
+	/**
+	 * 获取到 IM Server 的新的长连接
+	 * @param appKey
+	 * @return
+	 */
 	public Channel getPushChannel(String appKey){
 		log.info("v1 user build connect channel to im server");
 		jpushIMTcpClient = new JPushTcpClient(appKey);
@@ -192,11 +197,10 @@ public class V1 {
 	 * 用户登陆
 	 * 
 	 * @param client
-	 * @param data
+	 * @param data  客户端请求数据的封装对象
 	 * @throws InterruptedException
 	 */
-	public void login(SocketIOClient client, SdkRequestObject data)
-			throws InterruptedException {
+	public void login(SocketIOClient client, SdkRequestObject data) throws InterruptedException {
 		long startTime=System.currentTimeMillis();
 		String id = data.getId();
 		String appkey = data.getParams().getAppKey();
@@ -218,9 +222,9 @@ public class V1 {
 		long phrse1EndTime = System.currentTimeMillis();
 		log.info("---- phrse1 耗时 ---- "+(phrse1EndTime-phrse1StartTime));
 		
-		// 对同一用户的之前的连接做下线通知
 		long phrse2StartTime = System.currentTimeMillis();
 		SocketIOClient preClient = WebImServer.userNameToSessionCilentMap.get(appkey+":"+username);
+		// 对在浏览器侧多次登陆的同一用户的之前的连接发下线通知
 		if(preClient!=null){
 			if(!"true".equals(isReLogin)){  //  断线重连的不可下发该通知
 				if((!preClient.getSessionId().equals(client.getSessionId()))){  // 区分是否同一个连接，避免断开重新登陆的时候下发该通知
@@ -273,8 +277,10 @@ public class V1 {
 			log.error(String.format("v1 login -- get juid and password exception"));
 			return;
 		}
+		
 		long juid = Long.parseLong(String.valueOf(juidData.get("uid")));
 		String juid_password = String.valueOf(juidData.get("password"));
+		
 		pushLoginInCountDown = new CountDownLatch(1);
 		long phrse3_2EndTime = System.currentTimeMillis();
 		log.info("---- phrse3_2 耗时 ---- "+(phrse3_2EndTime-phrse3_2StartTime));
@@ -292,7 +298,7 @@ public class V1 {
 		PushLoginResponseBean pushLoginResponseBean = jpushIMTcpClient.getjPushClientHandler().getPushLoginResponseBean();
 		int sid = pushLoginResponseBean.getSid();
 		log.info(String.format("v1 login -- user: %s jpush login response -- code: %d, sid: %d", username, pushLoginResponseBean.getResponse_code(), sid));
-		if(0!=pushLoginResponseBean.getResponse_code()){
+		if(0 != pushLoginResponseBean.getResponse_code()) {
 			log.error(String.format("v1 login -- user: %s jpush login exception", username));
 			SdkCommonErrorRespObject resp = new SdkCommonErrorRespObject(V1.VERSION, id, JMessage.Method.LOGIN);
 			resp.setErrorInfo(JMessage.Error.USER_LOGIN_EXCEPTION, JMessage.Error.getErrorMessage(JMessage.Error.USER_LOGIN_EXCEPTION));
@@ -409,7 +415,7 @@ public class V1 {
 	 * @param data
 	 */
 	public void getUserInfo(SocketIOClient client, SdkRequestObject data) {
-		String id = data.getId();
+		String id = data.getId(); // 请求rid
 		String username = data.getParams().getUsername();
 		String signature = data.getParams().getSignature();
 		log.info(String.format("v1 getUserInfo -- request data -- data: %s", gson.toJson(data)));
@@ -464,7 +470,7 @@ public class V1 {
 		
 		log.info(String.format("v1 getUserInfo -- begin call sdk-api-getUserInfo"));
 		HttpResponseWrapper responseWrapper = APIProxy.getUserInfo(appKey, username, token);
-		if (responseWrapper!=null&&responseWrapper.isOK()) {
+		if (responseWrapper!=null && responseWrapper.isOK()) {
 			log.info(String.format("v1 getUserInfo -- call sdk-api-getUserInfo success"));
 			SdkUserInfoObject userInfo = new SdkUserInfoObject();
 			userInfo = gson.fromJson(responseWrapper.content, SdkUserInfoObject.class);
@@ -678,7 +684,7 @@ public class V1 {
 		} finally {
 			redisClient.returnResource(jedis);
 		}
-		
+		// msg json 封装，详情参考wiki文档
 		MsgContentBean msgContent = new MsgContentBean();
 		msgContent.setVersion(version);
 		msgContent.setTarget_type(targetType);
@@ -699,13 +705,13 @@ public class V1 {
 		msgContent.setCreate_time(StringUtils.getCreateTime());
 		msgContent.setMsg_type("image");
 		ImageMsgBody msgBody = new ImageMsgBody();
-		String filePath = FILE_STORE_PATH + fileId;
-		String mediaId = V1.getMediaId(uid);
+		String filePath = FILE_STORE_PATH + fileId; // 获取上传的图片文件在服务器临时目录的地址
+		String mediaId = V1.getMediaId(uid); 
 		Map fileInfoMap = null;
 		try {
-			String response = V1.uploadFile(mediaId, filePath);
+			String response = V1.uploadFile(mediaId, filePath); //  上传该图片文件到七牛
 			log.info(String.format("v1 sendImageMessage -- upload image file response: %s", response));
-			fileInfoMap = V1.getFileMetaInfo(mediaId, filePath);
+			fileInfoMap = V1.getFileMetaInfo(mediaId, filePath);  //  获取该图片文件的元信息，IM Message JSON 需要图片长宽等信息
 		} catch (AuthException | JSONException e) {
 			log.error(String.format("v1 sendImageMessage -- upload file or getMetaInfo exception: %s", e.getMessage()));
 		} catch (IOException e) {
@@ -758,8 +764,7 @@ public class V1 {
 	 * @param client
 	 * @param data
 	 */
-	public void respMessageReceived(SocketIOClient client,
-			SdkRequestObject data) {
+	public void respMessageReceived(SocketIOClient client, SdkRequestObject data) {
 		String id = data.getId();
 		String appKey = "";
 		String userName = "";

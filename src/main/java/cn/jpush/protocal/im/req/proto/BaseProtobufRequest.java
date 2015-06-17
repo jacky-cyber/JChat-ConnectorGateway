@@ -8,8 +8,9 @@ import cn.jpush.protocal.utils.Command;
 
 import com.google.protobuf.ByteString;
 
-/*
- * IM 协议 Protobuf 结构请求封装
+/**
+ * IM 请求 protobuf 封装
+ * protobuf 定义请参考wiki文档
  */
 public class BaseProtobufRequest {
 	private int cmd;

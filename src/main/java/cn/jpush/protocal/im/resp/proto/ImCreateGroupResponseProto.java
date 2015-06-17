@@ -7,7 +7,10 @@ import jpushim.s2b.JpushimSdk2B.CreateGroup;
 import jpushim.s2b.JpushimSdk2B.Packet;
 import jpushim.s2b.JpushimSdk2B.ProtocolBody;
 
-
+/**
+ * IM 创建群组响应 protobuf 封装
+ * 详细内容参考jpush wiki文档
+ */
 public class ImCreateGroupResponseProto extends BaseProtobufResponse {
 	private long gid;
 	public ImCreateGroupResponseProto(Packet protocol) {
@@ -19,9 +22,7 @@ public class ImCreateGroupResponseProto extends BaseProtobufResponse {
 		JpushimSdk2B.Response.Builder responseBuilder = JpushimSdk2B.Response.newBuilder();
 		responseBuilder.setCode(this.getCode());
 		responseBuilder.setMessage(ByteString.copyFromUtf8(this.getMessage()));
-		
 		JpushimSdk2B.ProtocolBody body = this.protocol.getBody();
-		
 		JpushimSdk2B.CreateGroup createGroupBean = this.protocol.getBody().getCreateGroup();
 		createGroupBean = CreateGroup.newBuilder(createGroupBean).setGid(this.gid).build();
 		body = ProtocolBody.newBuilder(body).setCreateGroup(createGroupBean).build();

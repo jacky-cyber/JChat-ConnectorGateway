@@ -9,11 +9,15 @@ import java.util.zip.Inflater;
 import cn.jpush.protocal.utils.Command;
 import cn.jpush.protocal.utils.ProtocolUtil;
 
+/**
+ * JPush 响应协议包
+ * 详细内容参考jpush wiki文档
+ */
 public class BaseResponse{
-	//  response head  
+	//  协议响应头 
 	protected int pkg_length = 0;   // 2B
 	protected int version;      // 1B
-	protected int command = Command.JPUSH_IM.COMMAND;      // 1B   
+	protected int command = Command.JPUSH_IM.COMMAND;      // 1B
 	protected long rid;         // 8B
 	protected long juid;        // 8B
 	

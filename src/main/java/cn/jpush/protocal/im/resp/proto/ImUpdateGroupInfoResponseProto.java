@@ -5,7 +5,10 @@ import com.google.protobuf.ByteString;
 import jpushim.s2b.JpushimSdk2B;
 import jpushim.s2b.JpushimSdk2B.Packet;
 import jpushim.s2b.JpushimSdk2B.ProtocolBody;
-
+/**
+ * IM 更新群组信息响应 protobuf 封装
+ * 详细内容参考jpush wiki文档
+ */
 public class ImUpdateGroupInfoResponseProto extends BaseProtobufResponse {
 	public ImUpdateGroupInfoResponseProto(Packet protocol) {
 		super(protocol);

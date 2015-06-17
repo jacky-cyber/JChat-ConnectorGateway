@@ -8,7 +8,10 @@ import cn.jpush.protocal.im.bean.LoginRequestBean;
 import cn.jpush.protocal.utils.Command;
 
 import com.google.protobuf.ByteString;
-
+/**
+ * IM 事件同步反馈请求 protobuf 封装
+ * protobuf 定义请参考wiki文档
+ */
 public class ImEventSyncRequestProto extends BaseProtobufRequest {
 	private long rid;
 	public ImEventSyncRequestProto(int cmd, int version, long uid, String appkey, long rid, int sid, long juid, 

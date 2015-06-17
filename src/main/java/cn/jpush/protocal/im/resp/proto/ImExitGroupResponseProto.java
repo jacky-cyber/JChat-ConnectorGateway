@@ -5,7 +5,10 @@ import com.google.protobuf.ByteString;
 import jpushim.s2b.JpushimSdk2B;
 import jpushim.s2b.JpushimSdk2B.Packet;
 import jpushim.s2b.JpushimSdk2B.ProtocolBody;
-
+/**
+ * IM 退出群组响应 protobuf 封装
+ * 详细内容参考jpush wiki文档
+ */
 public class ImExitGroupResponseProto extends BaseProtobufResponse {
 	public ImExitGroupResponseProto(Packet protocol) {
 		super(protocol);

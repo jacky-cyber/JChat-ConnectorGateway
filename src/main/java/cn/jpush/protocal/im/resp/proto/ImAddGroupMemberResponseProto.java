@@ -6,7 +6,10 @@ import jpushim.s2b.JpushimSdk2B;
 import jpushim.s2b.JpushimSdk2B.Packet;
 import jpushim.s2b.JpushimSdk2B.ProtocolBody;
 
-
+/**
+ * IM 添加群组成员响应 protobuf 封装
+ * 详细内容参考jpush wiki文档
+ */
 public class ImAddGroupMemberResponseProto extends BaseProtobufResponse {
 	public ImAddGroupMemberResponseProto(Packet protocol) {
 		super(protocol);

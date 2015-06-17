@@ -8,7 +8,10 @@ import java.util.zip.Inflater;
 
 import cn.jpush.protocal.utils.Command;
 import cn.jpush.protocal.utils.ProtocolUtil;
-
+/**
+ * SIS 请求协议包
+ * 详细内容参考jpush wiki文档
+ */
 public class SISRequest {
 	private String sdk_ver;
 	private String net_type;

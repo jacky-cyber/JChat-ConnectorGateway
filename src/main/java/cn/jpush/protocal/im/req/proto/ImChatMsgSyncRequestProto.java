@@ -9,6 +9,10 @@ import cn.jpush.protocal.im.bean.SendSingleMsgRequestBean;
 
 import com.google.protobuf.ByteString;
 
+/**
+ * IM 聊天消息同步反馈请求 protobuf 封装
+ * protobuf 定义请参考wiki文档
+ */
 public class ImChatMsgSyncRequestProto extends BaseProtobufRequest {
 	private long rid;
 	public ImChatMsgSyncRequestProto(int cmd, int version, long uid,
